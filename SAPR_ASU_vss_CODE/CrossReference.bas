@@ -1,44 +1,44 @@
 Attribute VB_Name = "CrossReference"
 '------------------------------------------------------------------------------------------------------------
-' Module        : CrossReference - РџРµСЂРµРєСЂРµСЃС‚РЅС‹Рµ СЃСЃС‹Р»РєРё СЌР»РµРјРµРЅС‚РѕРІ СЃС…РµРјС‹
+' Module        : CrossReference - Перекрестные ссылки элементов схемы
 ' Author        : gtfox
 ' Date          : 2020.05.17
-' Description   : РџРµСЂРµРєСЂРµСЃС‚РЅС‹Рµ СЃСЃС‹Р»РєРё СЌР»РµРјРµРЅС‚РѕРІ СЃС…РµРјС‹ Рё РёС… РѕР±РµСЃРїРµС‡РµРЅРёРµ
+' Description   : Перекрестные ссылки элементов схемы и их обеспечение
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 Option Explicit
 
 
-'РђРєС‚РёРІР°С†РёСЏ С„РѕСЂРјС‹ СЃРѕР·РґР°РЅРёСЏ СЃРІСЏР·Рё СЌР»РµРјРµРЅС‚РѕРІ СЃС…РµРјС‹
-Public Sub AddReferenceFrm(shpChild As Visio.Shape) 'РџРѕР»СѓС‡РёР»Рё С€РµР№Рї СЃ Р»РёСЃС‚Р°
+'Активация формы создания связи элементов схемы
+Public Sub AddReferenceFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReference
-    frmAddReference.Run shpChild 'РџРµСЂРµРґР°Р»Рё РµРіРѕ РІ С„РѕСЂРјСѓ
+    frmAddReference.Run shpChild 'Передали его в форму
 End Sub
 
-'РђРєС‚РёРІР°С†РёСЏ С„РѕСЂРјС‹ СЃРѕР·РґР°РЅРёСЏ СЃРІСЏР·Рё СЂР°Р·СЂС‹РІРѕРІ РїСЂРѕРІРѕРґРѕРІ
-Public Sub AddReferenceWireLinkFrm(shpChild As Visio.Shape) 'РџРѕР»СѓС‡РёР»Рё С€РµР№Рї СЃ Р»РёСЃС‚Р°
+'Активация формы создания связи разрывов проводов
+Public Sub AddReferenceWireLinkFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferenceWireLink
-    frmAddReferenceWireLink.Run shpChild 'РџРµСЂРµРґР°Р»Рё РµРіРѕ РІ С„РѕСЂРјСѓ
+    frmAddReferenceWireLink.Run shpChild 'Передали его в форму
 End Sub
 
 
 Sub AddLocThumb(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : AddLocThumb - Р”РѕР±Р°РІР»СЏРµС‚ РјРёРЅРёР°С‚СЋСЂС‹ РєРѕРЅС‚Р°РєС‚РѕРІ РїРѕРґ СЂРµР»Рµ
-                'Р’СЃС‚Р°РІР»СЏРµС‚ РїРѕРґ РєР°С‚СѓС€РєСѓ СЂРµР»Рµ РјРёРЅРёР°С‚СЋСЂС‹ РІСЃРµС… Р°РєС‚РёРІРЅС‹С… РєРѕРЅС‚Р°РєС‚РѕРІ
-                'Р’СЃС‚Р°РІР»СЏРµС‚ РїРѕРґ РєРѕРЅС‚Р°РєС‚ СЂРµР»Рµ РјРёРЅРёР°С‚СЋСЂСѓ РєР°С‚СѓС€РєРё СЂРµР»Рµ
+' Macros        : AddLocThumb - Добавляет миниатюры контактов под реле
+                'Вставляет под катушку реле миниатюры всех активных контактов
+                'Вставляет под контакт реле миниатюру катушки реле
                 
-                'Р’С‹Р·РѕРІ РјР°РєСЂРѕСЃР° РёР· РјРµРЅСЋ = CALLTHIS("CrossReference.AddLocThumb","SAPR_ASU")
+                'Вызов макроса из меню = CALLTHIS("CrossReference.AddLocThumb","SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     Dim shpThumb As Visio.Shape
     Dim vsoPage As Visio.Page
     Dim vsoMaster As Visio.Master
     Dim DeltaX As Single
     Dim DeltaY As Single
-    Dim dN As Single 'СЃРјРµС‰РµРЅРёРµ РјРёРЅРёР°С‚СЋСЂ РїРѕ РІРµСЂС‚РёРєР°Р»Рё
+    Dim dN As Single 'смещение миниатюр по вертикали
     Dim i As Integer
-    Dim n As Integer 'С‡РёСЃР»Рѕ РєРѕРЅС‚Р°РєС‚РѕРІ РІ РєР°С‚СѓС€РєРµ
+    Dim n As Integer 'число контактов в катушке
     
     DeltaX = 0.295275590551181
     DeltaY = -0.246062992125984
@@ -49,15 +49,15 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     
     
     If vsoShape.CellExistsU("User.Type", 0) Then
-        'Р’С‹СЏСЃРЅСЏРµРј РєРѕРјСѓ РЅР°РґРѕ РІСЃС‚Р°РІРёС‚СЊ РјРёРЅРёР°С‚СЋСЂС‹
+        'Выясняем кому надо вставить миниатюры
         Select Case vsoShape.Cells("User.Type").Result(0)
         
-            Case typeNO, typeNC 'РљРѕРЅС‚Р°РєС‚С‹
+            Case typeNO, typeNC 'Контакты
             
                 If vsoShape.Cells("Hyperlink.Coil.SubAddress").ResultStr(0) <> "" Then
-                    'Р’СЃС‚Р°РІР»СЏРµРј РјРёРЅРёР°С‚СЋСЂСѓ РєРѕРЅС‚Р°РєС‚Р° Thumbnail
+                    'Вставляем миниатюру контакта Thumbnail
                     Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
-                    'Р—Р°РїРѕР»РЅСЏРµРј РїРѕР»СЏ
+                    'Заполняем поля
                     shpThumb.Cells("User.LocType").FormulaU = typeCoil
                     shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!User.LocationParent"
                     shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
@@ -67,15 +67,15 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                     shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
                 End If
                 
-            Case typeCoil 'РљР°С‚СѓС€РєР° СЂРµР»Рµ
+            Case typeCoil 'Катушка реле
             
                 n = 0
-                'РџРµСЂРµР±РёСЂР°РµРј Р°РєС‚РёРІРЅС‹Рµ СЃСЃС‹Р»РєРё РЅР° РєРѕРЅС‚Р°РєС‚С‹
-                For i = 1 To vsoShape.Section(visSectionScratch).Count 'РС‰РµРј СЃС‚СЂРѕРєСѓ РІ Scratch
-                    If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'РЅРµ РїСѓСЃС‚Р°СЏ СЃС‚СЂРѕРєР°
-                        'Р’СЃС‚Р°РІР»СЏРµРј РјРёРЅРёР°С‚СЋСЂСѓ РєРѕРЅС‚Р°РєС‚Р° Thumbnail
+                'Перебираем активные ссылки на контакты
+                For i = 1 To vsoShape.Section(visSectionScratch).Count 'Ищем строку в Scratch
+                    If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'не пустая строка
+                        'Вставляем миниатюру контакта Thumbnail
                         Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
-                        'Р—Р°РїРѕР»РЅСЏРµРј РїРѕР»СЏ
+                        'Заполняем поля
                         shpThumb.Cells("User.LocType").FormulaU = vsoShape.NameU & "!Scratch.D" & i
                         shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!Scratch.C" & i
                         shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
@@ -97,14 +97,14 @@ End Sub
 
 Sub AddReference(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : AddReference - РЎРѕР·РґР°РµС‚ СЃРІСЏР·СЊ РјРµР¶РґСѓ РґРѕС‡РµСЂРЅРёРј Рё СЂРѕРґРёС‚РµР»СЊСЃРєРёРј СЌР»РµРјРµРЅС‚РѕРј
+' Macros        : AddReference - Создает связь между дочерним и родительским элементом
 
-                'РџРѕСЃР»Рµ РІС‹Р±РѕСЂР° РґРѕС‡РµСЂРЅРµРіРѕ(РєРѕРЅС‚Р°РєС‚)/СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ(РєР°С‚СѓС€РєР°) СЌР»РµРјРµРЅС‚Р° Р·Р°РїРѕР»РЅСЏРµРј РЅРµР±С…РѕРґРёРјС‹Рµ РїРѕР»СЏ РґР»СЏ РєР°Р¶РґРѕРіРѕ РёР· РЅРёС…
-                'РРјСЏ(Sheet.4), РЎС‚СЂР°РЅРёС†Р°(РЎС…РµРјР°.3), РџСѓС‚СЊ(Pages[РЎС…РµРјР°.3]!Sheet.4), РЎСЃС‹Р»РєР°(HyperLink="РЎС…РµРјР°.3/Sheet.4"),
-                'РўРёРї РєРѕРЅС‚Р°РєС‚Р°(NO/NC), РњРµСЃС‚РѕРїРѕР»РѕР¶РµРЅРёРµ(/14.E7), РќРѕРјРµСЂ РєРѕРЅС‚Р°РєС‚Р°(KL1.3)
-                'РЎСЃС‹Р»РєРё РЅР° РєРѕРЅС‚Р°РєС‚С‹ РІ РєР°С‚СѓС€РєРµ С„РѕСЂРјРёСЂСѓСЋС‚СЃСЏ С„РѕСЂРјСѓР»Р°РјРё РІ ShapeSheet
-                'РќСѓРјРµСЂР°С†РёСЏ РєРѕРЅС‚Р°РєС‚РѕРІ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєР°СЏ, С„РѕСЂРјСѓР»Р°РјРё РІ Scratch.B1-B4 РєР°С‚СѓС€РєРё
-                'РљРѕРЅС‚Р°РєС‚РѕРІ Сѓ РєР°С‚СѓС€РєРё РјРѕР¶РµС‚ Р±С‹С‚СЊ 4
+                'После выбора дочернего(контакт)/родительского(катушка) элемента заполняем небходимые поля для каждого из них
+                'Имя(Sheet.4), Страница(Схема.3), Путь(Pages[Схема.3]!Sheet.4), Ссылка(HyperLink="Схема.3/Sheet.4"),
+                'Тип контакта(NO/NC), Местоположение(/14.E7), Номер контакта(KL1.3)
+                'Ссылки на контакты в катушке формируются формулами в ShapeSheet
+                'Нумерация контактов автоматическая, формулами в Scratch.B1-B4 катушки
+                'Контактов у катушки может быть 4
 '------------------------------------------------------------------------------------------------------------
     'Dim shpParent As Visio.Shape
     Dim shpParentOld As Visio.Shape
@@ -116,8 +116,8 @@ Sub AddReference(shpChild As Visio.Shape, shpParent As Visio.Shape)
     Dim HyperLinkToParentOld As String
     Dim mstrAdrParentOld() As String
     
-    'Set shpChild = ActivePage.Shapes("Sheet.72") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
-    'Set shpParent = ActivePage.Shapes("Sheet.7") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpChild = ActivePage.Shapes("Sheet.72") 'для отладки
+    'Set shpParent = ActivePage.Shapes("Sheet.7") 'для отладки
 
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
@@ -128,18 +128,18 @@ Sub AddReference(shpChild As Visio.Shape, shpParent As Visio.Shape)
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
 
-    'РџСЂРѕРІРµСЂСЏРµРј С‚РµРєСѓС‰СѓСЋ РїСЂРёРІСЏР·РєСѓ РєРѕРЅС‚Р°РєС‚Р° Рє СЃС‚Р°СЂРѕР№ РєР°С‚СѓС€РєРµ Рё С‡РёСЃС‚РёРј РµРµ РІ СЃС‚Р°СЂРѕР№ РєР°С‚СѓС€РєРµ
+    'Проверяем текущую привязку контакта к старой катушке и чистим ее в старой катушке
     HyperLinkToParentOld = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-    If HyperLinkToParentOld <> "" Then 'Р•СЃР»Рё СЃСЃС‹Р»РєР° РµСЃС‚СЊ - Р·РЅР°С‡РёС‚ РјС‹ РїСЂРёРІСЏР·Р°РЅС‹ Рє СЂРѕРґРёС‚РµР»СЋ
-        'РќР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+    If HyperLinkToParentOld <> "" Then 'Если ссылка есть - значит мы привязаны к родителю
+        'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
         mstrAdrParentOld = Split(HyperLinkToParentOld, "/")
-        On Error GoTo netu_roditelya 'РІРґСЂСѓРі РµРіРѕ СѓР¶Рµ СѓРґР°Р»РёР»Рё Рё СЃСЃС‹Р»РєСѓ Р·Р°Р±С‹Р»Рё РїРѕС‡РёСЃС‚РёС‚СЊ
+        On Error GoTo netu_roditelya 'вдруг его уже удалили и ссылку забыли почистить
         Set shpParentOld = ActiveDocument.Pages(mstrAdrParentOld(0)).Shapes(mstrAdrParentOld(1))
-        'РС‰РµРј СЃС‚СЂРѕРєСѓ РІ Scratch РєР°С‚СѓС€РєРё(СЂРѕРґРёС‚РµР»СЏ) СЃ Р°РґСЂРµСЃРѕРј СѓРґР°Р»СЏРµРјРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р° (РґРѕС‡РµСЂРЅРµРіРѕ)
+        'Ищем строку в Scratch катушки(родителя) с адресом удаляемого контакта (дочернего)
         For i = 1 To shpParentOld.Section(visSectionScratch).Count
             If shpParentOld.CellsU("Scratch.A" & i).ResultStr(0) = HyperLinkToChild Then
-                'Р§РёСЃС‚РёРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
-                shpParentOld.CellsU("Scratch.A" & i).FormulaForceU = """""" 'РџРёС€РµРј РІ ShapeSheet РїСѓСЃС‚С‹Рµ РєР°РІС‹С‡РєРё. Р•СЃР»Рё Р·Р°РїРёСЃР°С‚СЊ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, С‚Рѕ Р±СѓРґРµС‚ NoFormula Рё РЅСѓРјРµСЂР°С†РёСЏ РєРѕРЅС‚Р°РєС‚РѕРІ СЃР»РѕРјР°РµС‚СЃСЏ
+                'Чистим родительский шейп
+                shpParentOld.CellsU("Scratch.A" & i).FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
                 shpParentOld.CellsU("Scratch.C" & i).FormulaForceU = ""
                 shpParentOld.CellsU("Scratch.D" & i).FormulaForceU = ""
                 Exit For
@@ -147,30 +147,30 @@ Sub AddReference(shpChild As Visio.Shape, shpParent As Visio.Shape)
         Next
     End If
 netu_roditelya:
-    'РџСЂРёРІСЏР·С‹РІР°РµРј РєРѕРЅС‚Р°РєС‚ Рє РЅРѕРІРѕР№ РєР°С‚СѓС€РєРµ
-    For i = 1 To shpParent.Section(visSectionScratch).Count 'РС‰РµРј РїРµСЂРІСѓСЋ РЅРµ Р·Р°РїРѕР»РЅРµРЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ РІ Scratch
+    'Привязываем контакт к новой катушке
+    For i = 1 To shpParent.Section(visSectionScratch).Count 'Ищем первую не заполненную строку в Scratch
         If shpParent.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then
-            If i = shpParent.Section(visSectionScratch).Count Then 'РџРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° Р·Р°РїРѕР»РЅРµРЅР°
-                'РЅРµС‚ СЃРІРѕР±РѕРґРЅС‹С… РјРµСЃС‚
+            If i = shpParent.Section(visSectionScratch).Count Then 'Последняя строка заполнена
+                'нет свободных мест
             End If
-        Else 'РЅР°С€Р»Рё РїРµСЂРІСѓСЋ РЅРµ Р·Р°РїРѕР»РЅРµРЅРЅСѓСЋ СЃС‚СЂРѕРєСѓ РІ Scratch
+        Else 'нашли первую не заполненную строку в Scratch
         
-            'Р—Р°РїРѕР»РЅСЏРµРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
-            shpParent.CellsU("Scratch.A" & i).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "РЎС…РµРјР°.3/Sheet.4"
-            shpParent.CellsU("Scratch.C" & i).FormulaU = AdrChild + "!User.Location"   'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Location
-            shpParent.CellsU("Scratch.D" & i).FormulaU = AdrChild + "!User.Type"  'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Type
+            'Заполняем родительский шейп
+            shpParent.CellsU("Scratch.A" & i).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
+            shpParent.CellsU("Scratch.C" & i).FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
+            shpParent.CellsU("Scratch.D" & i).FormulaU = AdrChild + "!User.Type"  'Pages[Схема.3]!Sheet.4!User.Type
             
-            'Р—Р°РїРѕР»РЅСЏРµРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
-            shpChild.Cells("Prop.AutoNum").FormulaU = True 'РџРµСЂРµРІРѕРґРёРј РІ Р°РІС‚РѕРЅСѓРјРµСЂР°С†РёСЋ
-            shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Name
-            shpChild.CellsU("User.Number").FormulaU = AdrParent + "!Scratch.B" + CStr(i) 'Pages[РЎС…РµРјР°.3]!Sheet.4!Scratch.B2
-            shpChild.CellsU("User.LocationParent").FormulaU = AdrParent + "!User.Location" 'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Location
+            'Заполняем дочерний шейп
+            shpChild.Cells("Prop.AutoNum").FormulaU = True 'Переводим в автонумерацию
+            shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
+            shpChild.CellsU("User.Number").FormulaU = AdrParent + "!Scratch.B" + CStr(i) 'Pages[Схема.3]!Sheet.4!Scratch.B2
+            shpChild.CellsU("User.LocationParent").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
             
             If shpChild.CellExistsU("HyperLink.Coil", False) = False Then
                shpChild.AddNamedRow visSectionHyperlink, "Coil", 0
-               shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkDescription).FormulaU = """РљР°С‚СѓС€РєР° ""&User.NameParent&"": ""&User.LocationParent"
+               shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkDescription).FormulaU = """Катушка ""&User.NameParent&"": ""&User.LocationParent"
             End If
-            shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "РЎС…РµРјР°.3/Sheet.4"
+            shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
             
             Exit For
         End If
@@ -180,9 +180,9 @@ End Sub
 
 Sub DeleteChild(shpChild As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : DeleteChild - РЈРґР°Р»СЏРµС‚ РґРѕС‡РµСЂРЅРёР№ СЌР»РµРјРµРЅС‚
-                'Р•СЃР»Рё РєРѕРЅС‚Р°РєС‚ РїСЂРёРІСЏР·Р°РЅ, РЅР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ, С‡РёСЃС‚РёРј РµРіРѕ РѕС‚ СѓРґР°Р»СЏРµРјРѕРіРѕ, Рё СѓРґР°Р»СЏРµРј.
-                'РЈРґР°Р»СЏРµРј РјРёРЅРёР°С‚СЋСЂСѓ РєР°С‚СѓС€РєРё, РµСЃР»Рё РѕРЅР° Р±С‹Р»Р°
+' Macros        : DeleteChild - Удаляет дочерний элемент
+                'Если контакт привязан, находим родителя, чистим его от удаляемого, и удаляем.
+                'Удаляем миниатюру катушки, если она была
 '------------------------------------------------------------------------------------------------------------
     Dim shpParent As Visio.Shape
     'Dim shpChild As Visio.Shape
@@ -197,14 +197,14 @@ Sub DeleteChild(shpChild As Visio.Shape)
     
     Set colThumb = New Collection
     
-    'Set shpChild = ActivePage.Shapes("Sheet.1") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpChild = ActivePage.Shapes("Sheet.1") 'для отладки
     
     HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
     
-    'РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РєРѕРЅС‚Р°РєС‚ РїСЂРёРІСЏР·Р°РЅ Рє РєР°С‚СѓС€РєРµ
+    'Проверяем что контакт привязан к катушке
     If HyperLinkToParent <> "" Then
     
-        'РќР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+        'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
         mstrAdrParent = Split(HyperLinkToParent, "/")
         Set shpParent = ActiveDocument.Pages(mstrAdrParent(0)).Shapes(mstrAdrParent(1))
     
@@ -212,33 +212,33 @@ Sub DeleteChild(shpChild As Visio.Shape)
         NameIdChild = shpChild.NameID
         HyperLinkToChild = PageChild + "/" + NameIdChild
         
-        'РС‰РµРј СЃС‚СЂРѕРєСѓ РІ Scratch РєР°С‚СѓС€РєРё(СЂРѕРґРёС‚РµР»СЏ) СЃ Р°РґСЂРµСЃРѕРј СѓРґР°Р»СЏРµРјРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р° (РґРѕС‡РµСЂРЅРµРіРѕ)
+        'Ищем строку в Scratch катушки(родителя) с адресом удаляемого контакта (дочернего)
         For i = 1 To shpParent.Section(visSectionScratch).Count
             If shpParent.CellsU("Scratch.A" & i).ResultStr(0) <> HyperLinkToChild Then
-                If i = shpParent.Section(visSectionScratch).Count Then 'РџРѕСЃР»РµРґРЅСЏСЏ СЃС‚СЂРѕРєР° РЅРµ СЃРѕРѕС‚РІРµС‚СЃС‚РІСѓРµС‚
-                    'РЅРµ РЅР°С€Р»Рё РєРѕРЅС‚Р°РєС‚ РІ РєР°С‚СѓС€РєРµ
+                If i = shpParent.Section(visSectionScratch).Count Then 'Последняя строка не соответствует
+                    'не нашли контакт в катушке
                 End If
-            Else 'РЅР°С€Р»Рё РІ Scratch Р°РґСЂРµСЃ СѓРґР°Р»СЏРµРјРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р°
+            Else 'нашли в Scratch адрес удаляемого контакта
             
-                'Р§РёСЃС‚РёРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
-                shpParent.CellsU("Scratch.A" & i).FormulaForceU = """""" 'РџРёС€РµРј РІ ShapeSheet РїСѓСЃС‚С‹Рµ РєР°РІС‹С‡РєРё. Р•СЃР»Рё Р·Р°РїРёСЃР°С‚СЊ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, С‚Рѕ Р±СѓРґРµС‚ NoFormula Рё РЅСѓРјРµСЂР°С†РёСЏ РєРѕРЅС‚Р°РєС‚РѕРІ СЃР»РѕРјР°РµС‚СЃСЏ
+                'Чистим родительский шейп
+                shpParent.CellsU("Scratch.A" & i).FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
                 shpParent.CellsU("Scratch.C" & i).FormulaForceU = ""
                 shpParent.CellsU("Scratch.D" & i).FormulaForceU = ""
                 
-                'РЈРґР°Р»СЏРµРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+                'Удаляем дочерний шейп
                 'shpChild.Delete
                 
                 Exit For
             End If
         Next
     Else
-        'РЈРґР°Р»СЏРµРј РєРѕРЅС‚Р°РєС‚ РЅРµ СЃРІСЏР·Р°РЅРЅС‹Р№ СЃ РєР°С‚СѓС€РєРѕР№  - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё С‚.Рє. РјР°РєСЂРѕСЃ РІС‹Р·С‹РІР°РµС‚СЃСЏ РІ СЃРѕР±С‹С‚РёРё vsoPagesEvent_BeforeShapeDelete
+        'Удаляем контакт не связанный с катушкой  - автоматически т.к. макрос вызывается в событии vsoPagesEvent_BeforeShapeDelete
         'shpChild.Delete
         
         
     End If
     
-    'РЎРѕР±РёСЂР°РµРј РјРёРЅРёР°С‚СЋСЂС‹ РєРѕРЅС‚Р°РєС‚РѕРІ, РµСЃР»Рё РѕРЅРё Р±С‹Р»Рё, РІ РєРѕР»Р»РµРєС†РёСЋ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ
+    'Собираем миниатюры контактов, если они были, в коллекцию для удаления
     For Each vsoShape In ActivePage.Shapes
         If vsoShape.CellExistsU("User.Type", 0) Then
             If vsoShape.Cells("User.Type").Result(0) = typeThumb Then
@@ -249,7 +249,7 @@ Sub DeleteChild(shpChild As Visio.Shape)
             End If
         End If
     Next
-    'РЈРґР°Р»СЏРµРј РЅР°Р№РґРµРЅРЅС‹Рµ РєРѕРЅС‚Р°РєС‚С‹
+    'Удаляем найденные контакты
     For Each shpThumb In colThumb
         shpThumb.Delete
     Next
@@ -259,9 +259,9 @@ End Sub
 
 Sub DeleteParent(shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : DeleteParent - РЈРґР°Р»СЏРµС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ СЌР»РµРјРµРЅС‚
-                'РЎРјРѕС‚СЂРёРј СЃСЃС‹Р»РєРё РІ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРј, РёРґРµРј РїРѕ РЅРёРј Рё С‡РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёРµ, РїРѕС‚РѕРј СѓРґР°Р»СЏРµРј СЂРѕРґРёС‚РµР»СЏ.
-                'РЈРґР°Р»СЏРµРј РјРёРЅРёР°С‚СЋСЂС‹ РєРѕРЅС‚Р°РєС‚РѕРІ, РµСЃР»Рё РѕРЅРё Р±С‹Р»Рё
+' Macros        : DeleteParent - Удаляет родительский элемент
+                'Смотрим ссылки в родительском, идем по ним и чистим дочерние, потом удаляем родителя.
+                'Удаляем миниатюры контактов, если они были
 '------------------------------------------------------------------------------------------------------------
     'Dim shpParent As Visio.Shape
     Dim shpChild As Visio.Shape
@@ -277,26 +277,26 @@ Sub DeleteParent(shpParent As Visio.Shape)
     
     Set colThumb = New Collection
     
-    'Set shpParent = ActivePage.Shapes("Sheet.6") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpParent = ActivePage.Shapes("Sheet.6") 'для отладки
     
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
-    LinkPlaceParent = PageParent + "/" + NameIdParent 'Р”Р»СЏ РїСЂРѕРІРµСЂРєРё СЃСЃС‹Р»РєРё РІ РґРѕС‡РµСЂРЅРµРј
+    LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
 
-    'РС‰РµРј СЃС‚СЂРѕРєРё РІ Scratch РєР°С‚СѓС€РєРё(СЂРѕРґРёС‚РµР»СЏ) СЃ Р°РґСЂРµСЃР°РјРё СѓРґР°Р»СЏРµРјС‹С… РєРѕРЅС‚Р°РєС‚РѕРІ (РґРѕС‡РµСЂРЅРёС…)
+    'Ищем строки в Scratch катушки(родителя) с адресами удаляемых контактов (дочерних)
     For i = 1 To shpParent.Section(visSectionScratch).Count
         HyperLinkToChild = shpParent.CellsU("Scratch.A" & i).ResultStr(0)
-        If HyperLinkToChild <> "" Then 'РЅР°С€Р»Рё РІ Scratch Р°РґСЂРµСЃ СѓРґР°Р»СЏРµРјРѕРіРѕ РєРѕРЅС‚Р°РєС‚Р°
+        If HyperLinkToChild <> "" Then 'нашли в Scratch адрес удаляемого контакта
             
-            'РќР°С…РѕРґРёРј РєРѕРЅС‚Р°РєС‚ СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+            'Находим контакт разбивая HyperLink на имя страницы и имя шейпа
             mstrAdrChild = Split(HyperLinkToChild, "/")
             Set shpChild = ActiveDocument.Pages(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
-            'Р’ РєРѕРЅС‚Р°РєС‚Рµ РЅР°С…РѕРґРёРј СЃСЃС‹Р»РєСѓ РЅР° РєР°С‚СѓС€РєСѓ
+            'В контакте находим ссылку на катушку
             HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
             
-            'РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РєРѕРЅС‚Р°РєС‚ РїСЂРёРІСЏР·Р°РЅ РёРјРµРЅРЅРѕ Рє РЅР°С€РµР№ РєР°С‚СѓС€РєРµ
+            'Проверяем что контакт привязан именно к нашей катушке
             If HyperLinkToParent = LinkPlaceParent Then
-                'Р§РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+                'Чистим дочерний шейп
                 shpChild.CellsU("User.NameParent").FormulaU = ""
                 shpChild.CellsU("User.Number").FormulaU = ""
                 shpChild.CellsU("User.LocationParent").FormulaU = ""
@@ -305,10 +305,10 @@ Sub DeleteParent(shpParent As Visio.Shape)
         End If
     Next
     
-    'РџРѕС‡РёСЃС‚РёР»Рё РІСЃРµ РґРѕС‡РµСЂРЅРёРµ. РЈРґР°Р»СЏРµРј СЂРѕРґРёС‚РµР»СЏ. - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё С‚.Рє. РјР°РєСЂРѕСЃ РІС‹Р·С‹РІР°РµС‚СЃСЏ РІ СЃРѕР±С‹С‚РёРё vsoPagesEvent_BeforeShapeDelete
+    'Почистили все дочерние. Удаляем родителя. - автоматически т.к. макрос вызывается в событии vsoPagesEvent_BeforeShapeDelete
     'shpParent.Delete
     
-    'РЎРѕР±РёСЂР°РµРј РјРёРЅРёР°С‚СЋСЂС‹ РєРѕРЅС‚Р°РєС‚РѕРІ, РµСЃР»Рё РѕРЅРё Р±С‹Р»Рё, РІ РєРѕР»Р»РµРєС†РёСЋ РґР»СЏ СѓРґР°Р»РµРЅРёСЏ
+    'Собираем миниатюры контактов, если они были, в коллекцию для удаления
     For Each vsoShape In ActivePage.Shapes
         If vsoShape.CellExistsU("User.Type", 0) Then
             If vsoShape.Cells("User.Type").Result(0) = typeThumb Then
@@ -319,7 +319,7 @@ Sub DeleteParent(shpParent As Visio.Shape)
             End If
         End If
     Next
-    'РЈРґР°Р»СЏРµРј РЅР°Р№РґРµРЅРЅС‹Рµ РєРѕРЅС‚Р°РєС‚С‹
+    'Удаляем найденные контакты
     For Each shpThumb In colThumb
         shpThumb.Delete
     Next
@@ -329,10 +329,10 @@ End Sub
 
 'Sub ClearReferenceEvent(vsoShapeEvent As Visio.Shape)
 ''------------------------------------------------------------------------------------------------------------
-'' Macros        : ClearReferenceEvent - Р§РёСЃС‚РёС‚ РґРѕС‡РµСЂРЅРёР№ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё
-'                'Р§РёСЃС‚РёРј СЃСЃС‹Р»РєРё РІ РґРѕС‡РµСЂРЅРµРј РїСЂРё РµРіРѕ РєРѕРїРёСЂРѕРІР°РЅРёРё.
-'                'Р’ EventDrop РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С„РѕСЂРјСѓР»Р° = CALLTHIS("ThisDocument.ClearReferenceEvent")
-'                'Р­С‚РѕС‚ РјР°РєСЂРѕСЃ СЂР°СЃРїРѕР»РѕР¶РµРЅ РІ ThisDocument
+'' Macros        : ClearReferenceEvent - Чистит дочерний при копировании
+'                'Чистим ссылки в дочернем при его копировании.
+'                'В EventDrop должна быть формула = CALLTHIS("ThisDocument.ClearReferenceEvent")
+'                'Этот макрос расположен в ThisDocument
 ''------------------------------------------------------------------------------------------------------------
 '    Set vsoWindowEvent = ActiveWindow
 '    Set vsoShapePaste = vsoShapeEvent
@@ -342,12 +342,12 @@ End Sub
 
 Sub ClearReference(shpChild As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : ClearReference - Р§РёСЃС‚РёС‚ РґРѕС‡РµСЂРЅРёР№ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё
-                'Р§РёСЃС‚РёРј СЃСЃС‹Р»РєРё РІ РґРѕС‡РµСЂРЅРµРј РїСЂРё РµРіРѕ РєРѕРїРёСЂРѕРІР°РЅРёРё.
-                'РљРѕРіРґР° РїСЂРѕРёСЃС…РѕРґРёС‚ РјР°СЃСЃРѕРІР°СЏ РІСЃС‚Р°РІРєР° РЅРµ РїСЂРёРјРµРЅСЏРµС‚СЃСЏ РїСЂРёРІСЏР·РєР° Рє РєСѓСЂСЃРѕСЂСѓ
-                'Р’ EventMultiDrop РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С„РѕСЂРјСѓР»Р° = CALLTHIS("CrossReference.ClearReference", "SAPR_ASU")
+' Macros        : ClearReference - Чистит дочерний при копировании
+                'Чистим ссылки в дочернем при его копировании.
+                'Когда происходит массовая вставка не применяется привязка к курсору
+                'В EventMultiDrop должна быть формула = CALLTHIS("CrossReference.ClearReference", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
-    'Р§РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+    'Чистим дочерний шейп
     shpChild.CellsU("User.NameParent").FormulaForceU = ""
     shpChild.CellsU("User.Number").FormulaForceU = ""
     shpChild.CellsU("User.LocationParent").FormulaForceU = ""
@@ -357,25 +357,25 @@ End Sub
 
 Sub GoHyperLink(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : GoHyperLink - РџРµСЂРµС…РѕРґРёС‚ РїРѕ СЃСЃС‹Р»РєРµ РІ СЂР°Р·СЂС‹РІРµ РїСЂРѕРІРѕРґР°
-                'РџРµСЂРµС…РѕРґРёС‚ РїРѕ СЃСЃС‹Р»РєРµ РІ СЂР°Р·СЂС‹РІРµ РїСЂРѕРІРѕРґР° РїРѕ РґРІРѕР№РЅРѕРјСѓ РєР»РёРєСѓ
+' Macros        : GoHyperLink - Переходит по ссылке в разрыве провода
+                'Переходит по ссылке в разрыве провода по двойному клику
                 
-                'Р’С‹Р·РѕРІ РјР°РєСЂРѕСЃР° РІ EventDblClick  =CALLTHIS("CrossReference.GoHyperLink","SAPR_ASU")
+                'Вызов макроса в EventDblClick  =CALLTHIS("CrossReference.GoHyperLink","SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     Dim shpTarget As Visio.Shape
     Dim HyperLinkToTarget As String
     Dim mstrAdrTarget() As String
-'    Dim pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Р”Р»СЏ СЃРѕС…СЂР°РЅРµРЅРёСЏ РІРёРґР° РѕРєРЅР°
+'    Dim pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна
     
-'    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'РЎРѕС…СЂР°РЅСЏРµРј РІРёРґ РѕРєРЅР°
+'    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна
 
-    'РќР°С…РѕРґРёРј С€РµР№Рї-С†РµР»СЊ РґР»СЏ РїРѕСЃР»РµРґСѓСЋС‰РµРіРѕ РІС‹РґРµР»РµРЅРёСЏ
+    'Находим шейп-цель для последующего выделения
     HyperLinkToTarget = vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
     If HyperLinkToTarget <> "" Then
         mstrAdrTarget = Split(HyperLinkToTarget, "/")
         On Error GoTo netu_celi
         Set shpTarget = ActiveDocument.Pages(mstrAdrTarget(0)).Shapes(mstrAdrTarget(1))
-        'РџРµСЂРµС…РѕРґРёРј РїРѕ СЃСЃС‹Р»РєРµ
+        'Переходим по ссылке
         vsoShape.Hyperlinks("1").Follow
         ActiveWindow.DeselectAll
 '        ActiveWindow.SetViewRect shpTarget.Cells("PinX") - pinWidth / 2, shpTarget.Cells("PinY") + pinHeight / 2, pinWidth, pinHeight
@@ -387,11 +387,11 @@ End Sub
 
 Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : AddReferenceWireLink - РЎРѕР·РґР°РµС‚ СЃРІСЏР·СЊ РјРµР¶РґСѓ С€РµР№РїР°РјРё СЂР°Р·СЂС‹РІРѕРІ РїСЂРѕРІРѕРґРѕРІ
+' Macros        : AddReferenceWireLink - Создает связь между шейпами разрывов проводов
 
-                'РџРѕСЃР»Рµ РІС‹Р±РѕСЂР° РґРѕС‡РµСЂРЅРµРіРѕ/СЂРѕРґРёС‚РµР»СЊСЃРєРѕРіРѕ СЌР»РµРјРµРЅС‚Р° Р·Р°РїРѕР»РЅСЏРµРј РЅРµР±С…РѕРґРёРјС‹Рµ РїРѕР»СЏ РґР»СЏ РєР°Р¶РґРѕРіРѕ РёР· РЅРёС…
-                'РќРѕРјРµСЂ РїСЂРѕРІРѕРґР° Prop.Number(5), РќР°Р·РІР°РЅРёРµ РїСЂРѕРІРѕРґР° Prop.Name("24V"),РњРµСЃС‚РѕРїРѕР»РѕР¶РµРЅРёРµ User.LocLink (/14.E7), РЎСЃС‹Р»РєР°(HyperLink="РЎС…РµРјР°.3/Sheet.4"),
-                'РЈ РѕРґРЅРѕРіРѕ СЂРѕРґРёС‚РµР»СЏ РјРѕР¶РµС‚ Р±С‹С‚СЊ Рё РґРѕС‡РµСЂРЅРёР№ (СЃРІСЏР·СЊ 1:1)
+                'После выбора дочернего/родительского элемента заполняем небходимые поля для каждого из них
+                'Номер провода Prop.Number(5), Название провода Prop.Name("24V"),Местоположение User.LocLink (/14.E7), Ссылка(HyperLink="Схема.3/Sheet.4"),
+                'У одного родителя может быть и дочерний (связь 1:1)
 '------------------------------------------------------------------------------------------------------------
     'Dim shpParent As Visio.Shape
     Dim shpParentOld As Visio.Shape
@@ -406,8 +406,8 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     Dim HyperLinkToChildOld As String
     Dim mstrAdrChildOld() As String
     
-    'Set shpChild = ActivePage.Shapes("Sheet.72") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
-    'Set shpParent = ActivePage.Shapes("Sheet.7") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpChild = ActivePage.Shapes("Sheet.72") 'для отладки
+    'Set shpParent = ActivePage.Shapes("Sheet.7") 'для отладки
 
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
@@ -418,29 +418,29 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
 
-    'РџСЂРѕРІРµСЂСЏРµРј С‚РµРєСѓС‰СѓСЋ РїСЂРёРІСЏР·РєСѓ СЂР°Р·СЂС‹РІР° РїСЂРѕРІРѕРґР°(РґРѕС‡РµСЂРЅРµРіРѕ) Рє СЃС‚Р°СЂРѕРјСѓ СЂР°Р·СЂС‹РІСѓ(СЂРѕРґРёР»СЊСЃРєРѕРјСѓ) Рё С‡РёСЃС‚РёРј РµРіРѕ РІ СЃС‚Р°СЂРѕРј СЂР°Р·СЂС‹РІРµ.
+    'Проверяем текущую привязку разрыва провода(дочернего) к старому разрыву(родильскому) и чистим его в старом разрыве.
     
-    'Рђ РµС‰Рµ РІ СЃС‚Р°СЂРѕРј СЂР°СЂС‹РІРµ Р±С‹Р»Р° РІС‚РѕСЂР°СЏ РїРѕР»РѕРІРёРЅРєР° - СЃС‚Р°СЂС‹Р№ РґРѕС‡РµСЂРЅРёР№. Р•РіРѕ С‚РѕР¶Рµ С‡РёСЃС‚РёРј.
+    'А еще в старом рарыве была вторая половинка - старый дочерний. Его тоже чистим.
     
     HyperLinkToParentOld = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-    If HyperLinkToParentOld <> "" Then 'Р•СЃР»Рё СЃСЃС‹Р»РєР° РµСЃС‚СЊ - Р·РЅР°С‡РёС‚ РјС‹ РїСЂРёРІСЏР·Р°РЅС‹ Рє СЂРѕРґРёС‚РµР»СЋ
-        'РќР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+    If HyperLinkToParentOld <> "" Then 'Если ссылка есть - значит мы привязаны к родителю
+        'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
         mstrAdrParentOld = Split(HyperLinkToParentOld, "/")
-        On Error GoTo netu_roditelya 'РІРґСЂСѓРі РµРіРѕ СѓР¶Рµ СѓРґР°Р»РёР»Рё Рё СЃСЃС‹Р»РєСѓ Р·Р°Р±С‹Р»Рё РїРѕС‡РёСЃС‚РёС‚СЊ
+        On Error GoTo netu_roditelya 'вдруг его уже удалили и ссылку забыли почистить
         Set shpParentOld = ActiveDocument.Pages(mstrAdrParentOld(0)).Shapes(mstrAdrParentOld(1))
-        'Р§РёСЃС‚РёРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
+        'Чистим родительский шейп
         shpParentOld.CellsU("User.LocLink").FormulaU = """"""
-        shpParentOld.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'РџРёС€РµРј РІ ShapeSheet РїСѓСЃС‚С‹Рµ РєР°РІС‹С‡РєРё. Р•СЃР»Рё Р·Р°РїРёСЃР°С‚СЊ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, С‚Рѕ Р±СѓРґРµС‚ NoFormula Рё РЅСѓРјРµСЂР°С†РёСЏ РєРѕРЅС‚Р°РєС‚РѕРІ СЃР»РѕРјР°РµС‚СЃСЏ
+        shpParentOld.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
    
         
-        'РќР°С…РѕРґРёРј РїРѕРґРєР»СЋС‡РµРЅРЅС‹Р№ Рє РЅРѕРІРѕРјСѓ СЂРѕРґРёС‚РµР»СЋ РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї (РµСЃР»Рё РѕРЅ РµСЃС‚СЊ)
+        'Находим подключенный к новому родителю дочерний шейп (если он есть)
         HyperLinkToChildOld = shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
         If HyperLinkToChildOld <> "" Then
             mstrAdrChildOld = Split(HyperLinkToChildOld, "/")
-            On Error GoTo netu_dochernego 'РІРґСЂСѓРі РµРіРѕ СѓР¶Рµ СѓРґР°Р»РёР»Рё Рё СЃСЃС‹Р»РєСѓ Р·Р°Р±С‹Р»Рё РїРѕС‡РёСЃС‚РёС‚СЊ
+            On Error GoTo netu_dochernego 'вдруг его уже удалили и ссылку забыли почистить
             Set shpChildOld = ActiveDocument.Pages(mstrAdrChildOld(0)).Shapes(mstrAdrChildOld(1))
                 
-            'Р§РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+            'Чистим дочерний шейп
             shpChildOld.CellsU("Prop.Number").FormulaU = ""
             shpChildOld.CellsU("Prop.Name").FormulaU = """"""
             shpChildOld.CellsU("User.LocLink").FormulaU = """"""
@@ -451,25 +451,25 @@ netu_dochernego:
  End If
 netu_roditelya:
 
-    'РџСЂРёРІСЏР·С‹РІР°РµРјСЃСЏ Рє РЅРѕРІРѕРјСѓ СЂР°Р·СЂС‹РІСѓ РїСЂРѕРІРѕРґР°
+    'Привязываемся к новому разрыву провода
     
-    'Р—Р°РїРѕР»РЅСЏРµРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
-    shpParent.CellsU("User.LocLink").FormulaU = AdrChild + "!User.Location"  'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Location
-    shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "РЎС…РµРјР°.3/Sheet.4"
+    'Заполняем родительский шейп
+    shpParent.CellsU("User.LocLink").FormulaU = AdrChild + "!User.Location"  'Pages[Схема.3]!Sheet.4!User.Location
+    shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
     
-    'Р—Р°РїРѕР»РЅСЏРµРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+    'Заполняем дочерний шейп
     shpChild.CellsU("Prop.Number").FormulaU = AdrParent + "!Prop.Number"
     shpChild.CellsU("Prop.Name").FormulaU = AdrParent + "!Prop.Name"
-    shpChild.CellsU("User.LocLink").FormulaU = AdrParent + "!User.Location" 'Pages[РЎС…РµРјР°.3]!Sheet.4!User.Location
-    shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "РЎС…РµРјР°.3/Sheet.4"
+    shpChild.CellsU("User.LocLink").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+    shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
 
 
 End Sub
 
 Sub DeleteChildWireLink(shpChild As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : DeleteChildWireLink - РЈРґР°Р»СЏРµС‚ РґРѕС‡РµСЂРЅРёР№ СЌР»РµРјРµРЅС‚
-                'Р•СЃР»Рё СЂР°Р·СЂС‹РІ РїСЂРѕРІРѕРґР° РїСЂРёРІСЏР·Р°РЅ, РЅР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ, С‡РёСЃС‚РёРј РµРіРѕ РѕС‚ СѓРґР°Р»СЏРµРјРѕРіРѕ, Рё СѓРґР°Р»СЏРµРј.
+' Macros        : DeleteChildWireLink - Удаляет дочерний элемент
+                'Если разрыв провода привязан, находим родителя, чистим его от удаляемого, и удаляем.
 '------------------------------------------------------------------------------------------------------------
     Dim shpParent As Visio.Shape
     'Dim shpChild As Visio.Shape
@@ -478,32 +478,32 @@ Sub DeleteChildWireLink(shpChild As Visio.Shape)
     Dim HyperLinkToParent As String
     Dim i As Integer
     
-    'Set shpChild = ActivePage.Shapes("Sheet.1") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpChild = ActivePage.Shapes("Sheet.1") 'для отладки
     
     HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
     
-    'РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ СЂР°Р·СЂС‹РІ РїСЂРѕРІРѕРґР° РїСЂРёРІСЏР·Р°РЅ СЂРѕРґРёС‚РµР»СЋ
+    'Проверяем что разрыв провода привязан родителю
     If HyperLinkToParent <> "" Then
     
-        'РќР°С…РѕРґРёРј СЂРѕРґРёС‚РµР»СЏ СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+        'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
         mstrAdrParent = Split(HyperLinkToParent, "/")
-        On Error GoTo netu_roditelya 'РІРґСЂСѓРі РµРіРѕ СѓР¶Рµ СѓРґР°Р»РёР»Рё Рё СЃСЃС‹Р»РєСѓ Р·Р°Р±С‹Р»Рё РїРѕС‡РёСЃС‚РёС‚СЊ
+        On Error GoTo netu_roditelya 'вдруг его уже удалили и ссылку забыли почистить
         Set shpParent = ActiveDocument.Pages(mstrAdrParent(0)).Shapes(mstrAdrParent(1))
             
-        'Р§РёСЃС‚РёРј СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ С€РµР№Рї
+        'Чистим родительский шейп
         shpParent.CellsU("User.LocLink").FormulaU = """"""
-        shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'РџРёС€РµРј РІ ShapeSheet РїСѓСЃС‚С‹Рµ РєР°РІС‹С‡РєРё. Р•СЃР»Рё Р·Р°РїРёСЃР°С‚СЊ РїСѓСЃС‚СѓСЋ СЃС‚СЂРѕРєСѓ, С‚Рѕ Р±СѓРґРµС‚ NoFormula Рё РЅСѓРјРµСЂР°С†РёСЏ РєРѕРЅС‚Р°РєС‚РѕРІ СЃР»РѕРјР°РµС‚СЃСЏ
+        shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     
     End If
     
 netu_roditelya:
-    'РЈРґР°Р»СЏРµРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё С‚.Рє. РјР°РєСЂРѕСЃ РІС‹Р·С‹РІР°РµС‚СЃСЏ РІ СЃРѕР±С‹С‚РёРё vsoPagesEvent_BeforeShapeDelete
+    'Удаляем дочерний шейп - автоматически т.к. макрос вызывается в событии vsoPagesEvent_BeforeShapeDelete
 End Sub
 
 Sub DeleteParentWireLink(shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : DeleteParentWireLink - РЈРґР°Р»СЏРµС‚ СЂРѕРґРёС‚РµР»СЊСЃРєРёР№ СЌР»РµРјРµРЅС‚
-                'РЎРјРѕС‚СЂРёРј СЃСЃС‹Р»РєРё РІ СЂРѕРґРёС‚РµР»СЊСЃРєРѕРј, РёРґРµРј РїРѕ РЅРёРј Рё С‡РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёРµ, РїРѕС‚РѕРј СѓРґР°Р»СЏРµРј СЂРѕРґРёС‚РµР»СЏ.
+' Macros        : DeleteParentWireLink - Удаляет родительский элемент
+                'Смотрим ссылки в родительском, идем по ним и чистим дочерние, потом удаляем родителя.
 '------------------------------------------------------------------------------------------------------------
     'Dim shpParent As Visio.Shape
     Dim shpChild As Visio.Shape
@@ -515,26 +515,26 @@ Sub DeleteParentWireLink(shpParent As Visio.Shape)
     Dim PageParent, NameIdParent As String
     Dim i As Integer
     
-    'Set shpParent = ActivePage.Shapes("Sheet.6") 'РґР»СЏ РѕС‚Р»Р°РґРєРё
+    'Set shpParent = ActivePage.Shapes("Sheet.6") 'для отладки
     
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
-    LinkPlaceParent = PageParent + "/" + NameIdParent 'Р”Р»СЏ РїСЂРѕРІРµСЂРєРё СЃСЃС‹Р»РєРё РІ РґРѕС‡РµСЂРЅРµРј
+    LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
     
-        'РќР°С…РѕРґРёРј РїРѕРґРєР»СЋС‡РµРЅРЅС‹Р№ РґРѕС‡РµСЂРЅРёР№ (С‡РµСЂРµР· HyperLink)
+        'Находим подключенный дочерний (через HyperLink)
         HyperLinkToChild = shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-        If HyperLinkToChild <> "" Then 'РЅР°С€Р»Рё Р°РґСЂРµСЃ РѕС‡РёС‰Р°РµРјРѕРіРѕ
+        If HyperLinkToChild <> "" Then 'нашли адрес очищаемого
             
-            'РќР°С…РѕРґРёРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї СЂР°Р·Р±РёРІР°СЏ HyperLink РЅР° РёРјСЏ СЃС‚СЂР°РЅРёС†С‹ Рё РёРјСЏ С€РµР№РїР°
+            'Находим дочерний шейп разбивая HyperLink на имя страницы и имя шейпа
             mstrAdrChild = Split(HyperLinkToChild, "/")
-            On Error GoTo netu_dochernego 'РІРґСЂСѓРі РµРіРѕ СѓР¶Рµ СѓРґР°Р»РёР»Рё Рё СЃСЃС‹Р»РєСѓ Р·Р°Р±С‹Р»Рё РїРѕС‡РёСЃС‚РёС‚СЊ
+            On Error GoTo netu_dochernego 'вдруг его уже удалили и ссылку забыли почистить
             Set shpChild = ActiveDocument.Pages(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
-            'Р’ РєРѕРЅС‚Р°РєС‚Рµ РЅР°С…РѕРґРёРј СЃСЃС‹Р»РєСѓ РЅР° РєР°С‚СѓС€РєСѓ
+            'В контакте находим ссылку на катушку
             HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
             
-            'РџСЂРѕРІРµСЂСЏРµРј С‡С‚Рѕ РєРѕРЅС‚Р°РєС‚ РїСЂРёРІСЏР·Р°РЅ РёРјРµРЅРЅРѕ Рє РЅР°С€РµР№ РєР°С‚СѓС€РєРµ
+            'Проверяем что контакт привязан именно к нашей катушке
             If HyperLinkToParent = LinkPlaceParent Then
-                'Р§РёСЃС‚РёРј РґРѕС‡РµСЂРЅРёР№ С€РµР№Рї
+                'Чистим дочерний шейп
                 shpChild.CellsU("Prop.Number").FormulaU = ""
                 shpChild.CellsU("Prop.Name").FormulaU = """"""
                 shpChild.CellsU("User.LocLink").FormulaU = """"""
@@ -543,17 +543,17 @@ Sub DeleteParentWireLink(shpParent As Visio.Shape)
         End If
     
 netu_dochernego:
-'РџРѕС‡РёСЃС‚РёР»Рё РІСЃРµ РґРѕС‡РµСЂРЅРёРµ. РЈРґР°Р»СЏРµРј СЂРѕРґРёС‚РµР»СЏ. - Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё С‚.Рє. РјР°РєСЂРѕСЃ РІС‹Р·С‹РІР°РµС‚СЃСЏ РІ СЃРѕР±С‹С‚РёРё vsoPagesEvent_BeforeShapeDelete
+'Почистили все дочерние. Удаляем родителя. - автоматически т.к. макрос вызывается в событии vsoPagesEvent_BeforeShapeDelete
 
     
 End Sub
 
 'Sub ClearReferenceWireLinkEvent(vsoShapeEvent As Visio.Shape)
 ''------------------------------------------------------------------------------------------------------------
-'' Macros        : ClearReferenceWireLinkEvent - Р§РёСЃС‚РёС‚ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё
-'                'Р§РёСЃС‚РёРј СЃСЃС‹Р»РєРё РІ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё СЂР°Р·СЂС‹РІР° РїСЂРѕРІРѕРґР°.
-'                'Р’ EventDrop РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С„РѕСЂРјСѓР»Р° = CALLTHIS("ThisDocument.ClearReferenceWireLinkEvent")
-'                'Р­С‚РѕС‚ РјР°РєСЂРѕСЃ СЂР°СЃРїРѕР»РѕР¶РµРЅ РІ ThisDocument
+'' Macros        : ClearReferenceWireLinkEvent - Чистит при копировании
+'                'Чистим ссылки в при копировании разрыва провода.
+'                'В EventDrop должна быть формула = CALLTHIS("ThisDocument.ClearReferenceWireLinkEvent")
+'                'Этот макрос расположен в ThisDocument
 ''------------------------------------------------------------------------------------------------------------
 '    Set vsoWindowEvent = ActiveWindow
 '    Set vsoShapePaste = vsoShapeEvent
@@ -563,12 +563,12 @@ End Sub
 
 Sub ClearReferenceWireLink(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : ClearReferenceWireLink - Р§РёСЃС‚РёС‚ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё
-                'Р§РёСЃС‚РёРј СЃСЃС‹Р»РєРё РІ РїСЂРё РєРѕРїРёСЂРѕРІР°РЅРёРё СЂР°Р·СЂС‹РІР° РїСЂРѕРІРѕРґР°.
-                'РљРѕРіРґР° РїСЂРѕРёСЃС…РѕРґРёС‚ РјР°СЃСЃРѕРІР°СЏ РІСЃС‚Р°РІРєР° РЅРµ РїСЂРёРјРµРЅСЏРµС‚СЃСЏ РїСЂРёРІСЏР·РєР° Рє РєСѓСЂСЃРѕСЂСѓ
-                'Р’ EventMultiDrop РґРѕР»Р¶РЅР° Р±С‹С‚СЊ С„РѕСЂРјСѓР»Р° = CALLTHIS("CrossReference.ClearReferenceWireLink", "SAPR_ASU")
+' Macros        : ClearReferenceWireLink - Чистит при копировании
+                'Чистим ссылки в при копировании разрыва провода.
+                'Когда происходит массовая вставка не применяется привязка к курсору
+                'В EventMultiDrop должна быть формула = CALLTHIS("CrossReference.ClearReferenceWireLink", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
-    'Р§РёСЃС‚РёРј С€РµР№Рї
+    'Чистим шейп
     vsoShape.CellsU("Prop.Number").FormulaU = ""
     vsoShape.CellsU("Prop.Name").FormulaU = """"""
     vsoShape.CellsU("User.LocLink").FormulaU = """"""
