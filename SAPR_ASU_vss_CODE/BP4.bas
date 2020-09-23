@@ -1,18 +1,17 @@
-Attribute VB_Name = "BP4"
 '------------------------------------------------------------------------------------------------------------
-' Module        : BP4 - Ведомость рабочих чертежей
-' Author        : gtfox на основе Surrogate::Vedomost2019.vss
+' Module        : BP4 - Р’РµРґРѕРјРѕСЃС‚СЊ СЂР°Р±РѕС‡РёС… С‡РµСЂС‚РµР¶РµР№
+' Author        : gtfox РЅР° РѕСЃРЅРѕРІРµ Surrogate::Vedomost2019.vss
 ' Date          : 2019.09.22
-' Description   : Не требует запуска. Он запускается автоматически при добавлении шейпа ВРЧ. Чтобы обновить ВРЧ удаляем старый шейп и кидаем новый.
-'               : Добавлять ВРЧ на первый лист ОД надо в последнюю очередь, когда есть все листы с рамками и в больших рамках указано наименование листов.
+' Description   : РќРµ С‚СЂРµР±СѓРµС‚ Р·Р°РїСѓСЃРєР°. РћРЅ Р·Р°РїСѓСЃРєР°РµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РїСЂРё РґРѕР±Р°РІР»РµРЅРёРё С€РµР№РїР° Р’Р Р§. Р§С‚РѕР±С‹ РѕР±РЅРѕРІРёС‚СЊ Р’Р Р§ СѓРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Р№ С€РµР№Рї Рё РєРёРґР°РµРј РЅРѕРІС‹Р№.
+'               : Р”РѕР±Р°РІР»СЏС‚СЊ Р’Р Р§ РЅР° РїРµСЂРІС‹Р№ Р»РёСЃС‚ РћР” РЅР°РґРѕ РІ РїРѕСЃР»РµРґРЅСЋСЋ РѕС‡РµСЂРµРґСЊ, РєРѕРіРґР° РµСЃС‚СЊ РІСЃРµ Р»РёСЃС‚С‹ СЃ СЂР°РјРєР°РјРё Рё РІ Р±РѕР»СЊС€РёС… СЂР°РјРєР°С… СѓРєР°Р·Р°РЅРѕ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ Р»РёСЃС‚РѕРІ.
 ' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
-                'на основе этого:
+                'РЅР° РѕСЃРЅРѕРІРµ СЌС‚РѕРіРѕ:
                 '------------------------------------------------------------------------------------------------------------
-                ' Module    : BP4:BP4_corrector Ведомость рабочих чертежей
+                ' Module    : BP4:BP4_corrector Р’РµРґРѕРјРѕСЃС‚СЊ СЂР°Р±РѕС‡РёС… С‡РµСЂС‚РµР¶РµР№
                 ' Author    : Surrogate
                 ' Date      : 30.08.2019
-                ' Purpose   : Мастер для создания ведомости рабочих чертежей
+                ' Purpose   : РњР°СЃС‚РµСЂ РґР»СЏ СЃРѕР·РґР°РЅРёСЏ РІРµРґРѕРјРѕСЃС‚Рё СЂР°Р±РѕС‡РёС… С‡РµСЂС‚РµР¶РµР№
                 ' Links     : https://visio.getbb.ru/viewtopic.php?p=200, https://visio.getbb.ru/download/file.php?id=1087
                 '------------------------------------------------------------------------------------------------------------
 Option Base 1
@@ -28,14 +27,14 @@ Sub BP4_corrector(shpObj As Visio.Shape, pp As Integer)
     listing = "": n = 0
     For i = pp To ActiveDocument.Pages.Count
         Set pg = ActiveDocument.Pages(i)
-        'pg.Shapes("Рамка").Cells("fields.value").FormulaU = "0"
-        'pg.Shapes("Рамка").Cells("fields.value").FormulaU = "=PAGENUMBER()-1"
+        'pg.Shapes("Р Р°РјРєР°").Cells("fields.value").FormulaU = "0"
+        'pg.Shapes("Р Р°РјРєР°").Cells("fields.value").FormulaU = "=PAGENUMBER()-1"
         On Error GoTo L1
-        If pg.Shapes("Рамка").Cells("prop.type").ResultStr("") <> "" Then
-            If InStr(1, pg.Shapes("Рамка").Shapes("FORMA3").Shapes("shifr").Cells("fields.value").ResultStr(""), ".CO") = 0 Then
+        If pg.Shapes("Р Р°РјРєР°").Cells("prop.type").ResultStr("") <> "" Then
+            If InStr(1, pg.Shapes("Р Р°РјРєР°").Shapes("FORMA3").Shapes("shifr").Cells("fields.value").ResultStr(""), ".CO") = 0 Then
                 listing = listing & ";" & pg.Name
                 n = n + 1
-                ma(n) = pg.Shapes("Рамка").ID
+                ma(n) = pg.Shapes("Р Р°РјРєР°").ID
             End If
         End If
     Next i
@@ -54,14 +53,14 @@ Sub BP4_corrector(shpObj As Visio.Shape, pp As Integer)
         'form = "IF(0=0,SETF(GetRef(User.ch)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!user.ch" & Chr(34) & ")+SETF(GetRef(User.de)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!user.de" & Chr(34) & ")+SETF(GetRef(User.pn)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!fields.value" & Chr(34) & "),33)"
         'pos.Cells("user.set").FormulaU = form
         pos.CellsSRC(visSectionAction, 0, visActionAction).FormulaU = "GOTOPAGE(Prop.det)"
-        pos.CellsSRC(visSectionAction, 0, visActionMenu).FormulaU = """Перейти на ""&Prop.det"
+        pos.CellsSRC(visSectionAction, 0, visActionMenu).FormulaU = """РџРµСЂРµР№С‚Рё РЅР° ""&Prop.det"
         
     Next
     On Error GoTo L1
     sh.Shapes("pos" & n).Shapes(4).Cells("user.text").FormulaU = "=IF(User.N-1-thedoc!user.coc-User.C>1,User.C&""-""&User.N-1-thedoc!user.coc,User.C)"
     sh.Cells("prop.n").Formula = n
-    MsgBox "Ведомость рабочих чертежей добавлена" & vbCrLf & vbCrLf & "Найдено листов N:" & n, vbInformation
+    MsgBox "Р’РµРґРѕРјРѕСЃС‚СЊ СЂР°Р±РѕС‡РёС… С‡РµСЂС‚РµР¶РµР№ РґРѕР±Р°РІР»РµРЅР°" & vbCrLf & vbCrLf & "РќР°Р№РґРµРЅРѕ Р»РёСЃС‚РѕРІ N:" & n, vbInformation
     Exit Sub
 L1:
-    MsgBox "Нет листов для ВРЧ. N:" & n & vbCrLf & vbCrLf & "На всех листах должны быть рамки" & vbCrLf & "и хотя бы в одной указано наименование листа", vbCritical, "Ошибка"
+    MsgBox "РќРµС‚ Р»РёСЃС‚РѕРІ РґР»СЏ Р’Р Р§. N:" & n & vbCrLf & vbCrLf & "РќР° РІСЃРµС… Р»РёСЃС‚Р°С… РґРѕР»Р¶РЅС‹ Р±С‹С‚СЊ СЂР°РјРєРё" & vbCrLf & "Рё С…РѕС‚СЏ Р±С‹ РІ РѕРґРЅРѕР№ СѓРєР°Р·Р°РЅРѕ РЅР°РёРјРµРЅРѕРІР°РЅРёРµ Р»РёСЃС‚Р°", vbCritical, "РћС€РёР±РєР°"
 End Sub
