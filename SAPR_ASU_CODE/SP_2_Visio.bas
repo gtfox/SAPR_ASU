@@ -146,7 +146,7 @@ Private Sub fill_table(bEvents As Boolean)  ' заполнение специф�
     Dim vys_yach As Double
     Dim vys_str As Double
     Dim mmm As Integer
-    Dim DocCell As cell
+    Dim DocCell As Cell
     Dim FTx As Integer
     Dim FTy As Integer
     pNumber = 1
