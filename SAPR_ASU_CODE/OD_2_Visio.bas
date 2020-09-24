@@ -1,16 +1,15 @@
-Attribute VB_Name = "OD_2_Visio"
 '------------------------------------------------------------------------------------------------------------
-' Module        : OD - Общие данные
+' Module        : OD - РћР±С‰РёРµ РґР°РЅРЅС‹Рµ
 ' Author        : gtfox
 ' Date          : 2019.09.22
-' Description   : odDELL - Удаляет общие данные
-                ' odADD_A3 - Добавляет общие данные на листах А3, и если не хватает на последний А3 - добавляет А4
-                ' odADD_A4 - Добавляет общие данные на листах только А4.
-                ' OD_2_Visio.doc - Общие данные (текстовая часть проекта) - Содержит исходный текст, который будет порезан на листы и вставлен в чертеж Visio при помощи макроса.
-                ' В результате его работы создается OD_2_Visio_Split.doc (в дальнейшем не используется + перезаписывается при каждом вызове макроса)
-                ' На лист, с которого начинаются общие данные, кидаем фигуру ОД. Настраиваем верхнюю/нижнюю границы рамки текста (чтобы они двигались надо переместить фигуру влево - вправо из контекстного меню). Запускаем макрос odADD_А3 / odADD_А4
-                ' Основная проблема текстовых данных в Visio – отсутствие автопереноса текста на новую страницу/новый шейп, а также нет возможности обращаться к отдельным строкам текста.
-                ' Я решил возложить эту задачу на Word. Зная размеры шейпа ОД мы задаем поля в Word, лишний текст там переносится и мы копируем содержимое страницы в шейп, потом вставляем разрыв раздела и на следующей странице ставим новые поля для нового шейпа ОД.
+' Description   : odDELL - РЈРґР°Р»СЏРµС‚ РѕР±С‰РёРµ РґР°РЅРЅС‹Рµ
+                ' odADD_A3 - Р”РѕР±Р°РІР»СЏРµС‚ РѕР±С‰РёРµ РґР°РЅРЅС‹Рµ РЅР° Р»РёСЃС‚Р°С… Рђ3, Рё РµСЃР»Рё РЅРµ С…РІР°С‚Р°РµС‚ РЅР° РїРѕСЃР»РµРґРЅРёР№ Рђ3 - РґРѕР±Р°РІР»СЏРµС‚ Рђ4
+                ' odADD_A4 - Р”РѕР±Р°РІР»СЏРµС‚ РѕР±С‰РёРµ РґР°РЅРЅС‹Рµ РЅР° Р»РёСЃС‚Р°С… С‚РѕР»СЊРєРѕ Рђ4.
+                ' OD_2_Visio.doc - РћР±С‰РёРµ РґР°РЅРЅС‹Рµ (С‚РµРєСЃС‚РѕРІР°СЏ С‡Р°СЃС‚СЊ РїСЂРѕРµРєС‚Р°) - РЎРѕРґРµСЂР¶РёС‚ РёСЃС…РѕРґРЅС‹Р№ С‚РµРєСЃС‚, РєРѕС‚РѕСЂС‹Р№ Р±СѓРґРµС‚ РїРѕСЂРµР·Р°РЅ РЅР° Р»РёСЃС‚С‹ Рё РІСЃС‚Р°РІР»РµРЅ РІ С‡РµСЂС‚РµР¶ Visio РїСЂРё РїРѕРјРѕС‰Рё РјР°РєСЂРѕСЃР°.
+                ' Р’ СЂРµР·СѓР»СЊС‚Р°С‚Рµ РµРіРѕ СЂР°Р±РѕС‚С‹ СЃРѕР·РґР°РµС‚СЃСЏ OD_2_Visio_Split.doc (РІ РґР°Р»СЊРЅРµР№С€РµРј РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ + РїРµСЂРµР·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ РїСЂРё РєР°Р¶РґРѕРј РІС‹Р·РѕРІРµ РјР°РєСЂРѕСЃР°)
+                ' РќР° Р»РёСЃС‚, СЃ РєРѕС‚РѕСЂРѕРіРѕ РЅР°С‡РёРЅР°СЋС‚СЃСЏ РѕР±С‰РёРµ РґР°РЅРЅС‹Рµ, РєРёРґР°РµРј С„РёРіСѓСЂСѓ РћР”. РќР°СЃС‚СЂР°РёРІР°РµРј РІРµСЂС…РЅСЋСЋ/РЅРёР¶РЅСЋСЋ РіСЂР°РЅРёС†С‹ СЂР°РјРєРё С‚РµРєСЃС‚Р° (С‡С‚РѕР±С‹ РѕРЅРё РґРІРёРіР°Р»РёСЃСЊ РЅР°РґРѕ РїРµСЂРµРјРµСЃС‚РёС‚СЊ С„РёРіСѓСЂСѓ РІР»РµРІРѕ - РІРїСЂР°РІРѕ РёР· РєРѕРЅС‚РµРєСЃС‚РЅРѕРіРѕ РјРµРЅСЋ). Р—Р°РїСѓСЃРєР°РµРј РјР°РєСЂРѕСЃ odADD_Рђ3 / odADD_Рђ4
+                ' РћСЃРЅРѕРІРЅР°СЏ РїСЂРѕР±Р»РµРјР° С‚РµРєСЃС‚РѕРІС‹С… РґР°РЅРЅС‹С… РІ Visio вЂ“ РѕС‚СЃСѓС‚СЃС‚РІРёРµ Р°РІС‚РѕРїРµСЂРµРЅРѕСЃР° С‚РµРєСЃС‚Р° РЅР° РЅРѕРІСѓСЋ СЃС‚СЂР°РЅРёС†Сѓ/РЅРѕРІС‹Р№ С€РµР№Рї, Р° С‚Р°РєР¶Рµ РЅРµС‚ РІРѕР·РјРѕР¶РЅРѕСЃС‚Рё РѕР±СЂР°С‰Р°С‚СЊСЃСЏ Рє РѕС‚РґРµР»СЊРЅС‹Рј СЃС‚СЂРѕРєР°Рј С‚РµРєСЃС‚Р°.
+                ' РЇ СЂРµС€РёР» РІРѕР·Р»РѕР¶РёС‚СЊ СЌС‚Сѓ Р·Р°РґР°С‡Сѓ РЅР° Word. Р—РЅР°СЏ СЂР°Р·РјРµСЂС‹ С€РµР№РїР° РћР” РјС‹ Р·Р°РґР°РµРј РїРѕР»СЏ РІ Word, Р»РёС€РЅРёР№ С‚РµРєСЃС‚ С‚Р°Рј РїРµСЂРµРЅРѕСЃРёС‚СЃСЏ Рё РјС‹ РєРѕРїРёСЂСѓРµРј СЃРѕРґРµСЂР¶РёРјРѕРµ СЃС‚СЂР°РЅРёС†С‹ РІ С€РµР№Рї, РїРѕС‚РѕРј РІСЃС‚Р°РІР»СЏРµРј СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р° Рё РЅР° СЃР»РµРґСѓСЋС‰РµР№ СЃС‚СЂР°РЅРёС†Рµ СЃС‚Р°РІРёРј РЅРѕРІС‹Рµ РїРѕР»СЏ РґР»СЏ РЅРѕРІРѕРіРѕ С€РµР№РїР° РћР”.
 ' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
     
@@ -25,7 +24,7 @@ End Sub
 
     
 Private Sub OD_2_Visio(A4 As Boolean)
-    'нижнее поле в ворде для рамок в визио
+    'РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ РІРѕСЂРґРµ РґР»СЏ СЂР°РјРѕРє РІ РІРёР·РёРѕ
     Const ramka5 = 1
     Const ramka15 = 2.5
     Const ramka55 = 6.5
@@ -40,50 +39,50 @@ Private Sub OD_2_Visio(A4 As Boolean)
     Dim sPath, sFile As String
     Dim objFSO As Object, objFile As Object
     Dim MastOD As Master
-    Set MastOD = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.ItemU("ОД")
+    Set MastOD = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.ItemU("РћР”")
 
     
     
     
     If Not Application.ActiveWindow.Selection.Count = 0 Then
     
-        If InStr(1, Application.ActiveWindow.Selection.Item(1).Name, "ОД") > 0 Then
+        If InStr(1, Application.ActiveWindow.Selection.Item(1).Name, "РћР”") > 0 Then
             
             Set vsoCharacters1 = Application.ActiveWindow.Selection.Item(1).Characters
             
-            'есть файл
-            sPath = Visio.ActiveDocument.Path
+            'РµСЃС‚СЊ С„Р°Р№Р»
+            sPath = Visio.ActiveDocument.path
             sFileName = "OD_2_Visio.doc"
             sFile = sPath & sFileName
             If Dir(sFile, 16) = "" Then
-                MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+                MsgBox "Р¤Р°Р№Р» " & sFileName & " РЅРµ РЅР°Р№РґРµРЅ РІ РїР°РїРєРµ: " & sPath, vbCritical, "РћС€РёР±РєР°"
                 Exit Sub
             End If
             
-            'подготавливаем копирование
+            'РїРѕРґРіРѕС‚Р°РІР»РёРІР°РµРј РєРѕРїРёСЂРѕРІР°РЅРёРµ
             Set objFSO = CreateObject("Scripting.FileSystemObject")
             Set objFile = objFSO.GetFile(sFile)
     
-            'удаляем старый
+            'СѓРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Р№
             sFileName = "OD_2_Visio_Split.doc"
             sFile = sPath & sFileName
-            If Len(Dir(sFile)) > 0 Then 'есть хотя бы один файл
+            If Len(Dir(sFile)) > 0 Then 'РµСЃС‚СЊ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ С„Р°Р№Р»
                 'On Error GoTo L1
                 Kill sFile
             End If
             
-            'копируем файл с новым именем
+            'РєРѕРїРёСЂСѓРµРј С„Р°Р№Р» СЃ РЅРѕРІС‹Рј РёРјРµРЅРµРј
             objFile.Copy sFile
             
-            'переименовываем новый
-            'Name sPath & "ОД - копия.doc" As sFile
+            'РїРµСЂРµРёРјРµРЅРѕРІС‹РІР°РµРј РЅРѕРІС‹Р№
+            'Name sPath & "РћР” - РєРѕРїРёСЏ.doc" As sFile
     
             Set wa = CreateObject("Word.Application")
             wa.Documents.Open (sFile)
             wa.Visible = True
             Set wad = wa.ActiveDocument
       
-            wa.Selection.WholeStory 'выделить все
+            wa.Selection.WholeStory 'РІС‹РґРµР»РёС‚СЊ РІСЃРµ
      
             DoEvents
      
@@ -123,7 +122,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 .SpaceAfter = 0
                 .SpaceAfterAuto = False
                 .LineSpacingRule = wdLineSpaceMultiple
-                .LineSpacing = LinesToPoints(1) 'междустрочный интервал
+                .LineSpacing = LinesToPoints(1) 'РјРµР¶РґСѓСЃС‚СЂРѕС‡РЅС‹Р№ РёРЅС‚РµСЂРІР°Р»
                 .Alignment = wdAlignParagraphJustify
                 .WidowControl = True
                 .KeepWithNext = False
@@ -150,9 +149,9 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 .TopMargin = CentimetersToPoints(1)
                 .LeftMargin = CentimetersToPoints(2.5)
                 .RightMargin = CentimetersToPoints(1)
-                '.BottomMargin = CentimetersToPoints(1) 'рамка 5
-                .BottomMargin = CentimetersToPoints(2.5) 'рамка 15
-                '.BottomMargin = CentimetersToPoints(6.5) 'рамка 55
+                '.BottomMargin = CentimetersToPoints(1) 'СЂР°РјРєР° 5
+                .BottomMargin = CentimetersToPoints(2.5) 'СЂР°РјРєР° 15
+                '.BottomMargin = CentimetersToPoints(6.5) 'СЂР°РјРєР° 55
                 .Gutter = CentimetersToPoints(0)
                 .HeaderDistance = CentimetersToPoints(0)
                 .FooterDistance = CentimetersToPoints(0)
@@ -173,115 +172,115 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 .GutterPos = wdGutterPosLeft
             End With
             
-            'табуляция по центру в визио
+            'С‚Р°Р±СѓР»СЏС†РёСЏ РїРѕ С†РµРЅС‚СЂСѓ РІ РІРёР·РёРѕ
     '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabStopCount).FormulaU = "1"
     '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabPos).FormulaU = "Guard(92.5 mm)"
     '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabAlign).FormulaU = "Guard(1)"
     '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, 3).FormulaU = "0"
             
             
-            'табуляция по центру в ворде
-            wa.Selection.ParagraphFormat.TabStops.Add Position:=CentimetersToPoints(9.25), Alignment:=wdAlignTabCenter, Leader:=wdTabLeaderSpaces 'табуляция по центру
+            'С‚Р°Р±СѓР»СЏС†РёСЏ РїРѕ С†РµРЅС‚СЂСѓ РІ РІРѕСЂРґРµ
+            wa.Selection.ParagraphFormat.TabStops.Add Position:=CentimetersToPoints(9.25), Alignment:=wdAlignTabCenter, Leader:=wdTabLeaderSpaces 'С‚Р°Р±СѓР»СЏС†РёСЏ РїРѕ С†РµРЅС‚СЂСѓ
             
             
-            hh = Application.ActiveWindow.Selection.Item(1).Cells("Height") ' высота первого куска текста в визио
-            niznee_pole = 297 - 10 - hh * 25.4  'нижнее поле на странице в ворде в мм (для вставки разрыва)
+            hh = Application.ActiveWindow.Selection.Item(1).Cells("Height") ' РІС‹СЃРѕС‚Р° РїРµСЂРІРѕРіРѕ РєСѓСЃРєР° С‚РµРєСЃС‚Р° РІ РІРёР·РёРѕ
+            niznee_pole = 297 - 10 - hh * 25.4  'РЅРёР¶РЅРµРµ РїРѕР»Рµ РЅР° СЃС‚СЂР°РЅРёС†Рµ РІ РІРѕСЂРґРµ РІ РјРј (РґР»СЏ РІСЃС‚Р°РІРєРё СЂР°Р·СЂС‹РІР°)
             
     
-            'верх сраницы 1
+            'РІРµСЂС… СЃСЂР°РЅРёС†С‹ 1
             wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="1"
-            wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
+            wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole / 10) 'СЃС‚Р°РІРёРј РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ СЃРј
             
             nStartPageNum = 1
             Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
             nEndPageNum = 1
-            'Конец последней страницы для выделения
+            'РљРѕРЅРµС† РїРѕСЃР»РµРґРЅРµР№ СЃС‚СЂР°РЅРёС†С‹ РґР»СЏ РІС‹РґРµР»РµРЅРёСЏ
             Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + nEndPageNum)  '.GoToNext(wdGoToPage)
-            'Выделяем указанный диапазон документа
+            'Р’С‹РґРµР»СЏРµРј СѓРєР°Р·Р°РЅРЅС‹Р№ РґРёР°РїР°Р·РѕРЅ РґРѕРєСѓРјРµРЅС‚Р°
             wad.Range(oStartPage.Start, oEndPage.End).Select ' wad.Range(oStartPage.Start, IIf(nStartPageNum + nEndPageNum = nPagesCount + 1, wad.Range.End, oEndPage.End)).Select
-            'копируем в буфер в ворде
+            'РєРѕРїРёСЂСѓРµРј РІ Р±СѓС„РµСЂ РІ РІРѕСЂРґРµ
             wa.Selection.Copy
-            'вставляем из буфера в визио
+            'РІСЃС‚Р°РІР»СЏРµРј РёР· Р±СѓС„РµСЂР° РІ РІРёР·РёРѕ
             ActiveWindow.SelectedText.Paste
-            'скрываем рамку текста
-            ActivePage.Shapes.Item("ОД").Cells("Geometry1.NoLine").Formula = 1
+            'СЃРєСЂС‹РІР°РµРј СЂР°РјРєСѓ С‚РµРєСЃС‚Р°
+            ActivePage.Shapes.Item("РћР”").Cells("Geometry1.NoLine").Formula = 1
             
-            'переходим в начало 2-го листа ворда
+            'РїРµСЂРµС…РѕРґРёРј РІ РЅР°С‡Р°Р»Рѕ 2-РіРѕ Р»РёСЃС‚Р° РІРѕСЂРґР°
             wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="2"
-            wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
-            wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+            wa.Selection.MoveEnd wdCharacter, -1 'С€Р°Рі РЅР°Р·Р°Рґ - РєРѕРЅРµС† РїСЂРµРґС‹РґСѓС‰РµР№ СЃС‚СЂР°РЅРёС†С‹
+            wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'РІСЃС‚Р°РІРєР° СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р°
             
-            'ставим поле для рамки 15 чтобы перед первым проходом цикла for иметь "более/менее" реальное число листов
+            'СЃС‚Р°РІРёРј РїРѕР»Рµ РґР»СЏ СЂР°РјРєРё 15 С‡С‚РѕР±С‹ РїРµСЂРµРґ РїРµСЂРІС‹Рј РїСЂРѕС…РѕРґРѕРј С†РёРєР»Р° for РёРјРµС‚СЊ "Р±РѕР»РµРµ/РјРµРЅРµРµ" СЂРµР°Р»СЊРЅРѕРµ С‡РёСЃР»Рѕ Р»РёСЃС‚РѕРІ
             niznee_pole = ramka15
-            wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+            wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'СЃС‚Р°РІРёРј РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ СЃРј
             
-            nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'число листов ворда
+            nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'С‡РёСЃР»Рѕ Р»РёСЃС‚РѕРІ РІРѕСЂРґР°
             nPagesOst = nPagesCount - 1
             pNumberVisio = 1
             
             For CurPage = 2 To nPagesCount
-                'переходим на верх текущего листа
+                'РїРµСЂРµС…РѕРґРёРј РЅР° РІРµСЂС… С‚РµРєСѓС‰РµРіРѕ Р»РёСЃС‚Р°
                 wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:=CurPage
     
-                If nPagesOst = 1 Or A4 Then 'последний лист или выбрано "все листы А4"
+                If nPagesOst = 1 Or A4 Then 'РїРѕСЃР»РµРґРЅРёР№ Р»РёСЃС‚ РёР»Рё РІС‹Р±СЂР°РЅРѕ "РІСЃРµ Р»РёСЃС‚С‹ Рђ4"
                 
-                    'нижнее поле в ворде для этого листа visio
+                    'РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ РІРѕСЂРґРµ РґР»СЏ СЌС‚РѕРіРѕ Р»РёСЃС‚Р° visio
                     niznee_pole = ramka15
-                    wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
-                    'вставляем лист А4
-                    Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
-                    aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
+                    wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'СЃС‚Р°РІРёРј РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ СЃРј
+                    'РІСЃС‚Р°РІР»СЏРµРј Р»РёСЃС‚ Рђ4
+                    Set aPage = AddNamedPageOD("РћР”." & pNumberVisio + 1)
+                    aPage.Index = 2 + pNumberVisio 'СЃСѓРµРј СЃС‚СЂР°РЅРёС†Сѓ Р·Р° С‚РµРєСѓС‰РёРј Р»РёСЃС‚РѕРј РћР”
                     pNumberVisio = pNumberVisio + 1
                     ActivePage.PageSheet.Cells("PageWidth").Formula = "210 MM"
                     ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
                     ActivePage.PageSheet.Cells("Paperkind").Formula = 9
                     ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 1
                     ActivePage.Drop MastOD, 6.889764, 8.661417
-                    'скрываем рамку текста
+                    'СЃРєСЂС‹РІР°РµРј СЂР°РјРєСѓ С‚РµРєСЃС‚Р°
                     ActiveWindow.Selection.Item(1).Cells("Geometry1.NoLine").Formula = 1
-                    'выделяем фигуру для последующей вставки текста
-                    'shpOD.Paste '.Select 'либо если есть метод paste сразу
-                    'выбрали диапазон текущего листа
+                    'РІС‹РґРµР»СЏРµРј С„РёРіСѓСЂСѓ РґР»СЏ РїРѕСЃР»РµРґСѓСЋС‰РµР№ РІСЃС‚Р°РІРєРё С‚РµРєСЃС‚Р°
+                    'shpOD.Paste '.Select 'Р»РёР±Рѕ РµСЃР»Рё РµСЃС‚СЊ РјРµС‚РѕРґ paste СЃСЂР°Р·Сѓ
+                    'РІС‹Р±СЂР°Р»Рё РґРёР°РїР°Р·РѕРЅ С‚РµРєСѓС‰РµРіРѕ Р»РёСЃС‚Р°
                     nStartPageNum = CurPage
                     Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                     nEndPageNum = CurPage
-                    'Конец последней страницы для выделения
+                    'РљРѕРЅРµС† РїРѕСЃР»РµРґРЅРµР№ СЃС‚СЂР°РЅРёС†С‹ РґР»СЏ РІС‹РґРµР»РµРЅРёСЏ
                     Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
-                    'Выделяем указанный диапазон документа
+                    'Р’С‹РґРµР»СЏРµРј СѓРєР°Р·Р°РЅРЅС‹Р№ РґРёР°РїР°Р·РѕРЅ РґРѕРєСѓРјРµРЅС‚Р°
                     wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
-                    'копируем в буфер в ворде
+                    'РєРѕРїРёСЂСѓРµРј РІ Р±СѓС„РµСЂ РІ РІРѕСЂРґРµ
                     wa.Selection.Copy
                     
                     If Not nStartPageNum = nPagesCount Then
-                        oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+                        oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'РІСЃС‚Р°РІРєР° СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р°
                     End If
 
     
                     DoEvents
                     'shpOD.Paste
-                    'вставляем из буфера в визио
+                    'РІСЃС‚Р°РІР»СЏРµРј РёР· Р±СѓС„РµСЂР° РІ РІРёР·РёРѕ
                     ActiveWindow.SelectedText.Paste
                     
-                    'оставшееся число страниц ворда
+                    'РѕСЃС‚Р°РІС€РµРµСЃСЏ С‡РёСЃР»Рѕ СЃС‚СЂР°РЅРёС† РІРѕСЂРґР°
                     nPagesOst = nPagesCount - CurPage
     
-                ElseIf nPagesOst >= 2 Then   'листов больше 2-х добавляем А3
+                ElseIf nPagesOst >= 2 Then   'Р»РёСЃС‚РѕРІ Р±РѕР»СЊС€Рµ 2-С… РґРѕР±Р°РІР»СЏРµРј Рђ3
                     
-                    If nA3 = 1 Then ' левая половина А3
+                    If nA3 = 1 Then ' Р»РµРІР°СЏ РїРѕР»РѕРІРёРЅР° Рђ3
                     
-                        'нижнее поле в ворде для этого листа visio
+                        'РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ РІРѕСЂРґРµ РґР»СЏ СЌС‚РѕРіРѕ Р»РёСЃС‚Р° visio
                         niznee_pole = ramka5
-                        wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
-                        'вставляем лист А3
-                        Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
-                        aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
+                        wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'СЃС‚Р°РІРёРј РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ СЃРј
+                        'РІСЃС‚Р°РІР»СЏРµРј Р»РёСЃС‚ Рђ3
+                        Set aPage = AddNamedPageOD("РћР”." & pNumberVisio + 1)
+                        aPage.Index = 2 + pNumberVisio 'СЃСѓРµРј СЃС‚СЂР°РЅРёС†Сѓ Р·Р° С‚РµРєСѓС‰РёРј Р»РёСЃС‚РѕРј РћР”
                         ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
                         ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
                         ActivePage.PageSheet.Cells("Paperkind").Formula = 8
                         ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 2
                         ActivePage.Drop MastOD, 6.889764, 8.661417
-                        With ActiveWindow.Selection.Item(1) 'сдвигаем ОД влево
-                            .Cells("Geometry1.NoLine").Formula = 1 'скрываем рамку текста
+                        With ActiveWindow.Selection.Item(1) 'СЃРґРІРёРіР°РµРј РћР” РІР»РµРІРѕ
+                            .Cells("Geometry1.NoLine").Formula = 1 'СЃРєСЂС‹РІР°РµРј СЂР°РјРєСѓ С‚РµРєСЃС‚Р°
                             .Cells("PinX").FormulaForceU = "=GUARD((25 mm-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
                             .Cells("PinY").FormulaForceU = "(ThePage!PageHeight-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
                             .Cells("Height").FormulaForceU = "=ThePage!PageHeight-TheDoc!User.OffsetFrame*2"
@@ -289,65 +288,65 @@ Private Sub OD_2_Visio(A4 As Boolean)
                             .Cells("Actions.left.Invisible").Formula = 1
                         End With
 
-                        'выбрали диапазон текущего листа
+                        'РІС‹Р±СЂР°Р»Рё РґРёР°РїР°Р·РѕРЅ С‚РµРєСѓС‰РµРіРѕ Р»РёСЃС‚Р°
                         nStartPageNum = CurPage
                         Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
-                        'Конец последней страницы для выделения
+                        'РљРѕРЅРµС† РїРѕСЃР»РµРґРЅРµР№ СЃС‚СЂР°РЅРёС†С‹ РґР»СЏ РІС‹РґРµР»РµРЅРёСЏ
                         Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
-                        'Выделяем указанный диапазон документа
+                        'Р’С‹РґРµР»СЏРµРј СѓРєР°Р·Р°РЅРЅС‹Р№ РґРёР°РїР°Р·РѕРЅ РґРѕРєСѓРјРµРЅС‚Р°
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
-                        'копируем в буфер в ворде
+                        'РєРѕРїРёСЂСѓРµРј РІ Р±СѓС„РµСЂ РІ РІРѕСЂРґРµ
                         wa.Selection.Copy
                         
                         If Not nStartPageNum = nPagesCount Then
-                            oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+                            oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'РІСЃС‚Р°РІРєР° СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р°
                         End If
 
                         DoEvents
-                        'вставляем из буфера в визио
+                        'РІСЃС‚Р°РІР»СЏРµРј РёР· Р±СѓС„РµСЂР° РІ РІРёР·РёРѕ
                         ActiveWindow.SelectedText.Paste
                         nA3 = 2
                         
-                    ElseIf nA3 = 2 Then ' правая половина А3
+                    ElseIf nA3 = 2 Then ' РїСЂР°РІР°СЏ РїРѕР»РѕРІРёРЅР° Рђ3
                         
-                        'нижнее поле в ворде для этого листа visio
+                        'РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ РІРѕСЂРґРµ РґР»СЏ СЌС‚РѕРіРѕ Р»РёСЃС‚Р° visio
                         niznee_pole = ramka15
-                        wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+                        wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'СЃС‚Р°РІРёРј РЅРёР¶РЅРµРµ РїРѕР»Рµ РІ СЃРј
                         pNumberVisio = pNumberVisio + 1
                         ActivePage.Drop MastOD, 6.889764, 8.661417
-                        'скрываем рамку текста
+                        'СЃРєСЂС‹РІР°РµРј СЂР°РјРєСѓ С‚РµРєСЃС‚Р°
                         ActiveWindow.Selection.Item(1).Cells("Geometry1.NoLine").Formula = 1
-                        'выбрали диапазон текущего листа
+                        'РІС‹Р±СЂР°Р»Рё РґРёР°РїР°Р·РѕРЅ С‚РµРєСѓС‰РµРіРѕ Р»РёСЃС‚Р°
                         nStartPageNum = CurPage
                         Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
-                        'Конец последней страницы для выделения
+                        'РљРѕРЅРµС† РїРѕСЃР»РµРґРЅРµР№ СЃС‚СЂР°РЅРёС†С‹ РґР»СЏ РІС‹РґРµР»РµРЅРёСЏ
                         Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
-                        'Выделяем указанный диапазон документа
+                        'Р’С‹РґРµР»СЏРµРј СѓРєР°Р·Р°РЅРЅС‹Р№ РґРёР°РїР°Р·РѕРЅ РґРѕРєСѓРјРµРЅС‚Р°
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
-                        'копируем в буфер в ворде
+                        'РєРѕРїРёСЂСѓРµРј РІ Р±СѓС„РµСЂ РІ РІРѕСЂРґРµ
                         wa.Selection.Copy
                         
                         If Not nStartPageNum = nPagesCount Then
-                            oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+                            oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'РІСЃС‚Р°РІРєР° СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р°
                         End If
 
                         DoEvents
-                        'вставляем из буфера в визио
+                        'РІСЃС‚Р°РІР»СЏРµРј РёР· Р±СѓС„РµСЂР° РІ РІРёР·РёРѕ
                         ActiveWindow.SelectedText.Paste
                         nA3 = 1
-                        'оставшееся число страниц ворда
+                        'РѕСЃС‚Р°РІС€РµРµСЃСЏ С‡РёСЃР»Рѕ СЃС‚СЂР°РЅРёС† РІРѕСЂРґР°
                         nPagesOst = nPagesCount - CurPage
                         
                         
                     End If
                     
-                ElseIf nPagesOst <= 0 Then 'листов больше нет
+                ElseIf nPagesOst <= 0 Then 'Р»РёСЃС‚РѕРІ Р±РѕР»СЊС€Рµ РЅРµС‚
                     
                 End If
                 
-                nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'число листов ворда
+                nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'С‡РёСЃР»Рѕ Р»РёСЃС‚РѕРІ РІРѕСЂРґР°
 
                 
             Next CurPage
@@ -356,32 +355,32 @@ Private Sub OD_2_Visio(A4 As Boolean)
             wa.Quit
             Set wa = Nothing
             
-            Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("ОД")
+            Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("РћР”")
 
-            MsgBox "Текстовая часть ОД добавлена", vbInformation
+            MsgBox "РўРµРєСЃС‚РѕРІР°СЏ С‡Р°СЃС‚СЊ РћР” РґРѕР±Р°РІР»РµРЅР°", vbInformation
             Exit Sub
                             
         End If
 
     End If
     
-    MsgBox "Не выделен блок ОД", vbCritical, "Ошибка"
+    MsgBox "РќРµ РІС‹РґРµР»РµРЅ Р±Р»РѕРє РћР”", vbCritical, "РћС€РёР±РєР°"
     
     Exit Sub
     
 '        wa.Selection.Start = wa.Selection.Start - 1
 '        wa.Selection.End = wa.Selection.Start
-'        wa.Selection.HomeKey Unit:=wdStory 'верх докуменита
-'        wa.Selection.GoToNext (wdGoToPage) 'начало следующей страницы
-'        wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
-'        wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
-'        nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'число листов ворда
+'        wa.Selection.HomeKey Unit:=wdStory 'РІРµСЂС… РґРѕРєСѓРјРµРЅРёС‚Р°
+'        wa.Selection.GoToNext (wdGoToPage) 'РЅР°С‡Р°Р»Рѕ СЃР»РµРґСѓСЋС‰РµР№ СЃС‚СЂР°РЅРёС†С‹
+'        wa.Selection.MoveEnd wdCharacter, -1 'С€Р°Рі РЅР°Р·Р°Рґ - РєРѕРЅРµС† РїСЂРµРґС‹РґСѓС‰РµР№ СЃС‚СЂР°РЅРёС†С‹
+'        wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'РІСЃС‚Р°РІРєР° СЂР°Р·СЂС‹РІ СЂР°Р·РґРµР»Р°
+'        nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'С‡РёСЃР»Рѕ Р»РёСЃС‚РѕРІ РІРѕСЂРґР°
 'With wa.ActiveDocument
-'Set Search = .Range(Start:=0, End:=100) 'это чтобы не ковырять весь документ
+'Set Search = .Range(Start:=0, End:=100) 'СЌС‚Рѕ С‡С‚РѕР±С‹ РЅРµ РєРѕРІС‹СЂСЏС‚СЊ РІРµСЃСЊ РґРѕРєСѓРјРµРЅС‚
 'Search.Select
-'wa.Selection.Find.Execute FindText:="известный текст", Forward:=True
+'wa.Selection.Find.Execute FindText:="РёР·РІРµСЃС‚РЅС‹Р№ С‚РµРєСЃС‚", Forward:=True
 L1:
-        MsgBox "Файл " & sFile & " занят и не может быть удален", vbCritical, "Ошибка"
+        MsgBox "Р¤Р°Р№Р» " & sFile & " Р·Р°РЅСЏС‚ Рё РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ СѓРґР°Р»РµРЅ", vbCritical, "РћС€РёР±РєР°"
 End Sub
 
 
@@ -391,10 +390,10 @@ Function AddNamedPageOD(pName As String) As Visio.Page
     Set aPage = ActiveDocument.Pages.Add
     aPage.Name = pName
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Р Р°РјРєР°")  'ActiveDocument.Masters.Item("Р Р°РјРєР°")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
     'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
-    'Номера страниц "=pagenumber()-thedoc!user.coc"
+    'РќРѕРјРµСЂР° СЃС‚СЂР°РЅРёС† "=pagenumber()-thedoc!user.coc"
 '    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("shifr").Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
 '    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("list").Cells("fields.value").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.coc - PAGECOUNT()"
 '    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("listov").Cells("fields.value").FormulaU = "=TheDoc!User.coc"
@@ -409,20 +408,19 @@ Public Sub odDELL()
     Dim dp As Page
     Dim colPage As Collection
     Set colPage = New Collection
-    'проходим все страницы и добавляем в коллекцию тока нужные (если удалять сразу тут же, то 3-я страница становится 2-й, а 2-ю for each уже пролистал :) сучара )
+    'РїСЂРѕС…РѕРґРёРј РІСЃРµ СЃС‚СЂР°РЅРёС†С‹ Рё РґРѕР±Р°РІР»СЏРµРј РІ РєРѕР»Р»РµРєС†РёСЋ С‚РѕРєР° РЅСѓР¶РЅС‹Рµ (РµСЃР»Рё СѓРґР°Р»СЏС‚СЊ СЃСЂР°Р·Сѓ С‚СѓС‚ Р¶Рµ, С‚Рѕ 3-СЏ СЃС‚СЂР°РЅРёС†Р° СЃС‚Р°РЅРѕРІРёС‚СЃСЏ 2-Р№, Р° 2-СЋ for each СѓР¶Рµ РїСЂРѕР»РёСЃС‚Р°Р» :) СЃСѓС‡Р°СЂР° )
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, "ОД.") > 0 Then
+        If InStr(1, dp.Name, "РћР”.") > 0 Then
             colPage.Add dp
         End If
     Next
-    'удаляем все страницы которые нашли выше
+    'СѓРґР°Р»СЏРµРј РІСЃРµ СЃС‚СЂР°РЅРёС†С‹ РєРѕС‚РѕСЂС‹Рµ РЅР°С€Р»Рё РІС‹С€Рµ
     For Each dp In colPage
         dp.Delete (1)
     Next
     Set colPage = Nothing
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("ОД")
-    MsgBox "Листы ОД удалены", vbInformation
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("РћР”")
+    MsgBox "Р›РёСЃС‚С‹ РћР” СѓРґР°Р»РµРЅС‹", vbInformation
 End Sub
-
 
 

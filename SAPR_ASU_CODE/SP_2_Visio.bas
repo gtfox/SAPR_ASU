@@ -1,30 +1,29 @@
-Attribute VB_Name = "SP_2_Visio"
 '------------------------------------------------------------------------------------------------------------
-' Module        : SP - Спецификация
+' Module        : SP - РЎРїРµС†РёС„РёРєР°С†РёСЏ
 ' Author        : gtfox
 ' Date          : 2019.09.22
-' Description   : spDEL - Удаляет листы спецификации
-                ' spADD_Excel_Razbienie - Добавляет листы спецификации из Excel из листа SP_2_Visio (после разбиения на ячейки)
-                ' spADD_Visio_Perenos - Добавляет листы спецификации из Excel из листа SP (перенос длинных строк делает визио)
-                ' spEXP_2_XLS – Экспортирует спецификацию из Visio в Excel
-                ' SP_2_Visio.xls -Спецификация
-                ' Лист SP содержит исходную спецификацию, с многострочным текстом в одной ячейке.
-                ' Лист SP_2_Visio создается автоматически и содержит лист SP с порезанными однострочными ячейками (в дальнейшем не используется + перезаписывается при каждом вызове макроса)
-                ' Лист EXP_2_XLS содержит экспортированную из Visio спецификацию (если вы вносили изменения в спецификацию в самом Visio) Создается автоматически макросом + перезаписывается при каждом вызове макроса
-                ' Основная проблема спецификации – длинные строки, которые надо разбивать/переносить.
-                ' У Surrogate перенос делает Visio, а расчет высоты получившейся строки делает ShapeSheet. В 2007 версии VBA выполняется быстрее пересчета формул в ShapeSheet и макрос не получает высоту вовремя. Исправлено
-                ' Я решил разбивать строки в Excel, и тогда в Visio не надо считать высоту через ShapeSheet.
-                ' Деление многострочной ячейки на строки происходит на основе особенности реализации шейпа надпись в Excel. Задаем ширину прямоугольника и помещаем длинный текст. Он переносится, чтобы поместится в ширину. А особенностью является то, что мы можем обращаться отдельно к каждой получившейся строке в этом прямоугольнике через коллекции.
-                ' Макрос написан на основе singleTextCellToRows https://www.planetaexcel.ru/forum/index.php?PAGE_NAME=message&FID=1&TID=77447&TITLE_SEO=77447-perenos-teksta-na-sleduyushchuyu-stroku-pri-zapolnenii-stolbtsa-po-shi&MID=841387#message841387
+' Description   : spDEL - РЈРґР°Р»СЏРµС‚ Р»РёСЃС‚С‹ СЃРїРµС†РёС„РёРєР°С†РёРё
+                ' spADD_Excel_Razbienie - Р”РѕР±Р°РІР»СЏРµС‚ Р»РёСЃС‚С‹ СЃРїРµС†РёС„РёРєР°С†РёРё РёР· Excel РёР· Р»РёСЃС‚Р° SP_2_Visio (РїРѕСЃР»Рµ СЂР°Р·Р±РёРµРЅРёСЏ РЅР° СЏС‡РµР№РєРё)
+                ' spADD_Visio_Perenos - Р”РѕР±Р°РІР»СЏРµС‚ Р»РёСЃС‚С‹ СЃРїРµС†РёС„РёРєР°С†РёРё РёР· Excel РёР· Р»РёСЃС‚Р° SP (РїРµСЂРµРЅРѕСЃ РґР»РёРЅРЅС‹С… СЃС‚СЂРѕРє РґРµР»Р°РµС‚ РІРёР·РёРѕ)
+                ' spEXP_2_XLS вЂ“ Р­РєСЃРїРѕСЂС‚РёСЂСѓРµС‚ СЃРїРµС†РёС„РёРєР°С†РёСЋ РёР· Visio РІ Excel
+                ' SP_2_Visio.xls -РЎРїРµС†РёС„РёРєР°С†РёСЏ
+                ' Р›РёСЃС‚ SP СЃРѕРґРµСЂР¶РёС‚ РёСЃС…РѕРґРЅСѓСЋ СЃРїРµС†РёС„РёРєР°С†РёСЋ, СЃ РјРЅРѕРіРѕСЃС‚СЂРѕС‡РЅС‹Рј С‚РµРєСЃС‚РѕРј РІ РѕРґРЅРѕР№ СЏС‡РµР№РєРµ.
+                ' Р›РёСЃС‚ SP_2_Visio СЃРѕР·РґР°РµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё Рё СЃРѕРґРµСЂР¶РёС‚ Р»РёСЃС‚ SP СЃ РїРѕСЂРµР·Р°РЅРЅС‹РјРё РѕРґРЅРѕСЃС‚СЂРѕС‡РЅС‹РјРё СЏС‡РµР№РєР°РјРё (РІ РґР°Р»СЊРЅРµР№С€РµРј РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ + РїРµСЂРµР·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ РїСЂРё РєР°Р¶РґРѕРј РІС‹Р·РѕРІРµ РјР°РєСЂРѕСЃР°)
+                ' Р›РёСЃС‚ EXP_2_XLS СЃРѕРґРµСЂР¶РёС‚ СЌРєСЃРїРѕСЂС‚РёСЂРѕРІР°РЅРЅСѓСЋ РёР· Visio СЃРїРµС†РёС„РёРєР°С†РёСЋ (РµСЃР»Рё РІС‹ РІРЅРѕСЃРёР»Рё РёР·РјРµРЅРµРЅРёСЏ РІ СЃРїРµС†РёС„РёРєР°С†РёСЋ РІ СЃР°РјРѕРј Visio) РЎРѕР·РґР°РµС‚СЃСЏ Р°РІС‚РѕРјР°С‚РёС‡РµСЃРєРё РјР°РєСЂРѕСЃРѕРј + РїРµСЂРµР·Р°РїРёСЃС‹РІР°РµС‚СЃСЏ РїСЂРё РєР°Р¶РґРѕРј РІС‹Р·РѕРІРµ РјР°РєСЂРѕСЃР°
+                ' РћСЃРЅРѕРІРЅР°СЏ РїСЂРѕР±Р»РµРјР° СЃРїРµС†РёС„РёРєР°С†РёРё вЂ“ РґР»РёРЅРЅС‹Рµ СЃС‚СЂРѕРєРё, РєРѕС‚РѕСЂС‹Рµ РЅР°РґРѕ СЂР°Р·Р±РёРІР°С‚СЊ/РїРµСЂРµРЅРѕСЃРёС‚СЊ.
+                ' РЈ Surrogate РїРµСЂРµРЅРѕСЃ РґРµР»Р°РµС‚ Visio, Р° СЂР°СЃС‡РµС‚ РІС‹СЃРѕС‚С‹ РїРѕР»СѓС‡РёРІС€РµР№СЃСЏ СЃС‚СЂРѕРєРё РґРµР»Р°РµС‚ ShapeSheet. Р’ 2007 РІРµСЂСЃРёРё VBA РІС‹РїРѕР»РЅСЏРµС‚СЃСЏ Р±С‹СЃС‚СЂРµРµ РїРµСЂРµСЃС‡РµС‚Р° С„РѕСЂРјСѓР» РІ ShapeSheet Рё РјР°РєСЂРѕСЃ РЅРµ РїРѕР»СѓС‡Р°РµС‚ РІС‹СЃРѕС‚Сѓ РІРѕРІСЂРµРјСЏ. РСЃРїСЂР°РІР»РµРЅРѕ
+                ' РЇ СЂРµС€РёР» СЂР°Р·Р±РёРІР°С‚СЊ СЃС‚СЂРѕРєРё РІ Excel, Рё С‚РѕРіРґР° РІ Visio РЅРµ РЅР°РґРѕ СЃС‡РёС‚Р°С‚СЊ РІС‹СЃРѕС‚Сѓ С‡РµСЂРµР· ShapeSheet.
+                ' Р”РµР»РµРЅРёРµ РјРЅРѕРіРѕСЃС‚СЂРѕС‡РЅРѕР№ СЏС‡РµР№РєРё РЅР° СЃС‚СЂРѕРєРё РїСЂРѕРёСЃС…РѕРґРёС‚ РЅР° РѕСЃРЅРѕРІРµ РѕСЃРѕР±РµРЅРЅРѕСЃС‚Рё СЂРµР°Р»РёР·Р°С†РёРё С€РµР№РїР° РЅР°РґРїРёСЃСЊ РІ Excel. Р—Р°РґР°РµРј С€РёСЂРёРЅСѓ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєР° Рё РїРѕРјРµС‰Р°РµРј РґР»РёРЅРЅС‹Р№ С‚РµРєСЃС‚. РћРЅ РїРµСЂРµРЅРѕСЃРёС‚СЃСЏ, С‡С‚РѕР±С‹ РїРѕРјРµСЃС‚РёС‚СЃСЏ РІ С€РёСЂРёРЅСѓ. Рђ РѕСЃРѕР±РµРЅРЅРѕСЃС‚СЊСЋ СЏРІР»СЏРµС‚СЃСЏ С‚Рѕ, С‡С‚Рѕ РјС‹ РјРѕР¶РµРј РѕР±СЂР°С‰Р°С‚СЊСЃСЏ РѕС‚РґРµР»СЊРЅРѕ Рє РєР°Р¶РґРѕР№ РїРѕР»СѓС‡РёРІС€РµР№СЃСЏ СЃС‚СЂРѕРєРµ РІ СЌС‚РѕРј РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєРµ С‡РµСЂРµР· РєРѕР»Р»РµРєС†РёРё.
+                ' РњР°РєСЂРѕСЃ РЅР°РїРёСЃР°РЅ РЅР° РѕСЃРЅРѕРІРµ singleTextCellToRows https://www.planetaexcel.ru/forum/index.php?PAGE_NAME=message&FID=1&TID=77447&TITLE_SEO=77447-perenos-teksta-na-sleduyushchuyu-stroku-pri-zapolnenii-stolbtsa-po-shi&MID=841387#message841387
 ' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
-                'на основе этого:
+                'РЅР° РѕСЃРЅРѕРІРµ СЌС‚РѕРіРѕ:
                 '------------------------------------------------------------------------------------------------------------
-                ' Module    : speka2003 Спецификация
+                ' Module    : speka2003 РЎРїРµС†РёС„РёРєР°С†РёСЏ
                 ' Author    : Surrogate
                 ' Date      : 07.11.2012
-                ' Purpose   : Спецификация: перенос данных из Excel из Visio и обратно
-                '           : Мастер для переноса данных из экселя в визио, для формирования спецификации
+                ' Purpose   : РЎРїРµС†РёС„РёРєР°С†РёСЏ: РїРµСЂРµРЅРѕСЃ РґР°РЅРЅС‹С… РёР· Excel РёР· Visio Рё РѕР±СЂР°С‚РЅРѕ
+                '           : РњР°СЃС‚РµСЂ РґР»СЏ РїРµСЂРµРЅРѕСЃР° РґР°РЅРЅС‹С… РёР· СЌРєСЃРµР»СЏ РІ РІРёР·РёРѕ, РґР»СЏ С„РѕСЂРјРёСЂРѕРІР°РЅРёСЏ СЃРїРµС†РёС„РёРєР°С†РёРё
                 ' Links     : https://visio.getbb.ru/viewtopic.php?f=15&t=234, https://visio.getbb.ru/download/file.php?id=106
                 '------------------------------------------------------------------------------------------------------------
 
@@ -42,7 +41,7 @@ Dim pth As String
 
 Public Sub spDEL()
     del_sp
-    'MsgBox "Старая версия спецификации удалена", vbInformation
+    'MsgBox "РЎС‚Р°СЂР°СЏ РІРµСЂСЃРёСЏ СЃРїРµС†РёС„РёРєР°С†РёРё СѓРґР°Р»РµРЅР°", vbInformation
 End Sub
 
 'Public Sub spDEL_ADD()
@@ -53,15 +52,15 @@ End Sub
 Public Sub spADD_Excel_Razbienie()
     xls_query "SP_2_Visio"
     fill_table False
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("С")
-    MsgBox "Спецификация добавлена", vbInformation
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("РЎ")
+    MsgBox "РЎРїРµС†РёС„РёРєР°С†РёСЏ РґРѕР±Р°РІР»РµРЅР°", vbInformation
 End Sub
 
 Public Sub spADD_Visio_Perenos()
     xls_query "SP"
     fill_table True
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("С")
-    MsgBox "Спецификация добавлена", vbInformation
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("РЎ")
+    MsgBox "РЎРїРµС†РёС„РёРєР°С†РёСЏ РґРѕР±Р°РІР»РµРЅР°", vbInformation
 End Sub
 
 Private Sub xls_query(imya_lista As String)
@@ -73,10 +72,10 @@ Private Sub xls_query(imya_lista As String)
     Dim tc As Object
     Dim qx As Integer
     Dim qy As Integer
-    pth = Visio.ActiveDocument.Path
+    pth = Visio.ActiveDocument.path
     Dim ffs As FileDialogFilters
     Dim sFileName As String
-    oExcel.Visible = True ' для наглядности
+    oExcel.Visible = True ' РґР»СЏ РЅР°РіР»СЏРґРЅРѕСЃС‚Рё
     Dim fd As FileDialog
 '    Set fd = oExcel.FileDialog(msoFileDialogOpen)
 '    With fd
@@ -97,30 +96,30 @@ Private Sub xls_query(imya_lista As String)
     sFileName = "SP_2_Visio.xls"
     sFile = sPath & sFileName
     
-    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+    If Dir(sFile, 16) = "" Then 'РµСЃС‚СЊ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ С„Р°Р№Р»
+        MsgBox "Р¤Р°Р№Р» " & sFileName & " РЅРµ РЅР°Р№РґРµРЅ РІ РїР°РїРєРµ: " & sPath, vbCritical, "РћС€РёР±РєР°"
         Exit Sub
     End If
     
     Set sp = oExcel.Workbooks.Open(sFile)
     sp.Activate
     Dim UserRange As Excel.Range
-    Dim Total As Excel.Range ' диапазон Full_list
+    Dim Total As Excel.Range ' РґРёР°РїР°Р·РѕРЅ Full_list
     
     On Error Resume Next
     If oExcel.Worksheets(imya_lista) Is Nothing Then
-        'действия, если листа нет
-        oExcel.Run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
+        'РґРµР№СЃС‚РІРёСЏ, РµСЃР»Рё Р»РёСЃС‚Р° РЅРµС‚
+        oExcel.Run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'СЃРѕР·РґР°РµРј
     Else
-        'действия, если лист есть
+        'РґРµР№СЃС‚РІРёСЏ, РµСЃР»Рё Р»РёСЃС‚ РµСЃС‚СЊ
     End If
     
     'oExcel.GoTo Reference:=sp.Worksheets(1).Range("A2")
     'oExcel.ActiveCell.Select
-    lLastRow = oExcel.Sheets(imya_lista).Cells(oExcel.Sheets(imya_lista).Rows.Count, 1).End(xlUp).Row
+    lLastRow = oExcel.Sheets(imya_lista).Cells(oExcel.Sheets(imya_lista).Rows.Count, 1).End(xlUp).row
     Set UserRange = oExcel.Worksheets(imya_lista).Range("A3:I" & lLastRow) 'oExcel.InputBox _
-    '(Prompt:="Выберите диапазон A3:Ix", _
-    'Title:="Выбор диапазона", _
+    '(Prompt:="Р’С‹Р±РµСЂРёС‚Рµ РґРёР°РїР°Р·РѕРЅ A3:Ix", _
+    'Title:="Р’С‹Р±РѕСЂ РґРёР°РїР°Р·РѕРЅР°", _
     'Type:=8)
     Set Total = UserRange
         For Each tr In Total.Rows
@@ -133,7 +132,7 @@ Private Sub xls_query(imya_lista As String)
     ReDim arr(rc, sc) As Variant
     For qx = 1 To rc
         For qy = 1 To sc
-            arr(qx, qy) = Total.Cells(qx, qy) ' заполнение массива arr
+            arr(qx, qy) = Total.Cells(qx, qy) ' Р·Р°РїРѕР»РЅРµРЅРёРµ РјР°СЃСЃРёРІР° arr
         Next qy
     Next qx
     sp.Close SaveChanges:=False
@@ -142,45 +141,45 @@ Private Sub xls_query(imya_lista As String)
 
 End Sub
 
-Private Sub fill_table(bEvents As Boolean)  ' заполнение спецификации
+Private Sub fill_table(bEvents As Boolean)  ' Р·Р°РїРѕР»РЅРµРЅРёРµ СЃРїРµС†РёС„РёРєР°С†РёРё
     'Application.ScreenUpdating = 1
     Dim vys_yach As Double
     Dim vys_str As Double
     Dim mmm As Integer
-    Dim DocCell As Cell
+    Dim DocCell As cell
     Dim FTx As Integer
     Dim FTy As Integer
     pNumber = 1
     Set DocCell = ActiveDocument.DocumentSheet.Cells("user.coc")
     DocCell.FormulaU = 1
-    Dim pec As Integer ' счетчик количества строк спецификации на странице
+    Dim pec As Integer ' СЃС‡РµС‚С‡РёРє РєРѕР»РёС‡РµСЃС‚РІР° СЃС‚СЂРѕРє СЃРїРµС†РёС„РёРєР°С†РёРё РЅР° СЃС‚СЂР°РЅРёС†Рµ
     pec = 1
     Dim mast As Master
     Dim pg As Page
     Dim aPage As Visio.Page
     Dim pName As String
-    pName = "С"
-    Set aPage = AddNamedPage("С")
+    pName = "РЎ"
+    Set aPage = AddNamedPage("РЎ")
     ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
     ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
     ActivePage.PageSheet.Cells("Paperkind").Formula = 8
     ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 2
 
-    ActivePage.Shapes.ItemFromID(1).Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
+    ActivePage.Shapes.ItemFromID(1).Cells("prop.type").Formula = """РЎРїРµС†РёС„РёРєР°С†РёСЏ РѕР±РѕСЂСѓРґРѕРІР°РЅРёСЏ, РёР·РґРµР»РёР№ Рё РјР°С‚РµСЂРёР°Р»РѕРІ"""
     Set pg = ActivePage
-    Set mast = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Спецификация") 'ActiveDocument.Masters.Item("Спецификация")
+    Set mast = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ") 'ActiveDocument.Masters.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
     pg.Drop mast, 6.889764, 8.661417
     
-    Dim target As Shape ' целевой шейп
-    Dim main As Shape   ' шейп - основная группа
-    ' Dim rw As Shape     ' шейп - строка
-    Dim rn As String      ' имя шейпа-строки
+    Dim target As Shape ' С†РµР»РµРІРѕР№ С€РµР№Рї
+    Dim main As Shape   ' С€РµР№Рї - РѕСЃРЅРѕРІРЅР°СЏ РіСЂСѓРїРїР°
+    ' Dim rw As Shape     ' С€РµР№Рї - СЃС‚СЂРѕРєР°
+    Dim rn As String      ' РёРјСЏ С€РµР№РїР°-СЃС‚СЂРѕРєРё
 
     
-    Set main = ActivePage.Shapes.Item("Спецификация")
+    Set main = ActivePage.Shapes.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
     'ActivePage.Shapes.ItemFromID(1).Cells("Prop.tnum").Formula = "=thedoc!user.coc"
-    Dim SSS As Shapes  ' подмножество шейпов основной группы
-    Dim tn As String ' имя целевого шейпа
+    Dim SSS As Shapes  ' РїРѕРґРјРЅРѕР¶РµСЃС‚РІРѕ С€РµР№РїРѕРІ РѕСЃРЅРѕРІРЅРѕР№ РіСЂСѓРїРїС‹
+    Dim tn As String ' РёРјСЏ С†РµР»РµРІРѕРіРѕ С€РµР№РїР°
     Set SSS = main.Shapes
     For FTy = 1 To rc
         rn = "row" & pec
@@ -230,22 +229,22 @@ Private Sub fill_table(bEvents As Boolean)  ' заполнение спецификации
                 Set rw = SSS.Item(rn)
 
 '                If kostyl Then
-'                    xx = MsgBox("Удалить лишние строки: " & (vys_str * 25.4) & " мм /  " & (main.Cells("User.V.Prompt").Result("") * 25.4) & " max" & vbCrLf & vbCrLf & "Пока вы думаете, ShapeSheet успевает пересчитаться на Visio 2007", vbYesNo, "Жми чО-нибудь уже")
+'                    xx = MsgBox("РЈРґР°Р»РёС‚СЊ Р»РёС€РЅРёРµ СЃС‚СЂРѕРєРё: " & (vys_str * 25.4) & " РјРј /  " & (main.Cells("User.V.Prompt").Result("") * 25.4) & " max" & vbCrLf & vbCrLf & "РџРѕРєР° РІС‹ РґСѓРјР°РµС‚Рµ, ShapeSheet СѓСЃРїРµРІР°РµС‚ РїРµСЂРµСЃС‡РёС‚Р°С‚СЊСЃСЏ РЅР° Visio 2007", vbYesNo, "Р–РјРё С‡Рћ-РЅРёР±СѓРґСЊ СѓР¶Рµ")
 '                End If
             Wend
             pec = 0
             pNumber = pNumber + 1
             DocCell.Formula = pNumber
-            Set aPage = AddNamedPage("С." & pNumber)
+            Set aPage = AddNamedPage("РЎ." & pNumber)
             ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
             ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
             ActivePage.PageSheet.Cells("Paperkind").Formula = 8
             ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 2
             'ActivePage.Shapes(1).Cells("Prop.cnum.value") = pNumber
-            ActivePage.Shapes.ItemFromID(1).Cells("prop.chapter.value").Formula = """С-Спецификация оборудования, изделий и материалов"""
+            ActivePage.Shapes.ItemFromID(1).Cells("prop.chapter.value").Formula = """РЎ-РЎРїРµС†РёС„РёРєР°С†РёСЏ РѕР±РѕСЂСѓРґРѕРІР°РЅРёСЏ, РёР·РґРµР»РёР№ Рё РјР°С‚РµСЂРёР°Р»РѕРІ"""
             'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=pagenumber()" & "-1"
             ActivePage.Drop mast, 6.889764, 8.661417
-            Set main = ActivePage.Shapes.Item("Спецификация")
+            Set main = ActivePage.Shapes.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
             Set SSS = main.Shapes
             If pNumber = 1 Then
                 'ActivePage.Shapes(1).Cells("Prop.cnum.value") = 0
@@ -264,21 +263,21 @@ Private Sub fill_table(bEvents As Boolean)  ' заполнение спецификации
         
         
         'If mmm = 1 And FTy <> rc Then
-        If main.CellsSRC(visSectionUser, 7, visUserValue) = 1 And FTy <> rc Then ' это здесь !!!
+        If main.CellsSRC(visSectionUser, 7, visUserValue) = 1 And FTy <> rc Then ' СЌС‚Рѕ Р·РґРµСЃСЊ !!!
             
             pec = 0
             pNumber = pNumber + 1
             DocCell.Formula = pNumber
-            Set aPage = AddNamedPage("С." & pNumber)
+            Set aPage = AddNamedPage("РЎ." & pNumber)
             ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
             ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
             ActivePage.PageSheet.Cells("Paperkind").Formula = 8
             ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 2
             'ActivePage.Shapes(1).Cells("Prop.cnum.value") = pNumber
-            ActivePage.Shapes.ItemFromID(1).Cells("prop.chapter.value").Formula = """С-Спецификация оборудования, изделий и материалов"""
+            ActivePage.Shapes.ItemFromID(1).Cells("prop.chapter.value").Formula = """РЎ-РЎРїРµС†РёС„РёРєР°С†РёСЏ РѕР±РѕСЂСѓРґРѕРІР°РЅРёСЏ, РёР·РґРµР»РёР№ Рё РјР°С‚РµСЂРёР°Р»РѕРІ"""
             'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=pagenumber()" & "-1"
             ActivePage.Drop mast, 6.889764, 8.661417
-            Set main = ActivePage.Shapes.Item("Спецификация")
+            Set main = ActivePage.Shapes.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
             Set SSS = main.Shapes
             If pNumber = 1 Then
                 'ActivePage.Shapes(1).Cells("Prop.cnum.value") = 0
@@ -311,10 +310,10 @@ Function AddNamedPage(pName As String) As Visio.Page
     Set aPage = ActiveDocument.Pages.Add
     aPage.Name = pName
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Р Р°РјРєР°")  'ActiveDocument.Masters.Item("Р Р°РјРєР°")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
     'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
-    'Номера страниц "=pagenumber()-thedoc!user.coc"
+    'РќРѕРјРµСЂР° СЃС‚СЂР°РЅРёС† "=pagenumber()-thedoc!user.coc"
     ActivePage.Shapes(1).Shapes("FORMA3").Shapes("shifr").Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
     ActivePage.Shapes(1).Shapes("FORMA3").Shapes("list").Cells("fields.value").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.coc - PAGECOUNT()"
     ActivePage.Shapes(1).Shapes("FORMA3").Shapes("listov").Cells("fields.value").FormulaU = "=TheDoc!User.coc"
@@ -333,32 +332,32 @@ Private Sub del_sp()
 '    Dim CO As Shape
 '    Dim cx As Integer
 '    Dim dn As String
-'    pName = "С"
+'    pName = "РЎ"
 '    con = ActiveDocument.DocumentSheet.Cells("user.coc")
 '    opn = ActiveDocument.Pages.Item(pName).Index
 '    For cx = con To 2 Step -1
-'        dn = "С." & cx
+'        dn = "РЎ." & cx
 '        Set pa = ActiveDocument.Pages.Item(dn)
 '        pa.Delete (1)
 '    Next cx
 '   On Error Resume Next
-'   Set CO = ActiveDocument.Pages.Item("С").Shapes.Item("Спецификация")
+'   Set CO = ActiveDocument.Pages.Item("РЎ").Shapes.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
 '   CO.Delete
     Dim dp As Page
     Dim colPage As Collection
     Set colPage = New Collection
-    'проходим все страницы и добавляем в коллекцию тока нужные (если удалять сразу тут же, то 3-я страница становится 2-й, а 2-ю for each уже пролистал :) сучара )
+    'РїСЂРѕС…РѕРґРёРј РІСЃРµ СЃС‚СЂР°РЅРёС†С‹ Рё РґРѕР±Р°РІР»СЏРµРј РІ РєРѕР»Р»РµРєС†РёСЋ С‚РѕРєР° РЅСѓР¶РЅС‹Рµ (РµСЃР»Рё СѓРґР°Р»СЏС‚СЊ СЃСЂР°Р·Сѓ С‚СѓС‚ Р¶Рµ, С‚Рѕ 3-СЏ СЃС‚СЂР°РЅРёС†Р° СЃС‚Р°РЅРѕРІРёС‚СЃСЏ 2-Р№, Р° 2-СЋ for each СѓР¶Рµ РїСЂРѕР»РёСЃС‚Р°Р» :) СЃСѓС‡Р°СЂР° )
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, "С.") > 0 Then
+        If InStr(1, dp.Name, "РЎ.") > 0 Then
             colPage.Add dp
         End If
     Next
-    'удаляем все страницы которые нашли выше
+    'СѓРґР°Р»СЏРµРј РІСЃРµ СЃС‚СЂР°РЅРёС†С‹ РєРѕС‚РѕСЂС‹Рµ РЅР°С€Р»Рё РІС‹С€Рµ
     For Each dp In colPage
         dp.Delete (1)
     Next
     On Error Resume Next
-    ActiveDocument.Pages.Item("С").Delete (1)
+    ActiveDocument.Pages.Item("РЎ").Delete (1)
     ActiveDocument.DocumentSheet.Cells("user.coc").Formula = 0
 End Sub
 
@@ -369,13 +368,13 @@ Public Sub spEXP_2_XLS()
     Dim np As Page
     Dim pg As Page
     Dim n As Integer
-    pName = "С"
+    pName = "РЎ"
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
-    Application.ActiveWindow.Page = ActiveDocument.Pages.Item("С")
+    Application.ActiveWindow.Page = ActiveDocument.Pages.Item("РЎ")
     get_data
     For n = 2 To ActiveDocument.DocumentSheet.Cells("user.coc")
-        pName = "С." & n
+        pName = "РЎ." & n
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data
     Next
@@ -387,13 +386,13 @@ Public Sub spEXP_2_XLS()
     Dim un As String
     
     Dim sPath, sFile As String
-    sPath = Visio.ActiveDocument.Path
+    sPath = Visio.ActiveDocument.path
     sFileName = "SP_2_Visio.xls"
     sFile = sPath & sFileName
     
     
-    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+    If Dir(sFile, 16) = "" Then 'РµСЃС‚СЊ С…РѕС‚СЏ Р±С‹ РѕРґРёРЅ С„Р°Р№Р»
+        MsgBox "Р¤Р°Р№Р» " & sFileName & " РЅРµ РЅР°Р№РґРµРЅ РІ РїР°РїРєРµ: " & sPath, vbCritical, "РћС€РёР±РєР°"
         Exit Sub
     End If
     
@@ -404,19 +403,19 @@ Public Sub spEXP_2_XLS()
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
     'pth = Visio.ActiveDocument.Path
-    'en = pth & "Спецификация_" & un & ".xls"
+    'en = pth & "РЎРїРµС†РёС„РёРєР°С†РёСЏ_" & un & ".xls"
     apx.Visible = True
-    'удаляем старый лист
+    'СѓРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Р№ Р»РёСЃС‚
     apx.DisplayAlerts = False
     On Error Resume Next
     apx.Sheets("EXP_2_XLS").Delete
     apx.DisplayAlerts = True
-    'добавляем новый
+    'РґРѕР±Р°РІР»СЏРµРј РЅРѕРІС‹Р№
     apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
     apx.Sheets("SP (2)").Name = "EXP_2_XLS"
     
     
-    lLastRow = apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
+    lLastRow = apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row
     apx.Application.CutCopyMode = False
     apx.Worksheets("EXP_2_XLS").Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
@@ -428,29 +427,29 @@ Public Sub spEXP_2_XLS()
         For xx = 1 To str + 2
             For yx = 1 To 9
                 wb.Sheets("EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
-                'wb.Sheets("EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
+                'wb.Sheets("EXP_2_XLS").Range("A" & (xx + 2)).Select 'РґР»СЏ РЅР°РіР»СЏРґРЅРѕСЃС‚Рё
             Next yx
         Next xx
         
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row).RowHeight = 20 'Р•СЃР»Рё СЏС‡РµР№РєРё, РІ РєРѕС‚РѕСЂС‹С… Р±С‹Р»Рё РјРЅРѕРіРѕСЃС‚СЂРѕС‡РЅС‹Рµ С‚РµРєСЃС‚С‹, Р±С‹Р»Рё СЂР°СЃС‚СЏРЅСѓС‚С‹ РїРѕ РІС‹СЃРѕС‚Рµ, С‚Рѕ РјС‹ РёС… РїСЂРёРІРѕРґРёРј РІ РЅРѕСЂРјР°Р»СЊРЅС‹Р№ РІРёРґ РїРµСЂРµРґ РєРѕРїРёСЂРѕРІР°РЅРёРµРј
    
 
     wb.Close SaveChanges:=True
     apx.Quit
-    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист EXP_2_XLS", vbInformation
+    MsgBox "РЎРїРµС†РёС„РёРєР°С†РёСЏ СЌРєСЃРїРѕСЂС‚РёСЂРѕРІР°РЅР° РІ С„Р°Р№Р» SP_2_Visio.xls РЅР° Р»РёСЃС‚ EXP_2_XLS", vbInformation
 End Sub
 
 Function get_data() '(pgName As Page)
     Dim r As Integer
     Dim target As Shape
     Dim c As Integer
-    Dim main As Shape   ' шейп - основная группа
-    Dim rw As Shape     ' шейп - строка
-    Dim rn As String      ' имя шейпа-строки
-    Set main = ActivePage.Shapes.Item("Спецификация")
-    Dim SSS As Shapes  ' подмножество шейпов основной группы
-    Dim tn As String ' имя целевого шейпа
+    Dim main As Shape   ' С€РµР№Рї - РѕСЃРЅРѕРІРЅР°СЏ РіСЂСѓРїРїР°
+    Dim rw As Shape     ' С€РµР№Рї - СЃС‚СЂРѕРєР°
+    Dim rn As String      ' РёРјСЏ С€РµР№РїР°-СЃС‚СЂРѕРєРё
+    Set main = ActivePage.Shapes.Item("РЎРїРµС†РёС„РёРєР°С†РёСЏ")
+    Dim SSS As Shapes  ' РїРѕРґРјРЅРѕР¶РµСЃС‚РІРѕ С€РµР№РїРѕРІ РѕСЃРЅРѕРІРЅРѕР№ РіСЂСѓРїРїС‹
+    Dim tn As String ' РёРјСЏ С†РµР»РµРІРѕРіРѕ С€РµР№РїР°
     Set SSS = main.Shapes
     For r = 1 To 30
         rn = "row" & r
@@ -465,7 +464,6 @@ Function get_data() '(pgName As Page)
     Next r
 out:
 End Function
-
 
 
 
