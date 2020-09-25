@@ -150,6 +150,7 @@ Sub AddSensorOnSVP()
     Dim shpSensor As Visio.Shape
     Dim shpTerm As Visio.Shape
     Dim shpCable As Visio.Shape
+    Dim shpWire As Visio.Shape
     Dim colCables As Collection
     Dim colWires As Collection
     Dim colTerms As Collection
@@ -160,11 +161,20 @@ Sub AddSensorOnSVP()
     Dim vsoShape As Visio.Shape
     Dim shpSensorSVP As Visio.Shape
     Dim MultiCable As Boolean
+    Dim PastePoint As Double
+    Dim cellKlemmaShkafa As Visio.Cell
+    Dim cellKlemmaDatchika As Visio.Cell
+    Dim cellWireDown As Visio.Cell
+    Dim cellWireUp As Visio.Cell
+    Dim NumberKlemmaShkafa As Integer
+    Dim NumberKlemmaDatchika As Integer
+    Dim WireNumber As Integer
 
+    Dim i As Integer
     Dim UserType As Integer
     Dim WireHeight As Double
     Dim SensorSVPPinY As Double
-    Const SVPWireL As Double = 12.5 / 25.4 'Длина проводов торчащих из шины на СВП
+    Const SVPWireL As Double = 10 / 25.4 'Длина проводов торчащих из шины на СВП
     Const Interval As Double = 5 / 25.4 'Расстояние между датчиками на СВП
     Const Klemma As Double = 240 / 25.4 'Высота расположения клеммника шкафа на СВП
     Const Datchik As Double = 100 / 25.4 'Высота расположения датчика на СВП
@@ -173,7 +183,7 @@ Sub AddSensorOnSVP()
     Set colWires = New Collection
     Set colTerms = New Collection
     Set vsoSelection = ActiveWindow.Selection
-    Set shpSensor = ActiveDocument.Pages("Схема").Shapes("Sensor.582")
+    Set shpSensor = ActiveWindow.Selection.PrimaryItem 'ActiveDocument.Pages("Схема").Shapes("Sensor.582")
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
     
@@ -229,10 +239,12 @@ Sub AddSensorOnSVP()
     ActivePage.Paste
     'Application.ActiveDocument.Pages("СВП").Paste
 
+
+
     Set vsoGroup = ActiveWindow.Selection.Group
     
     Set colCables = New Collection
-    vsoGroup.Cells("PinX").Formula = "(25 mm+" & Interval & "+" & vsoGroup.Cells("LocPinX").Result(0) & "-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+    vsoGroup.Cells("PinX").Formula = "(25 mm+" & PastePoint & "+" & Interval & "+" & vsoGroup.Cells("LocPinX").Result(0) & "-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
     vsoGroup.Cells("PinY").Formula = Klemma & "-" & vsoGroup.Cells("LocPinY").Result(0)
     For Each vsoShape In vsoGroup.Shapes
          Select Case vsoShape.Cells("User.SAType").Result(0)
@@ -244,38 +256,55 @@ Sub AddSensorOnSVP()
     Next
     
     vsoGroup.Ungroup
+    
+        'Включаем события автоматизации
+    Application.EventsEnabled = -1
+    
     shpSensorSVP.Cells("PinY").Formula = Datchik
     SensorSVPPinY = shpSensorSVP.Cells("PinY").Result(0)
     For Each shpCable In colCables
         'В кабеле находим длину провода
-        DoEvents
+        DoEvents 'На-я тут этот DoEvents?
         WireHeight = shpCable.Shapes(1).Cells("Height").Result(0)
         'Вставляем шейп кабеля СВП
         Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, SensorSVPPinY + WireHeight - SVPWireL)
         shpKabelSVP.Cells("Width").Formula = WireHeight - SVPWireL * 2
+        shpKabelSVP.Cells("Prop.Number").Formula = shpCable.Cells("Prop.Number").Result(0)
+        shpKabelSVP.Cells("Prop.Marka").Formula = """" & shpCable.Cells("User.Marka").ResultStr(0) & """"
+        shpKabelSVP.Cells("Prop.WireCount").Formula = shpCable.Shapes.Count
+        'Ищем вход в датчике соединенный с текущим кабелем
+        For Each shpWire In shpCable.Shapes
+            For i = 1 To shpWire.Connects.Count
+                If shpWire.Connects(i).ToSheet.Name Like "Term*" Then
+                    Set cellKlemmaShkafa = shpWire.Connects(i).ToCell
+                    NumberKlemmaShkafa = shpWire.Connects(i).ToSheet.Cells("Prop.Number").Result(0)
+                ElseIf shpWire.Connects(i).ToSheet.Name Like "PLCTerm*" Then
+                    Set cellKlemmaDatchika = shpWire.Connects(i).ToCell
+                    NumberKlemmaDatchika = shpWire.Connects(i).ToSheet.Cells("User.Number").Result(0)
+                    WireNumber = CInt(Right(shpWire.Connects(i).ToSheet.Name, 1))
+                End If
+            Next
+            Set cellWireDown = shpKabelSVP.Cells("Controls.W" & WireNumber & "1")
+            Set cellWireUp = shpKabelSVP.Cells("Controls.W" & WireNumber & "2")
+            'Клеим провод
+            cellWireDown.GlueTo cellKlemmaDatchika
+            shpKabelSVP.Cells("Prop.WIRE" & WireNumber & "1").Formula = NumberKlemmaShkafa
+            cellWireUp.GlueTo cellKlemmaShkafa
+            shpKabelSVP.Cells("Prop.WIRE" & WireNumber & "2").Formula = NumberKlemmaDatchika
+            
+        Next
+        shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * 0.5
+        
     Next
     
-    'Включаем события автоматизации
-    Application.EventsEnabled = -1
-    'Ищем все по новой на странице СВП
+    'Удаляем кабели эл. схемы
+    For Each shpCable In colCables
+        shpCable.Delete
+    Next
     
-    'Перебираем кабели
     
-    'Перебираем входы в датчике
-    
-    'Находим ссылки на кабели и получаем шейпы кабелей
-'    Set kab = HyperLinkToShape(shpSensor.Shapes("SensorIO").Cells("User.LinkToCable").ResultStr(0))
-'    'В кабеле находим длину провода
-'    l = kab.Shapes(1).Cells("Height").Result(0)
-'    wpiny = kab.Shapes(1).Cells("LocPinY").Result(0)
-'
-'    'Вставляем шейп кабеля СВП
-'    Set shpKabelSVP = shpSensor.ContainingPage.Drop(vsoMaster, shpSensor.Cells("PinX").Result(0) + shpSensor.Cells("Width").Result(0) * 0.5, wpiny + l)
-'    Dim cell1 As Visio.Cell
-'    Dim cell2 As Visio.Cell
-'    Set cell1 = shpKabelSVP.Cells("Controls.W11")
-'    Set cell2 = shpSensor.Shapes("SensorIO").Shapes("PLCTerm1").Cells("Connections.1.X")
-'    cell1.GlueTo cell2
+
+
 End Sub
 
 Function FillColTerms(colWires As Collection) As Collection
