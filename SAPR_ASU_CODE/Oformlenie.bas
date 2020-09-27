@@ -1,5 +1,5 @@
 '------------------------------------------------------------------------------------------------------------
-' Module        : Oformlenie - Сетка координат зон чертежа, блокировка рамки, стили оформления
+' Module        : Oformlenie - Сетка координат зон чертежа, блокировка рамки, стили оформления, страницы
 ' Author        : gtfox
 ' Date          : 2020.05.05
 ' Description   : Сборник макросов относящихся к оформлению
@@ -254,3 +254,84 @@ For i = 1 To 15
 Next i
 
 End Sub
+
+Function AddSAPage(PageName As String) As Visio.Page
+'------------------------------------------------------------------------------------------------------------
+' Function        : AddSAPage - Добавляет страницу САПР-АСУ если ее нет, добавляет еще, если подобные уже есть
+                  'В строке передается имя страницы, возвращаем что создали
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim colPages As Collection
+    Dim Ramka As Visio.Master
+    Dim shpRamka As Visio.Shape
+    Dim Npage As Integer
+    Dim MaxNumber As Double
+    
+    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set colPages = New Collection
+    
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName & "*" Then
+            colPages.Add vsoPage
+        End If
+    Next
+    
+    If colPages.Count = 0 Then
+        'Создаем первую страницу
+        Set vsoPage = ActiveDocument.Pages.Add
+        vsoPage.Name = PageName
+        Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
+        shpRamka.Cells("Prop.CHAPTER") = 0
+
+
+    Else
+        'Ищем номер последней страницы
+        For Each vsoPage In colPages
+            Npage = CDbl(IIf(Mid(vsoPage.Name, Len(PageName) + 2) = "", 0, Mid(vsoPage.Name, Len(PageName) + 2)))
+            If Npage > MaxNumber Then MaxNumber = Npage
+        Next
+        
+        If Npage = 0 Then
+            'Создаем вторую страницу
+            Set vsoPage = ActiveDocument.Pages.Add
+            vsoPage.Name = PageName & ".2"
+        Else
+            'Создаем последующие страницы
+            Set vsoPage = ActiveDocument.Pages.Add
+            vsoPage.Name = PageName & "." & CStr(Npage + 1)
+        End If
+        
+        Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
+        shpRamka.Cells("Prop.CHAPTER") = 1
+
+        
+    End If
+    shpRamka.Cells("Prop.CNUM") = 0
+    shpRamka.Cells("Prop.TNUM") = 0
+    vsoPage.PageSheet.Cells("PageWidth").Formula = "420 MM"
+    vsoPage.PageSheet.Cells("PageHeight").Formula = "297 MM"
+    vsoPage.PageSheet.Cells("Paperkind").Formula = 9
+    vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 1
+
+    Set AddSAPage = vsoPage
+    
+End Function
+
+Function SAPageExist(PageName As String) As Visio.Page
+'------------------------------------------------------------------------------------------------------------
+' Function        : SAPageExist - Проверяет существование страницы и возвращает ее
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName Then
+            Set SAPageExist = vsoPage
+            Exit Function
+        End If
+    Next
+    
+    Set SAPageExist = Nothing
+    
+End Function
+
+

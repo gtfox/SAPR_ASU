@@ -134,8 +134,6 @@ Sub ClearSensorParent(shpParent As Visio.Shape)
     shpParent.CellsU("Hyperlink.FSA.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpParent.CellsU("Hyperlink.FSA.ExtraInfo").FormulaForceU = ""
     shpParent.CellsU("User.NameChild").FormulaForceU = ""
-    shpParent.CellsU("User.LinkToCable").FormulaForceU = ""
-    
 End Sub
 
 '------------------------------------------------------------------------------------------------------------

@@ -126,11 +126,12 @@ Public Sub ReNumber()
     Dim shpElement As Shape
     Dim Prev As Shape
     Dim shpСol As Collection
-    Set shpСol = New Collection
     Dim shpMas() As Shape
     Dim shpTemp As Shape
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, n As Integer
+    
+    Set shpСol = New Collection
     
     'Собираем в коллекцию нужные для сортировки шейпы
     For Each shpElement In ActivePage.Shapes

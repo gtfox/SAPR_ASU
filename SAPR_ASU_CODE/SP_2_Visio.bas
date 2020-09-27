@@ -314,11 +314,11 @@ Function AddNamedPage(pName As String) As Visio.Page
     Set sh = ActivePage.Drop(Ramka, 0, 0)
     'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
     'Номера страниц "=pagenumber()-thedoc!user.coc"
-    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("shifr").Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
-    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("list").Cells("fields.value").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.coc - PAGECOUNT()"
-    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("listov").Cells("fields.value").FormulaU = "=TheDoc!User.coc"
-    ActivePage.Shapes(1).Cells("Prop.cnum.value") = 0
-    ActivePage.Shapes(1).Cells("Prop.tnum.value") = 0
+    sh.Shapes("FORMA3").Shapes("shifr").Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
+    sh.Shapes("FORMA3").Shapes("list").Cells("fields.value").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.coc - PAGECOUNT()"
+    sh.Shapes("FORMA3").Shapes("listov").Cells("fields.value").FormulaU = "=TheDoc!User.coc"
+    sh.Cells("Prop.cnum.value") = 0
+    sh.Cells("Prop.tnum.value") = 0
     
     Set AddNamedPage = aPage
 End Function
@@ -370,7 +370,7 @@ Public Sub spEXP_2_XLS()
     Dim n As Integer
     pName = "С"
     str = 1
-    opn = ActiveDocument.Pages.Item(pName).Index
+    opn = ActiveDocument.Pages.Item(pName).index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item("С")
     get_data
     For n = 2 To ActiveDocument.DocumentSheet.Cells("user.coc")
