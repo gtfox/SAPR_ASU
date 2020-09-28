@@ -281,7 +281,7 @@ Function AddSAPage(PageName As String) As Visio.Page
         Set vsoPage = ActiveDocument.Pages.Add
         vsoPage.Name = PageName
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
-        shpRamka.Cells("Prop.CHAPTER") = 0
+        shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
 
 
     Else
@@ -302,7 +302,7 @@ Function AddSAPage(PageName As String) As Visio.Page
         End If
         
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
-        shpRamka.Cells("Prop.CHAPTER") = 1
+        shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
 
         
     End If
@@ -312,6 +312,8 @@ Function AddSAPage(PageName As String) As Visio.Page
     vsoPage.PageSheet.Cells("PageHeight").Formula = "297 MM"
     vsoPage.PageSheet.Cells("Paperkind").Formula = 9
     vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 1
+    
+    LockTitleBlock
 
     Set AddSAPage = vsoPage
     
@@ -323,13 +325,16 @@ Function SAPageExist(PageName As String) As Visio.Page
 '------------------------------------------------------------------------------------------------------------
     Dim vsoPage As Visio.Page
     
-    For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName Then
-            Set SAPageExist = vsoPage
-            Exit Function
-        End If
-    Next
-    
+'    For Each vsoPage In ActiveDocument.Pages
+'        If vsoPage.Name Like PageName Then
+'            Set SAPageExist = vsoPage
+'            Exit Function
+'        End If
+'    Next
+    On Error GoTo ER
+    Set SAPageExist = ActiveDocument.Pages.Item(PageName)
+    Exit Function
+ER:
     Set SAPageExist = Nothing
     
 End Function

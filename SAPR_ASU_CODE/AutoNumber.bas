@@ -125,28 +125,28 @@ Public Sub ReNumber()
 '------------------------------------------------------------------------------------------------------------
     Dim shpElement As Shape
     Dim Prev As Shape
-    Dim shpСol As Collection
+    Dim colShp As Collection
     Dim shpMas() As Shape
     Dim shpTemp As Shape
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, n As Integer
     
-    Set shpСol = New Collection
+    Set colShp = New Collection
     
     'Собираем в коллекцию нужные для сортировки шейпы
     For Each shpElement In ActivePage.Shapes
         If shpElement.CellExists("User.SAType", False) Then
             If shpElement.Cells("User.SAType").Result(0) = typeCoil Then 'Будет задано из формы
-                shpСol.Add shpElement
+                colShp.Add shpElement
                 'Debug.Print shpElement.Cells("PinX").Result("mm") & " - " & shpElement.Cells("PinY").Result("mm")
             End If
         End If
     Next
     
     'из коллекции передаем их в массив для сортировки
-    ReDim shpMas(shpСol.Count - 1)
+    ReDim shpMas(colShp.Count - 1)
     i = 0
-    For Each shpElement In shpСol
+    For Each shpElement In colShp
         Set shpMas(i) = shpElement
         i = i + 1
     Next
@@ -175,17 +175,17 @@ ExitWhileX:  Set shpMas(i) = shpTemp
     'Находим шейпы с одинаковой координатой Х и сортируем Y-ки
     'Debug.Print "---"
     Group = False
-    Set shpСol = New Collection
+    Set colShp = New Collection
     For ii = 1 To UbMas
         If (Abs(shpMas(ii - 1).Cells("PinX").Result("mm") - shpMas(ii).Cells("PinX").Result("mm")) < 0.5) And (ii < UbMas) Then
-            'shpСol.Add shpMas(i)
+            'colShp.Add shpMas(i)
             If Group = False Then
                 StartIndex = ii - 1 'На первом элементе запоменаем его номер
                 Group = True    'Начали собирать одинакое координаты
             End If
             'Debug.Print shpMas(i).Cells("PinX").Result("mm") & " - " & shpMas(i).Cells("PinY").Result("mm")
         ElseIf Group Then
-            'shpСol.Add shpMas(i)
+            'colShp.Add shpMas(i)
             Group = False   'Попался первый не одинаковый. Закончили.
             EndIndex = ii - 1
             If (ii = UbMas) And (Abs(shpMas(ii - 1).Cells("PinX").Result("mm") - shpMas(ii).Cells("PinX").Result("mm")) < 0.5) Then EndIndex = ii 'Если последний элемент, то включаем его в сортировку
@@ -205,7 +205,7 @@ ExitWhileY:     Set shpMas(i) = shpTemp
             '--Х--Сортировка по убыванию коордонаты Y
         End If
     Next
-    Set shpСol = Nothing
+    Set colShp = Nothing
     
     'Перенумеровываем отсортированный массив
     For i = 0 To UbMas
