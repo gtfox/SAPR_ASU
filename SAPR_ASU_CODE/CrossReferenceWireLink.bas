@@ -162,8 +162,10 @@ Sub GoHyperLink(vsoShape As Visio.Shape)
                 'Вызов макроса в EventDblClick  =CALLTHIS("CrossReference.GoHyperLink","SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     Dim shpTarget As Visio.Shape
+    Dim shpParent As Visio.Shape
     Dim HyperLinkToTarget As String
     Dim mstrAdrTarget() As String
+    
 '    Dim pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна
 '    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна
 

@@ -370,7 +370,7 @@ Public Sub spEXP_2_XLS()
     Dim n As Integer
     pName = "С"
     str = 1
-    opn = ActiveDocument.Pages.Item(pName).index
+    opn = ActiveDocument.Pages.Item(pName).Index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item("С")
     get_data
     For n = 2 To ActiveDocument.DocumentSheet.Cells("user.coc")

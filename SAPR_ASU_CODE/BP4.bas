@@ -16,7 +16,7 @@
                 '------------------------------------------------------------------------------------------------------------
 Option Base 1
 
-Sub BP4_corrector(shpObj As Visio.Shape, pp As Integer)
+Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
     Dim isSpec As Boolean
     isSpec = False
     Dim ma() As Integer
@@ -43,7 +43,7 @@ Sub BP4_corrector(shpObj As Visio.Shape, pp As Integer)
     'Application.ActiveWindow.Shape.Cells("user.store").FormulaU = Chr(34) & listing & Chr(34)
     ActivePage.PageSheet.Cells("user.store").FormulaU = Chr(34) & listing & Chr(34)
     'wn.Close
-    Set sh = shpObj
+    Set sh = ShpObj
     For i = 1 To n
 
         Set prim = sh.Shapes("pos" & i).Shapes(3)

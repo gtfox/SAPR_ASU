@@ -356,7 +356,7 @@ Public Sub AddPagesSVP()
     Dim colShpDoc As Collection
     Dim shpMas() As Shape
     Dim shpTemp As Shape
-    Dim index As Integer
+    Dim Index As Integer
     Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому нореру
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, n As Integer
@@ -438,11 +438,11 @@ ExitWhileX:              Set shpMas(i) = shpTemp
         'Если лист кончился
         If PastePoint > vsoPage.PageSheet.Cells("PageWidth").Result(0) - KonecLista Then
             'Положение текущей страницы
-            index = vsoPage.index
+            Index = vsoPage.Index
             'Создаем новую страницу СВП
             Set vsoPage = AddSAPage("СВП")
             'Положение новой страницы сразу за текущей
-            vsoPage.index = index + 1
+            vsoPage.Index = Index + 1
             PastePoint = "25 mm - TheDoc!User.OffsetFrame"
             'Вставляем этот же датчик только на следующем листе
             AddSensorOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber

@@ -49,8 +49,19 @@ Private Sub AddButtons()
         .FaceID = 274
     End With
     
+        '---Кнопка ObjInfo Формат->Специальный +
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=3)
+    With Button
+        .Caption = "ФорматСпециальныйNameU"
+        .Tag = "ObjInfo"
+        .style = msoButtonAutomatic
+        .OnAction = "ObjInfo"
+        .TooltipText = "Формат->Специальный+NameU"
+        .FaceID = 487
+    End With
+    
         '---Кнопка Экспорта на GitHub
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=33841, Before:=3)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=4)
     With Button
         .Caption = "ЭкспортGitHub"
         .Tag = "ExportGit"

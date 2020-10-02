@@ -85,6 +85,8 @@ Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
             Select Case Connects.FromSheet.Cells("User.SAType").Result(0) 'То что цепляем - это...
                 Case typeWire   'Цепляем провод
                     ConnectWire Connects
+                Case typeVynoskaPL 'Цепляем выноску
+                    WireInfoPlan Connects
             End Select
         End If
     End If
@@ -97,6 +99,8 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
             Select Case Connects.FromSheet.Cells("User.SAType").Result(0) 'То что отцепляем - это...
                 Case typeWire   'Отцепляем провод
                     DisconnectWire Connects
+                Case typeVynoskaPL 'Отцепляем выноску
+                    WireInfoPlan Connects
             End Select
         End If
     End If

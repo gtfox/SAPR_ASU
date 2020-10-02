@@ -229,7 +229,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                     'вставляем лист А4
                     Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
-                    aPage.index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
+                    aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
                     pNumberVisio = pNumberVisio + 1
                     ActivePage.PageSheet.Cells("PageWidth").Formula = "210 MM"
                     ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
@@ -273,7 +273,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                         'вставляем лист А3
                         Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
-                        aPage.index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
+                        aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
                         ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
                         ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
                         ActivePage.PageSheet.Cells("Paperkind").Formula = 8

@@ -339,4 +339,22 @@ ER:
     
 End Function
 
-
+Sub ObjInfo()
+    Dim vsoSelection As Visio.Selection
+   
+    Set vsoSelection = Application.ActiveWindow.Selection
+    
+    Load frmObjInfo
+    If vsoSelection.PrimaryItem Is Nothing Then
+        vsoSelection.IterationMode = visSelModeOnlySub
+        'For Each sh In vsoSelection
+            If vsoSelection.PrimaryItem Is Nothing Then
+                frmObjInfo.Run ActivePage
+            Else
+                frmObjInfo.Run vsoSelection.PrimaryItem
+            End If
+        'Next
+    Else
+        frmObjInfo.Run vsoSelection.PrimaryItem
+    End If
+End Sub

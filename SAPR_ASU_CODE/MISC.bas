@@ -1,3 +1,4 @@
+Dim i As Integer
 Sub CopyEventsDisabled()
 
     Application.ActiveWindow.Selection.Copy
@@ -8,7 +9,30 @@ Sub CopyEventsDisabled()
 End Sub
 
 
+Public Sub WireInfoPlan(Connects As IVConnects)
+    Dim shpVynoska As Visio.Shape
+    Dim shpTouchingShapes As Visio.Shape
+    Dim vsoSelection As Visio.Selection
+    
+    Set shpVynoska = Connects.FromSheet
+    
+    Select Case shpVynoska.Connects.Count 'кол-во соединенных концов у выноски
+        Case 0 'Нет соединенных концов - отцепили
+        Case 1 'С одной стороны
+            Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02, 0)
+            For Each shpTouchingShapes In vsoSelection
+                Debug.Print shpTouchingShapes.Name
+            Next
+            i = i + 1
+        Case 2 'С двух сторон - не обрабатываем 2-ю сторону
+    End Select
+    
 
+        'Set vsoSelection = shpVynoska.SpatialNeighbors(visSpatialTouching, 0.2, 0)
+
+
+    Debug.Print "------" & i
+End Sub
 
 'Public Enum tList
 '    A4m = 1

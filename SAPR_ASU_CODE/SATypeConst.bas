@@ -33,6 +33,8 @@ Public Const typeCableSH As Integer = 70 'Кабель вне шкафа на с
 Public Const typeCableVP As Integer = 80 'Кабель вне шкафа на схеме внешних проводок (Не нумеруется)
 Public Const typeCablePL As Integer = 90 'Кабель вне шкафа на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
+Public Const typeVynoskaPL As Integer = 95 'Выноска на ПЛАНЕ оборудования и КИП (Не нумеруется)
+
 Public Const typeActuator As Integer = 100 'Привод вне шкафа
 Public Const typeSensor As Integer = 110 'Датчик вне шкафа
 Public Const typeFSASensor As Integer = 120 'Датчик на ФСА
