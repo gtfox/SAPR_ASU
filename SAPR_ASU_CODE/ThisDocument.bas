@@ -86,7 +86,7 @@ Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
                 Case typeWire   'Цепляем провод
                     ConnectWire Connects
                 Case typeVynoskaPL 'Цепляем выноску
-                    WireInfoPlan Connects
+                    CableInfoPlan Connects
             End Select
         End If
     End If
@@ -100,7 +100,7 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
                 Case typeWire   'Отцепляем провод
                     DisconnectWire Connects
                 Case typeVynoskaPL 'Отцепляем выноску
-                    WireInfoPlan Connects
+                    CableInfoPlan Connects
             End Select
         End If
     End If
