@@ -1,24 +1,110 @@
-Dim i As Integer
-Sub CopyEventsDisabled()
+'------------------------------------------------------------------------------------------------------------
+' Module        : MISC - Макросы не относящиеся к другим категориям
+' Author        : gtfox
+' Date          : 2020.05.05
+' Description   : Разные вспомогательные макросы применяющиеся в разных модулях
+' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
+'------------------------------------------------------------------------------------------------------------
 
-    Application.ActiveWindow.Selection.Copy
-    Application.EventsEnabled = 0
-    Application.ActivePage.Paste
-    DoEvents
-    Application.EventsEnabled = -1
+
+Dim i As Integer
+
+
+ 
+Function SAPageExist(PageName As String) As Visio.Page
+'------------------------------------------------------------------------------------------------------------
+' Function        : SAPageExist - Проверяет существование страницы и возвращает ее
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    
+'    For Each vsoPage In ActiveDocument.Pages
+'        If vsoPage.Name Like PageName Then
+'            Set SAPageExist = vsoPage
+'            Exit Function
+'        End If
+'    Next
+    On Error GoTo ER
+    Set SAPageExist = ActiveDocument.Pages.Item(PageName)
+    Exit Function
+ER:
+    Set SAPageExist = Nothing
+    
+End Function
+
+
+Function ShapeSAType(vsoShape As Visio.Shape) As Integer
+'------------------------------------------------------------------------------------------------------------
+' Function        : ShapeSAType - Проверяет существование параметра User.SAType и возвращает его значение
+'------------------------------------------------------------------------------------------------------------
+    If vsoShape.CellExists("User.SAType", 0) Then   'Если в шейпе есть тип, то -
+        ShapeSAType = vsoShape.Cells("User.SAType").Result(0) 'возвращаем его значение
+    End If
+End Function
+
+Function ShapeSATypeIs(vsoShape As Visio.Shape, SAType As Integer) As Boolean
+'------------------------------------------------------------------------------------------------------------
+' Function        : ShapeSATypeIs - Проверяет существование параметра User.SAType и возвращает его соответствие переданному
+'------------------------------------------------------------------------------------------------------------
+    ShapeSATypeIs = IIf(ShapeSAType(vsoShape) = SAType, True, False)
+End Function
+
+Public Function ShapeByHyperLink(HyperLinkToShape As String) As Visio.Shape
+'------------------------------------------------------------------------------------------------------------
+' Function      : ShapeByHyperLink - Преобразует строку в шейп
+                'Строка типа "Схема.3/Sheet.4" разбивается на имя листа и имя шейпа
+                'ивыдается в качестве объекта-шейпа
+                'Если нет ссылки или шейпа на выход идет Nothing
+'------------------------------------------------------------------------------------------------------------
+    Dim mstrAdrToShape() As String 'массив строк имя страницы и имя шейпа
+    
+    If HyperLinkToShape <> "" Then 'Если ссылка есть
+        'Находим шейп разбивая HyperLinkToShape на имя страницы и имя шейпа
+        mstrAdrToShape = Split(HyperLinkToShape, "/")
+        On Error GoTo net_takogo_shejpa
+        Set ShapeByHyperLink = ActiveDocument.Pages.ItemU(mstrAdrToShape(0)).Shapes(mstrAdrToShape(1))
+        Exit Function
+    End If
+        
+net_takogo_shejpa:
+
+    Set ShapeByHyperLink = Nothing
+    
+End Function
+
+Sub ObjInfo()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ObjInfo - Показывает информацию о выделенном шейпе, субшейпе или странице на форме frmObjInfo
+                'Вызывается кнопкой на панели инструментов САПР АСУ
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoSelection As Visio.Selection
+   
+    Set vsoSelection = Application.ActiveWindow.Selection
+    
+    Load frmObjInfo
+    If vsoSelection.PrimaryItem Is Nothing Then
+        vsoSelection.IterationMode = visSelModeOnlySub
+        'For Each sh In vsoSelection
+            If vsoSelection.PrimaryItem Is Nothing Then
+                frmObjInfo.Run ActivePage
+            Else
+                frmObjInfo.Run vsoSelection.PrimaryItem
+            End If
+        'Next
+    Else
+        frmObjInfo.Run vsoSelection.PrimaryItem
+    End If
 End Sub
 
 
 
 
-'Public Enum tList
-'    A4m = 1
-'    A4b = 2
-'    A3m1 = 3
-'    A3m2 = 4
-'    A3b1 = 5
-'    A3b2 = 6
-'End Enum
+
+
+
+
+
+
+
 
 
 
@@ -138,3 +224,20 @@ End Sub
 'End Sub
 
 
+'Sub CopyEventsDisabled()
+'
+'    Application.ActiveWindow.Selection.Copy
+'    Application.EventsEnabled = 0
+'    Application.ActivePage.Paste
+'    DoEvents
+'    Application.EventsEnabled = -1
+'End Sub
+
+'Public Enum tList
+'    A4m = 1
+'    A4b = 2
+'    A3m1 = 3
+'    A3m2 = 4
+'    A3b1 = 5
+'    A3b2 = 6
+'End Enum

@@ -24,11 +24,14 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape)
     Dim colWiresIO As Collection
     Dim vsoMaster As Visio.Master
     Dim MultiCable As Boolean '1 вход = 1 кабель
+    Dim NomerShemy As Integer
     Dim PinX As Double
     Dim PinY As Double
     
     PinX = shpSensor.Cells("PinX").Result(0)
     PinY = shpSensor.Cells("PinY").Result(0)
+    
+    NomerShemy = shpSensor.ContainingPage.PageSheet.Cells("User.NomerShemy").Result(0)
     
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     Set colWires = New Collection
@@ -46,6 +49,13 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape)
                 AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
                 'Число проводов в кабеле
                 shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
+                'Сохраняем к какому шкафу подключен кабель
+                If NomerShemy = 0 Then 'если на листе несколько шкафов то...
+                    'Определяем к какому шкафу/коробке принадлежит клеммник
+                    '-------------Пока не реализовано----------------------
+                Else
+                    shpKabel.Cells("User.LinkToBox").Formula = NomerShemy
+                End If
 '                'Кабели ссылаются не на датчик, а на конкретные входы в датчике
 '                shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
 '                'Связываем входы с кабелями
@@ -70,6 +80,13 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape)
         AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
         'Число проводов в кабеле
         shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
+        'Сохраняем к какому шкафу подключен кабель
+        If NomerShemy = 0 Then 'если на листе несколько шкафов то...
+            'Определяем к какому шкафу/коробке принадлежит клеммник
+            '-------------Пока не реализовано----------------------
+        Else
+            shpKabel.Cells("User.LinkToBox").Formula = NomerShemy
+        End If
 '        'Кабель ссылается не на датчик, а на конкретный вход в датчике
 '        shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
 '        'Связываем вход с кабелем
@@ -111,26 +128,6 @@ Sub AddToGroupCable(shpKabel As Visio.Shape, vsoPage As Visio.Page, colWires As 
     End With
 End Sub
 
-Function FillColWires(shpSensorIO As Visio.Shape) As Collection
-'------------------------------------------------------------------------------------------------------------
-' Function        : FillColWires - Находим подключенные провода и суем их в коллекцию
-'------------------------------------------------------------------------------------------------------------
-    Dim colWires As Collection
-    Dim shpPLCTerm As Visio.Shape
-    
-    Set colWires = New Collection
-    For Each shpPLCTerm In shpSensorIO.Shapes
-        If shpPLCTerm.Name Like "PLCTerm*" Then
-            If shpPLCTerm.FromConnects.Count = 1 Then
-                If shpPLCTerm.FromConnects.FromSheet.Name Like "w*" Then
-                    colWires.Add shpPLCTerm.FromConnects.FromSheet
-                End If
-            End If
-        End If
-    Next
-    Set FillColWires = colWires
-End Function
-
 Sub DeleteCableSH(shpKabel As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : DeleteCableSH - Чистим ссылку в подключенном датчике перед удалением кабеля, и удаляем кабель
@@ -139,7 +136,7 @@ Sub DeleteCableSH(shpKabel As Visio.Shape)
 '    Dim shpSensorIO As Visio.Shape
 '
 '    'Находим датчик по ссылке в кабеле
-'    Set shpSensorIO = HyperLinkToShape(shpKabel.Cells("User.LinkToSensor").ResultStr(0))
+'    Set shpSensorIO = ShapeByHyperLink(shpKabel.Cells("User.LinkToSensor").ResultStr(0))
 '    'Чистим ссылку на кабель в датчике
 '    On Error Resume Next
 '    shpSensorIO.Cells("User.LinkToCable").FormulaU = ""
@@ -242,6 +239,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Set colCables = New Collection
     vsoGroup.Cells("PinX").Formula = "(" & PastePoint & "+" & Interval & "+" & vsoGroup.Cells("LocPinX").Result(0) & ")/ThePage!PageScale*ThePage!DrawingScale"
     vsoGroup.Cells("PinY").Formula = Klemma & "-" & vsoGroup.Cells("LocPinY").Result(0)
+    
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
          Select Case vsoShape.Cells("User.SAType").Result(0)
@@ -259,9 +257,11 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         vsoGroup.Delete
         Exit Sub
     End If
-    '
+    
+    'Разгруппировываем
     vsoGroup.Ungroup
-    '
+    
+    'Ставим на место датчик
     shpSensorSVP.Cells("PinY").Formula = Datchik
     
     For Each shpCable In colCables
@@ -316,6 +316,26 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Application.EventsEnabled = -1
 
 End Sub
+
+Function FillColWires(shpSensorIO As Visio.Shape) As Collection
+'------------------------------------------------------------------------------------------------------------
+' Function        : FillColWires - Находим подключенные провода и суем их в коллекцию
+'------------------------------------------------------------------------------------------------------------
+    Dim colWires As Collection
+    Dim shpPLCTerm As Visio.Shape
+    
+    Set colWires = New Collection
+    For Each shpPLCTerm In shpSensorIO.Shapes
+        If shpPLCTerm.Name Like "PLCTerm*" Then
+            If shpPLCTerm.FromConnects.Count = 1 Then
+                If shpPLCTerm.FromConnects.FromSheet.Name Like "w*" Then
+                    colWires.Add shpPLCTerm.FromConnects.FromSheet
+                End If
+            End If
+        End If
+    Next
+    Set FillColWires = colWires
+End Function
 
 Function FillColTerms(colWires As Collection) As Collection
 '------------------------------------------------------------------------------------------------------------

@@ -319,46 +319,4 @@ Function AddSAPage(PageName As String) As Visio.Page
     
 End Function
 
-Function SAPageExist(PageName As String) As Visio.Page
-'------------------------------------------------------------------------------------------------------------
-' Function        : SAPageExist - Проверяет существование страницы и возвращает ее
-'------------------------------------------------------------------------------------------------------------
-    Dim vsoPage As Visio.Page
-    
-'    For Each vsoPage In ActiveDocument.Pages
-'        If vsoPage.Name Like PageName Then
-'            Set SAPageExist = vsoPage
-'            Exit Function
-'        End If
-'    Next
-    On Error GoTo ER
-    Set SAPageExist = ActiveDocument.Pages.Item(PageName)
-    Exit Function
-ER:
-    Set SAPageExist = Nothing
-    
-End Function
 
-Sub ObjInfo()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : ObjInfo - Показывает информацию о выделенном шейпе, субшейпе или странице на форме frmObjInfo
-                'Вызывается кнопкой на панели инструментов САПР АСУ
-'------------------------------------------------------------------------------------------------------------
-    Dim vsoSelection As Visio.Selection
-   
-    Set vsoSelection = Application.ActiveWindow.Selection
-    
-    Load frmObjInfo
-    If vsoSelection.PrimaryItem Is Nothing Then
-        vsoSelection.IterationMode = visSelModeOnlySub
-        'For Each sh In vsoSelection
-            If vsoSelection.PrimaryItem Is Nothing Then
-                frmObjInfo.Run ActivePage
-            Else
-                frmObjInfo.Run vsoSelection.PrimaryItem
-            End If
-        'Next
-    Else
-        frmObjInfo.Run vsoSelection.PrimaryItem
-    End If
-End Sub

@@ -120,7 +120,7 @@ Sub DeletePLCChild(shpChild As Visio.Shape)
     Next
 
     'Проверяем текущую привязку PLCChild к старому PLCParent и чистим ее в старом PLCParent
-    Set shpParent = HyperLinkToShape(shpChild.CellsU("Hyperlink.PLC.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.PLC.SubAddress").ResultStr(0))
     If Not shpParent Is Nothing Then
         
         'Перебираем ссылки на подключенные PLCChild в родительском шейпе
@@ -167,7 +167,7 @@ Sub DeletePLCParent(shpParent As Visio.Shape)
 
     'Перебираем ссылки на подключенные PLCChild в родительском шейпе
     For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-        Set shpChild = HyperLinkToShape(shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0))
+        Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0))
         If Not shpChild Is Nothing Then
         
             'В PLCChild находим ссылку на PLCParent

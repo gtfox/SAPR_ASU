@@ -48,7 +48,7 @@ Sub AddReferenceSensor(shpChild As Visio.Shape, shpParent As Visio.Shape)
     '---Отвязываем сущ ДЭ---
     'Проверяем текущую привязку ДФ к старому ДЭ и чистим ее в старом ДЭ
     'DeleteSensorChild нельзя использовать т.к. там чистится подвал, а тут этого не надо
-    Set shpParentOld = HyperLinkToShape(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
+    Set shpParentOld = ShapeByHyperLink(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
     If Not shpParentOld Is Nothing Then
         ClearSensorParent shpParentOld
     End If
@@ -80,7 +80,7 @@ Sub DeleteSensorChild(shpChild As Visio.Shape)
     Dim shpParent As Visio.Shape
 
     'Проверяем текущую привязку ДФ к ДЭ и чистим ее в ДЭ
-    Set shpParent = HyperLinkToShape(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearSensorParent shpParent
     End If
@@ -99,7 +99,7 @@ Sub DeleteSensorParent(shpParent As Visio.Shape)
     Dim shpChild As Visio.Shape
     
     'Если ДЭ связан с ДФ, то сначала чистим ДФ, а потом удаляем ДЭ
-    Set shpChild = HyperLinkToShape(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearSensorChild shpChild
     End If
@@ -200,7 +200,7 @@ Sub DeleteFSAPodvalChild(shpChild As Visio.Shape)
     Dim shpParent As Visio.Shape
 
     'Проверяем текущую привязку FSAPodval к FSASensor и чистим ее в FSASensor
-    Set shpParent = HyperLinkToShape(shpChild.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearFSAPodvalParent shpParent
     End If
@@ -215,7 +215,7 @@ Sub DeleteFSAPodvalParent(shpParent As Visio.Shape)
     Dim shpChild As Visio.Shape
 
     'Если FSASensor связан с FSAPodval, то сначала чистим FSAPodval, а потом удаляем FSASensor
-    Set shpChild = HyperLinkToShape(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearFSAPodvalChild shpChild
     End If

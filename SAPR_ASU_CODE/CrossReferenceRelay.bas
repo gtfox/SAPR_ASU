@@ -47,7 +47,7 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
     Kontaktov = shpParent.Cells("Prop.Kontaktov").Result(0)
 
     'Проверяем текущую привязку контакта к старой катушке и чистим ее в старой катушке
-    Set shpParentOld = HyperLinkToShape(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpParentOld = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
     If Not shpParentOld Is Nothing Then
         'Ищем строку в Scratch катушки(родителя) с адресом удаляемого контакта (дочернего)
         For i = 1 To shpParentOld.Section(visSectionScratch).Count
@@ -113,7 +113,7 @@ Sub DeleteRelayChild(shpChild As Visio.Shape)
     Dim i As Integer
     
     'Проверяем текущую привязку
-    Set shpParent = HyperLinkToShape(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
     If Not shpParent Is Nothing Then
     
         PageChild = shpChild.ContainingPage.NameU
@@ -241,29 +241,6 @@ Sub ClearRelayParent(shpParent As Visio.Shape)
         Next
     End If
 End Sub
-
-Public Function HyperLinkToShape(HyperLinkTo As String) As Visio.Shape
-'------------------------------------------------------------------------------------------------------------
-' Function      : HyperLinkToShape - Преобразует строку в шейп
-                'Строка типа "Схема.3/Sheet.4" разбивается на имя листа и имя шейпа
-                'ивыдается в качестве объекта-шейпа
-                'Если нет ссылки или шейпа на выход идет Nothing
-'------------------------------------------------------------------------------------------------------------
-    Dim mstrAdrToShape() As String 'массив строк имя страницы и имя шейпа
-    
-    If HyperLinkTo <> "" Then 'Если ссылка есть
-        'Находим шейп разбивая HyperLinkTo на имя страницы и имя шейпа
-        mstrAdrToShape = Split(HyperLinkTo, "/")
-        On Error GoTo net_takogo_shejpa
-        Set HyperLinkToShape = ActiveDocument.Pages.ItemU(mstrAdrToShape(0)).Shapes(mstrAdrToShape(1))
-        Exit Function
-    End If
-        
-net_takogo_shejpa:
-
-    Set HyperLinkToShape = Nothing
-    
-End Function
 
 Sub AddLocThumb(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------

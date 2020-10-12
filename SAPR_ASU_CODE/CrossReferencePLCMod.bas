@@ -132,7 +132,7 @@ Sub DeletePLCModChild(shpChild As Visio.Shape)
     Next
 
     'Проверяем текущую привязку PLCModChild к старому PLCModParent и чистим ее в старом PLCModParent
-    Set shpParent = HyperLinkToShape(shpChild.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0))
     If Not shpParent Is Nothing Then
         
         'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
@@ -178,7 +178,7 @@ Sub DeletePLCModParent(shpParent As Visio.Shape)
 
     'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
     For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-        Set shpChild = HyperLinkToShape(shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0))
+        Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0))
         If Not shpChild Is Nothing Then
         
             'В PLCModChild находим ссылку на PLCModParent
@@ -324,7 +324,7 @@ Sub DeletePLCIOChild(shpChild As Visio.Shape)
     Dim HyperLinkToParent As String
 
     'Проверяем текущую привязку typePLCIOChild к typePLCIOParent и чистим ее в typePLCIOParent
-    Set shpParent = HyperLinkToShape(shpChild.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearPLCIOParent shpParent
     End If
@@ -346,7 +346,7 @@ Sub DeletePLCIOParent(shpParent As Visio.Shape)
     Dim LinkPlaceParent As String
     
     'Если typePLCIOParent связан с typePLCIOChild, то сначала чистим typePLCIOChild, а потом удаляем typePLCIOParent
-    Set shpChild = HyperLinkToShape(shpParent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearPLCIOChild shpChild
     End If
