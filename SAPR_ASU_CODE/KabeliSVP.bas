@@ -149,6 +149,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Dim shpTerm As Visio.Shape
     Dim shpCable As Visio.Shape
     Dim shpWire As Visio.Shape
+    Dim colCablesOnElSh As Collection
     Dim colCables As Collection
     Dim colWires As Collection
     Dim colTerms As Collection
@@ -178,13 +179,14 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Set colCables = New Collection
     Set colWires = New Collection
     Set colTerms = New Collection
+    Set colCablesOnElSh = New Collection
     
     ActiveWindow.Page = ActiveDocument.Pages(shpSensor.ContainingPage.Name)
     
-    Set vsoSelection = ActiveWindow.Selection ' Set vsoSelection = ActiveWindow.Page.CreateSelection(visSelTypeEmpty,visSelModeSkipSub)
-    'Set shpSensor = ActiveWindow.Selection.PrimaryItem 'ActiveDocument.Pages("Схема").Shapes("Sensor.582")
-    MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
+    Set vsoSelection = ActiveWindow.Selection
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
+    
+    MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     
     If MultiCable Then
         'Перебираем все входы в датчике
@@ -199,7 +201,8 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
                 For Each shpTerm In colTerms
                     vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
                 Next
-
+                'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
+                colCablesOnElSh.Add colWires.Item(1).Parent, CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0))
             End If
         Next
         vsoSelection.Select shpSensor, visSelect 'Датчик
@@ -223,6 +226,8 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         For Each shpTerm In colTerms
             vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
         Next
+        'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
+        colCablesOnElSh.Add colWires.Item(1).Parent, CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0))
     End If
 
     'Копируем что насобирали
@@ -263,10 +268,10 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     
     'Ставим на место датчик
     shpSensorSVP.Cells("PinY").Formula = Datchik
+    DoEvents 'На-я тут этот DoEvents?
     
     For Each shpCable In colCables
         'В кабеле находим длину провода
-        DoEvents 'На-я тут этот DoEvents?
         WireHeight = shpCable.Shapes(1).Cells("Height").Result(0)
         'Вставляем шейп кабеля СВП
         Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik + WireHeight - SVPWireL)
@@ -274,6 +279,11 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         shpKabelSVP.Cells("Prop.Number").Formula = shpCable.Cells("Prop.Number").Result(0)
         shpKabelSVP.Cells("Prop.Marka").Formula = """" & shpCable.Cells("User.Marka").ResultStr(0) & """"
         shpKabelSVP.Cells("Prop.WireCount").Formula = shpCable.Shapes.Count
+        'По номеру кабеля СВП находим шейп кабеля на эл.сх.
+        Set vsoShape = colCablesOnElSh.Item(CStr(shpCable.Cells("Prop.Number").Result(0)))
+        'Заполняем длину кабеля из эл.схемы (длина кабеля эл.схемы заполняется из плана)
+        shpKabelSVP.Cells("Prop.Dlina").FormulaU = "Pages[" + vsoShape.ContainingPage.NameU + "]!" + vsoShape.NameID + "!Prop.Dlina"
+        
         WireNumber = 0
         'Ищем вход в датчике соединенный с текущим кабелем
         For Each shpWire In shpCable.Shapes
@@ -303,7 +313,6 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         Next
         'Круг по середине кабеля
         shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * 0.5
-        
     Next
     
     'Удаляем кабели эл. схемы

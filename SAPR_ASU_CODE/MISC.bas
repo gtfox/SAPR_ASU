@@ -95,19 +95,6 @@ Sub ObjInfo()
     End If
 End Sub
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 Private Sub Tune_Stencils() 'переделка шаблонов электры под гост (перед выполнением макроса надо окрыть шаблоны и сделать их редактируемыми)
 
     Dim appdoc As Document
@@ -153,10 +140,32 @@ Private Sub Tune_Stencils() 'переделка шаблонов электры 
 
 End Sub
 
+Public Sub dl()
+Dim sel As Selection
+Dim snap1 As Shape
+Set sel = ActiveWindow.Selection
+If sel.Count <> 1 Then ' если не выделено ничего или больше одного будет сообщение
+        MsgBox "Нужно выделить лишь одну линию!"
+Exit Sub
+End If
+Set snap1 = sel.Item(1)
+Dim dl As Double
+dl = CableLength(snap1)
+MsgBox ("длина линии " & dl & " м")
+End Sub
 
 
-
-
+'    For Each vsoShape In ActivePage.Shapes
+'        n = vsoShape.LayerCount
+'        If n > 0 Then
+'            For i = 1 To n
+'                Set vsoShapeLayer = vsoShape.Layer(i)
+'                If vsoShapeLayer.Name = vsoLayer.Name Then
+'
+'                End If
+'            Next
+'        End If
+'    Next
 
 
 '
