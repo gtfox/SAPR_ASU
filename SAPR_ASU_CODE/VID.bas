@@ -7,14 +7,14 @@
 '------------------------------------------------------------------------------------------------------------
 
 
-Sub Raspredelit() '(selElemets As Visio.Section, Nrazm As Integer)
+Sub RaspredelitGorizont() '(selElemets As Visio.Section)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : Raspredelit - Распределяет элементы на двери шкафа по горизонтали, вставляет направляющие и размеры
+' Macros        : RaspredelitGorizont - Распределяет элементы на двери шкафа по горизонтали, вставляет направляющие и размеры
 
                 'Выставляем крайние элементы, между которыми произойдет распределение. Выделяем элементы, запускаем макрос.
+                'Для правильной автоматической расстановки размеров для круглых фигур первая точка = срередина
+                'Для квадратных фигур первая точка = центр, 2-я = лев край, 3-я = правый, 4-я = верх, 5-я = низ
 '------------------------------------------------------------------------------------------------------------
-    'Для правильной автоматической расстановки размеров для круглых фигур первая точка = срередина
-    'Для квадратных фигур первая точка = лев край, 2-я = правый, 3-я = верх, 4-я = низ, 5-я = центр
     Dim selElemets As Visio.Selection
     Dim colElemets As Collection
     Dim vsoShape As Visio.Shape
@@ -27,12 +27,10 @@ Sub Raspredelit() '(selElemets As Visio.Section, Nrazm As Integer)
     Dim celNapravl As Visio.Cell
     Dim LevKrajDver As String
     Dim NapravlY As String
-    Dim Nrazm As Integer  'кол-во проставляемых размеров для фигуры
+    Dim RowCount As Integer  'кол-во точек соединения на фигуре
     Dim i As Integer
     
     Set colElemets = New Collection
-    
-    Nrazm = 2
 
     'Находим шкаф
     Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(181)
@@ -74,45 +72,56 @@ Sub Raspredelit() '(selElemets As Visio.Section, Nrazm As Integer)
     
     'Расставляем размеры
     For Each shpElemet In selElemets
-        For i = 1 To Nrazm
-            If shpElemet.CellsSRCExists(visSectionConnectionPts, i - 1, 0, False) Then
-                Application.ActiveWindow.DeselectAll
-                'Вставили размер
-                Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
-                Set shpRazmer = Application.ActiveWindow.Selection(1)
-                'Сдвигаем текст вправо
-                shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.Y12"
-                shpRazmer.Cells("Controls.Y2").FormulaU = "=Height"
-                'Клеим к фигуре
-                Set celRazmer = shpRazmer.CellsU("EndX")
-                Set celElemet = shpElemet.CellsSRC(visSectionConnectionPts, i - 1, 0)
-                celRazmer.GlueTo celElemet
-                'Клеим к направляющей
-                Set celRazmer = shpRazmer.CellsU("BeginX")
-                Set celNapravl = shpNapravl.CellsSRC(1, 1, 6)
-                celRazmer.GlueTo celNapravl
-                'Перемещаем ногу размера на край двери
-                shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginX).FormulaU = "INTERSECTX(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
-                shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginY).FormulaU = "INTERSECTY(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
-                'Высота размера больше фигуры на 5 мм
-                shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpElemet.Cells("Height").Result(0) * 0.5 + 0.196850393700787), ",", ".")
-                
-            End If
+        RowCount = shpElemet.RowCount(visSectionConnectionPts)
+        For i = 1 To RowCount
+            Select Case i
+                Case 1 'Центр
+                    If RowCount = 1 Then GoSub DoSub 'Центральный размер проставляется только для круглых элементов
+                Case 2, 3 'Лево, право
+                    GoSub DoSub
+            End Select
         Next
     Next
     
     Application.ActiveWindow.DeselectAll
-
+    
+    Exit Sub
+     
+DoSub:
+    Application.ActiveWindow.DeselectAll
+    'Вставили размер
+    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
+    Set shpRazmer = Application.ActiveWindow.Selection(1)
+    'Сдвигаем текст вправо
+    shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.Y12"
+    shpRazmer.Cells("Controls.Y2").FormulaU = "=Height"
+    'Клеим к фигуре
+    Set celRazmer = shpRazmer.CellsU("EndX")
+    Set celElemet = shpElemet.CellsSRC(visSectionConnectionPts, i - 1, 0)
+    celRazmer.GlueTo celElemet
+    'Клеим к направляющей
+    Set celRazmer = shpRazmer.CellsU("BeginX")
+    Set celNapravl = shpNapravl.CellsSRC(1, 1, 6)
+    celRazmer.GlueTo celNapravl
+    'Перемещаем ногу размера на край двери
+    shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginX).FormulaU = "INTERSECTX(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
+    shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginY).FormulaU = "INTERSECTY(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
+    'Высота размера больше фигуры на 5 мм
+    shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpElemet.Cells("Height").Result(0) * 0.5 + 0.196850393700787), ",", ".")
+Return
 End Sub
 
-Sub VertRazmery() '(selElemets As Visio.Section, Nrazm As Integer)
+Sub VertRazmery() '(selElemets As Visio.Section)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : VertRazmery - Вставляет вертикальные размеры для двери
 
                 'Выделяем по одному элементу в каждой "строке" и запускаем макрос.
                 'Распределение по вертикали делается выделяя только горизонтальные напрпвляющие, а не сами элементы.
                 'Распределение по вертикали можно делать как до так и после вставки размеров
+                'Для правильной автоматической расстановки размеров для круглых фигур первая точка = срередина
+                'Для квадратных фигур первая точка = центр, 2-я = лев край, 3-я = правый, 4-я = верх, 5-я = низ
 '------------------------------------------------------------------------------------------------------------
+
     Dim selElemets As Visio.Selection
     Dim colElemets As Collection
     Dim vsoShape As Visio.Shape
@@ -125,12 +134,10 @@ Sub VertRazmery() '(selElemets As Visio.Section, Nrazm As Integer)
     Dim celDver As Visio.Cell
     Dim LevKrajDver As String
     Dim VerhDver As String
-    Dim Nrazm As Integer  'кол-во проставляемых размеров для фигуры
+    Dim RowCount As Integer  'кол-во точек соединения на фигуре
     Dim i As Integer
     
     Set colElemets = New Collection
-    
-    Nrazm = 4
 
     'Находим шкаф
     Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(181)
@@ -155,41 +162,51 @@ Sub VertRazmery() '(selElemets As Visio.Section, Nrazm As Integer)
     Set shpDver = shpShkaf.Shapes("Dver")
         
     'Находим левый край двери шкафа
-    LevKrajDver = Replace(CStr(shpShkaf.Cells("User.DoorLeft").Result("mm")), ",", ".")
+    LevKrajDver = shpShkaf.Cells("User.DoorLeft").Result(0)
     'Находим верхний край двери шкафа
-    VerhDver = Replace(CStr(shpShkaf.Cells("User.DoorUp").Result("mm")), ",", ".")
-    
+    VerhDver = Replace(CStr(shpShkaf.Cells("User.DoorUp").Result(0)), ",", ".")
+
     'Расставляем размеры
     For Each shpElemet In selElemets
-        For i = 3 To Nrazm
-            If shpElemet.CellsSRCExists(visSectionConnectionPts, i - 1, 0, False) Then
-                Application.ActiveWindow.DeselectAll
-                'Вставили размер
-                Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
-                Set shpRazmer = Application.ActiveWindow.Selection(1)
-                'Сдвигаем текст влево
-                shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.X12"
-                shpRazmer.Cells("Controls.Y2").FormulaU = "=Height"
-                'Клеим к фигуре
-                Set celRazmer = shpRazmer.CellsU("BeginX")
-                Set celElemet = shpElemet.CellsSRC(visSectionConnectionPts, i - 1, 0)
-                celRazmer.GlueTo celElemet
-                'Клеим к верху двери
-                Set celRazmer = shpRazmer.CellsU("EndX")
-                celRazmer.GlueToPos shpDver, 0.232343, 1#
-                
-                
-                'Перемещаем ногу размера на край двери
-                shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginX).FormulaU = "INTERSECTX(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
-                shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginY).FormulaU = "INTERSECTY(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
-                'Высота размера 8 мм
-                shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpElemet.Cells("Height").Result(0) * 0.5 + 0.31496062992126), ",", ".")
-            End If
+        RowCount = shpElemet.RowCount(visSectionConnectionPts)
+        For i = 1 To RowCount
+            Select Case i
+                Case 1 'Центр
+                    If RowCount = 1 Then GoSub DoSub 'Центральный размер проставляется только для круглых элементов
+                Case 4, 5 'Верх, низ
+                    GoSub DoSub
+            End Select
         Next
     Next
     
     Application.ActiveWindow.DeselectAll
-
+    
+    Exit Sub
+    
+DoSub:
+    Application.ActiveWindow.DeselectAll
+    'Вставили размер
+    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
+    Set shpRazmer = Application.ActiveWindow.Selection(1)
+    'Сдвигаем текст влево
+    shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.X12"
+    shpRazmer.Cells("Controls.Y2").FormulaU = "=Height"
+    'Клеим к фигуре
+    Set celRazmer = shpRazmer.CellsU("BeginX")
+    Set celElemet = shpElemet.CellsSRC(visSectionConnectionPts, i - 1, 0)
+    celRazmer.GlueTo celElemet
+    'Конец размера на верх двери
+    shpRazmer.Cells("EndX").Formula = shpRazmer.Cells("BeginX").Result(0)
+    shpRazmer.Cells("EndY").Formula = VerhDver
+    'Формула для нахождения точки приклеивания
+    shpRazmer.Cells("User.PntToGlue").FormulaU = "PNTX(LOCTOLOC(PNT(EndX,EndY),ThePage!PageWidth," & shpDver.NameID & "!Width))/" & shpDver.NameID & "!Width"
+    DoEvents
+    'Клеим к верху двери
+    Set celRazmer = shpRazmer.CellsU("EndX")
+    celRazmer.GlueToPos shpDver, shpRazmer.Cells("User.PntToGlue").Result(0), 1#
+    'Высота размера 8 мм от края двери
+    shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpRazmer.Cells("User.PntToGlue").Result(0) * shpDver.Cells("Width").Result(0) + 0.31496062992126), ",", ".")
+Return
 End Sub
 
 Sub Macro9()
