@@ -33,7 +33,7 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
     Set colElemets = New Collection
 
     'Находим шкаф
-    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(181)
+    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
@@ -140,7 +140,7 @@ Sub VertRazmery() '(selElemets As Visio.Section)
     Set colElemets = New Collection
 
     'Находим шкаф
-    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(181)
+    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
@@ -209,25 +209,31 @@ DoSub:
 Return
 End Sub
 
-Sub Macro9()
+Sub VpisatVList()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : VpisatVList - "Вписывает чертеж в лист" :) Увеличивает масштаб докумета под размер чертежа
 
-    Dim UndoScopeID1 As Long
-    UndoScopeID1 = Application.BeginUndoScope("Изменить размер объекта")
-    Dim vsoCell1 As Visio.Cell
-    Dim vsoCell2 As Visio.Cell
-    Set vsoCell1 = Application.ActiveWindow.Page.Shapes.ItemFromID(83).CellsU("BeginX")
-    Set vsoCell2 = Application.ActiveWindow.Page.Shapes.ItemFromID(71).CellsSRC(7, 2, 0)
-    vsoCell1.GlueTo vsoCell2
-    Application.EndUndoScope UndoScopeID1, True
-
-    Dim UndoScopeID2 As Long
-    UndoScopeID2 = Application.BeginUndoScope("Изменить размер объекта")
-    Dim vsoCell3 As Visio.Cell
-    Dim vsoCell4 As Visio.Cell
-    Set vsoCell3 = Application.ActiveWindow.Page.Shapes.ItemFromID(83).CellsU("EndX")
-    vsoCell3.GlueToPos Application.ActiveWindow.Page.Shapes.ItemFromID(189), 0.232343, 1#
-    Application.EndUndoScope UndoScopeID2, True
-
+                'Рисуем прямоугольник больше размера чертежа. Размер прямоугольника - это будущий размер листа. Запускаем макрос.
+                'Масштаб и размер докумета меняются, прямоугольник удаляется.
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoShape As Visio.Shape
+    Dim vsoPage As Visio.Page
+    Dim kW As Double
+    Dim kH As Double
+    Dim k As Double
+    
+    Set vsoPage = Application.ActivePage
+    Set vsoShape = Application.ActiveWindow.Selection(1)
+    
+    kW = vsoShape.Cells("Width").Result(0) / vsoPage.PageSheet.Cells("PageWidth").Result(0)
+    kH = vsoShape.Cells("Height").Result(0) / vsoPage.PageSheet.Cells("PageHeight").Result(0)
+    k = IIf(kW > kH, kW, kH)
+    With vsoPage.PageSheet
+        .CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = Replace(CStr(k), ",", ".") & " mm"
+        .CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageWidth).Result("mm") * k), ",", ".") & " mm"
+        .CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageHeight).Result("mm") * k), ",", ".") & " mm"
+    End With
+    vsoShape.Delete
 End Sub
 
 Sub Macro5()

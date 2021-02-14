@@ -170,7 +170,7 @@
 
 2021.02.14_00:40	Модуль VID. RaspredelitGorizont. VertRazmery Готово
 
-
+2021.02.14_04:14	Модуль VID. VpisatVList
 
 
 
