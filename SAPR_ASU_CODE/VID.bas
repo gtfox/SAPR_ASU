@@ -225,6 +225,11 @@ Sub VpisatVList()
     Set vsoPage = Application.ActivePage
     Set vsoShape = Application.ActiveWindow.Selection(1)
     
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = "420 mm"
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = "297 mm"
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = "1 mm"
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "0"
+    
     kW = vsoShape.Cells("Width").Result(0) / vsoPage.PageSheet.Cells("PageWidth").Result(0)
     kH = vsoShape.Cells("Height").Result(0) / vsoPage.PageSheet.Cells("PageHeight").Result(0)
     k = IIf(kW > kH, kW, kH)
@@ -232,6 +237,7 @@ Sub VpisatVList()
         .CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = Replace(CStr(k), ",", ".") & " mm"
         .CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageWidth).Result("mm") * k), ",", ".") & " mm"
         .CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageHeight).Result("mm") * k), ",", ".") & " mm"
+        .CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "3"
     End With
     vsoShape.Delete
 End Sub

@@ -35,7 +35,7 @@ Private Sub AddButtons()
         .Tag = "LockTitle"
         .OnAction = "LockTitleBlock"
         .TooltipText = "Блокировка рамки"
-        .FaceID = 519
+        .FaceID = 894 '519
     End With
     
     '---Кнопка Формат->Специальный
