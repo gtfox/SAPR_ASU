@@ -1,8 +1,4 @@
-
-
-
-
-Option Explicit
+'Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmDB - Форма поиска и задания данных для элемента схемы их БД
 ' Author        : gtfox
@@ -21,8 +17,8 @@ Private Const LVM_SETCOLUMNWIDTH As Long = (LVM_FIRST + 30)   ' 4126
 Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
-Dim shpChild As Visio.Shape 'шейп из модуля CrossReferencePLCMod
-Dim shpParent As Visio.Shape 'шейп выбанный в форме lstvParent. нужен для создания связи
+Dim glShape As Visio.Shape 'шейп из модуля DB
+
 Dim colShapes As Collection
 Dim colPages As Collection
 Dim FindType As Integer 'Кто запустил создание связи (родитль/дочерний)
@@ -36,45 +32,54 @@ Dim shpParentPLCMod As Visio.Shape 'Родительский модуль со �
 Dim vsoShp As Visio.Shape
 Dim bError As Boolean
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReferencePLCMod
-    Set shpChild = vsoShape 'И определили его в форме frmAddReferencePLCMod
-    
-    FindType = shpChild.Cells("User.SAType").Result(0)
+Private Sub UserForm_Initialize() ' инициализация формы
+    Set colShapes = New Collection
+    Set colPages = New Collection
 
-    FillCollection shpChild
+    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
+    lstvTable.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     
-    Select Case FindType
-        Case typePLCModChild 'Если макрос активировался дочерним PLCModChild - значит искали родителей PLCModParent
-            lstvParent.ColumnHeaders.Add , , "Модуль" ' добавить ColumnHeaders
-            lstvParent.ColumnHeaders.Add , , "Назв." ' SubItems(1)
-            lstvParent.ColumnHeaders.Add , , "Связ.мод." ' SubItems(2)
-            lstvParent.ColumnHeaders.Add , , "Макс./Сущ.вх." ' SubItems(3)
-            lstvParent.ColumnHeaders.Add , , "Связ./Подкл.вх." ' SubItems(4)
+    lstvTable.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
+    lstvTable.ColumnHeaders.Add , , "Название" ' SubItems(1)
+    lstvTable.ColumnHeaders.Add , , "Цена" ' SubItems(2)
+    lstvTable.ColumnHeaders.Add , , "Макс./Сущ.вх." ' SubItems(3)
 
-        Case typePLCIOChild  'Если макрос активировался дочерним PLCIO - значит искали PLCIO
-            lstvParent.ColumnHeaders.Add , , "Входы" ' добавить ColumnHeaders
-            lstvParent.ColumnHeaders.Add , , "Связи" ' добавить ColumnHeaders
-            lstvParent.ColumnHeaders.Add , , "Провода" ' добавить ColumnHeaders
-    End Select
-    
-'            lstvChild.Visible = False
-'            lstvPages.Visible = False
-            'lblResult.Left = 230
-            'btnClose.Left = 230
-            'Me.Width = 340
-
-    frameFilters.Height = 84
     frameTab.Top = frameFilters.Top + frameFilters.Height
-    Me.Height = frameTab.Top + frameTab.Height + 26
+    Me.Height = frameTab.Top + frameTab.Height + 36
+    lblResult.Top = Me.Height - 35
+    
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
     
-    Fill_lstvParent
+    
+'    cmbxProizvoditel.ColumnCount = 3 'Показ столбцов
+'    cmbxProizvoditel.AddItem "111"
+'    cmbxProizvoditel.Column(1, 0) = "222"
+'    cmbxProizvoditel.Column(2, 0) = "+222"
+'    cmbxProizvoditel.AddItem "333"
+'    cmbxProizvoditel.Column(1, 1) = "444"
+'    cmbxProizvoditel.Column(2, 1) = "+444"
+
+
+    cmbxProizvoditel.ColumnCount = 1 'Столбцы скрыты
+    cmbxProizvoditel.AddItem "111"
+    cmbxProizvoditel.List(0, 1) = "222"
+    cmbxProizvoditel.List(0, 2) = "+222"
+    cmbxProizvoditel.AddItem "333"
+    cmbxProizvoditel.List(1, 1) = "444"
+    cmbxProizvoditel.List(1, 2) = "+444"
+    
+'    ggg = cmbxProizvoditel.List(1, 1)
+
+End Sub
+
+Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
+    Set glShape = vsoShape 'И определили его как глолбальный в форме frmDB
+
+    Fill_lstvTable
 
     Call lblHeaders_Click ' выровнять ширину столбцов по заголовкам
-    
-    lblResult.Caption = "Найдено фигур: " & colShapes.Count
-    
+
     ReSize
     
     If bError Then
@@ -85,79 +90,48 @@ Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
     
 End Sub
 
-Private Sub FillCollection(vsoShape As Visio.Shape)
-        
-        Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
-            
-            Case typePLCModChild 'Если макрос активировался дочерним PLCModChild - значит искали родителей PLCModParent
-                
-                HyperLinkToParentPLC = vsoShape.Parent.CellsU("Hyperlink.PLC.SubAddress").ResultStr(0)
-                If HyperLinkToParentPLC <> "" Then 'Если ссылка есть
-                    'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
-                    mstrAdrParentPLC = Split(HyperLinkToParentPLC, "/")
-                    'On Error GoTo netu_roditelya 'вдруг его уже удалили и ссылку забыли почистить
-                    Set shpParentPLC = ActiveDocument.Pages.ItemU(mstrAdrParentPLC(0)).Shapes(mstrAdrParentPLC(1))
-                    
-'                    lblPLC.Caption = "ПЛК: " & shpParentPLC.CellsU("User.Name").ResultStr(0) & "   Модель: " & shpParentPLC.CellsU("Prop.Model").ResultStr(0)
 
-                    For Each vsoShp In shpParentPLC.Shapes
-                        If vsoShp.Name Like "PLCModParent*" Then
-                            colShapes.Add vsoShp.ID
-                            colPages.Add vsoShp.ContainingPage.ID
-                        End If
-                    Next
-                Else
-                    MsgBox "Не привязан ПЛК", vbOKOnly + vbExclamation, "Info"
-                    bError = True
-                End If
 
-            Case typePLCIOChild 'Если макрос активировался дочерним PLCIOChild - значит искали PLCIOParent
-                HyperLinkToParentPLCMod = vsoShape.Parent.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0)
-                If HyperLinkToParentPLCMod <> "" Then 'Если ссылка есть
-                    'Находим родителя разбивая HyperLink на имя страницы и имя шейпа
-                    mstrAdrParentPLCMod = Split(HyperLinkToParentPLCMod, "/")
-                    'On Error GoTo netu_roditelya 'вдруг его уже удалили и ссылку забыли почистить
-                    Set shpParentPLCMod = ActiveDocument.Pages.ItemU(mstrAdrParentPLCMod(0)).Shapes(mstrAdrParentPLCMod(1))
-                    
-'                    lblPLC.Caption = "ПЛК: " & shpParentPLCMod.Parent.CellsU("User.Name").ResultStr(0) & "   Модель: " & shpParentPLCMod.Parent.CellsU("Prop.Model").ResultStr(0)
-'                    lblPLCMod.Caption = "Модуль: " & shpParentPLCMod.CellsU("User.Name").ResultStr(0) & "   Модель: " & shpParentPLCMod.CellsU("Prop.Model").ResultStr(0)
-                    
-                    For Each vsoShp In shpParentPLCMod.Shapes
-                        If vsoShp.Name Like "PLCIO*" Then
-                            colShapes.Add vsoShp.ID
-                            colPages.Add vsoShp.ContainingPage.ID
-                        End If
-                    Next
-                Else
-                    MsgBox "Не привязан модуль ПЛК", vbOKOnly + vbExclamation, "Info"
-                    bError = True
-                End If
-
-        End Select
-
-End Sub
-
-Private Sub ReSize() ' изменение высоты формы. Зависит от количества элементов в listbox
-    Dim H As Single
+Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTable
+    Dim lstvTableWidth As Single
     
-    H = lstvParent.ListItems.Count
-  
-    H = H * 12 + 12
-    If H < 48 Then H = 48
-    If H > 328 Then H = 328
+    lblHeaders_Click
     
-'    Me.Height = lstvPages.Top + H + 26
-
-    lstvParent.Height = H
+    If lstvTable.ListItems(1).Width > 381 Then
+        lstvTableWidth = lstvTable.ListItems(1).Width
+    Else
+        lstvTableWidth = 381
+    End If
+    
+    lstvTable.Width = lstvTableWidth + 20
+    frameTab.Width = lstvTable.Width + 10
+    
+    frameFilters.Width = frameTab.Width
+    Me.Width = frameTab.Width + 14
+    cmbxKategoriya.Width = frameFilters.Width - cmbxKategoriya.Left - 6
+    cmbxGruppa.Width = frameFilters.Width - cmbxGruppa.Left - 6
+    cmbxPodgruppa.Width = frameFilters.Width - cmbxPodgruppa.Left - 6
+    btnClose.Left = Me.Width - btnClose.Width - 10
+    tbtnFiltr.Left = Me.Width - tbtnFiltr.Width - 10
+    btnFavAdd.Left = btnClose.Left - btnFavAdd.Width - 10
+    btnETM.Left = btnFavAdd.Left - btnETM.Width - 2
+    frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
+    cmbxProizvoditel.Width = frameProizvoditel.Width - 12
+    'lblResult.Top = Me.Height - 35
+    lblResult.Left = frameTab.Width - lblResult.Width
+    btnFind.Left = frameTab.Width - btnFind.Width - 6
+    frameNazvanie.Width = btnFind.Left - frameNazvanie.Left - 6
+    txtNazvanie1.Width = (frameNazvanie.Width - 16) / 2
+    txtNazvanie2.Left = txtNazvanie1.Left + txtNazvanie1.Width
+    txtNazvanie2.Width = frameNazvanie.Width / 4
+    txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
+    txtNazvanie3.Width = frameNazvanie.Width / 4
+    
     
 End Sub
 
-Private Sub btnFiltr_Click()
-    frameFilters.Height = 84
-    frameTab.Top = frameFilters.Top + frameFilters.Height
-    Me.Height = frameTab.Top + frameTab.Height + 26
-    btnFiltr.Caption = ChrW(9660)
-    btnFiltr.Caption = ChrW(9660)
+Private Sub cmbxProizvoditel_Change()
+
 End Sub
 
 Private Sub tbtnBD_Click()
@@ -169,9 +143,9 @@ Private Sub tbtnFav_Click()
     tbtnBD = Not tbtnFav
 End Sub
 
-Private Sub lstvParent_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
+Private Sub lstvTable_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
 
-    With lstvParent
+    With lstvTable
         .Sorted = False
         .SortKey = ColumnHeader.SubItemIndex
         'изменить порядок сортировки на обратный имеющемуся
@@ -181,71 +155,107 @@ Private Sub lstvParent_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeade
     
 End Sub
 
-Sub Fill_lstvParent() ' заполнение списка родительских элементов схемы
+Sub Fill_lstvTable() ' заполнение списка родительских элементов схемы
     Dim i, j, x, y, n, k As Integer
     Dim itmx As ListItem
     Dim wires As String
     Dim vsoShape As Visio.Shape
-    lstvParent.ListItems.Clear
+    lstvTable.ListItems.Clear
     
-    Select Case FindType
-        Case typePLCModChild  'Если макрос активировался дочерним PLCModChild - значит искали родителей PLCModParent
-            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
-                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-                    Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
-                    itmx.SubItems(1) = .Cells("Prop.Model").ResultStr(0)
-                    'подсчет кол-ва связей модуля
-                    k = 0
-                    For n = 1 To .Section(visSectionHyperlink).Count
-                        k = k + IIf(.CellsU("Hyperlink." & n & ".SubAddress").ResultStr(0) = "", 0, 1)
-                    Next
-                    itmx.SubItems(2) = k
-                    itmx.SubItems(3) = .Cells("Prop.NIO").Result(0) & "  |  " & .Shapes.Count - 1
-                    x = 0
-                    y = 0
-                    For Each vsoShape In .Shapes
-                        If (vsoShape.Name Like "PLCIOL*") Or (vsoShape.Name Like "PLCIOR*") Then
-                            'подсчет кол-ва связанных входов
-                            x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
-                            'подсчет кол-ва подключенных входов
-                            For n = 1 To 4
-                                If vsoShape.Cells("User.w" & n).Result(0) <> 0 Then
-                                    y = y + 1
-                                    Exit For
-                                End If
-                            Next
-                        End If
-                    Next
-                    itmx.SubItems(4) = x & "  |  " & y
-                    
-              End With
-            Next i
-        Case typePLCIOChild 'Если макрос активировался дочерним PLCIO - значит искали PLCIO
-            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
-                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-                    Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
-                    itmx.SubItems(1) = .CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0)
-                    wires = IIf(.Cells("User.w1").Result(0) <> 0, .Cells("User.w1").Result(0), "")
-                    For j = 2 To 4
-                        wires = IIf(.Cells("User.w" & j).Result(0) <> 0, wires & ", " & .Cells("User.w" & j).Result(0), wires & "")
-                    Next j
-                    itmx.SubItems(2) = wires
-                    wires = ""
-                End With
-            Next i
-    End Select
+    Dim dbsDatabase As DAO.Database
+    Dim rstRecordset As DAO.Recordset
+    Dim strPath As String
+    Dim SQLQuery As String
+    Dim List As String
+    
+    'Определяем запрос SQL для отбора записей из базы данных
+    SQLQuery = "SELECT КодПозиции, Артикул, Название, Цена " & _
+                "FROM Прайс;"
+
+    'Создаем набор записей для получения списка
+    strPath = ThisDocument.path & "SAPR_ASU_IEK.accdb" 'Schneider IEK ABB
+    Set dbsDatabase = GetDBEngine.OpenDatabase(strPath)
+    Set rstRecordset = dbsDatabase.CreateQueryDef("", SQLQuery).OpenRecordset(dbOpenDynaset)  'Создание набора записей
+    
+    '---Ищем необходимую запись в наборе данных и по ней создаем набор значений для списка для заданных параметров
+    'With rst
+
+    rstRecordset.MoveFirst
+    Do Until rstRecordset.EOF
+'        Set itmx = lstvTable.ListItems.Add(, """" & rstRecordset![КодПозиции] & """", rstRecordset![Артикул])
+        Set itmx = lstvTable.ListItems.Add(, """" & rstRecordset![КодПозиции] & """", rstRecordset![КодПозиции])
+        itmx.SubItems(1) = rstRecordset![Артикул]
+        itmx.SubItems(2) = rstRecordset![Название]
+        itmx.SubItems(3) = rstRecordset![Цена]
+        
+        rstRecordset.MoveNext
+        i = i + 1
+    Loop
+    'End With
+    lblResult.Caption = "Найдено записей: " & i 'rstRecordset.RecordCount
+'
+'
+'
+'
+'
+'    Select Case FindType
+'        Case typePLCModChild  'Если макрос активировался дочерним PLCModChild - значит искали родителей PLCModParent
+'            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
+'                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
+'                    Set itmx = lstvTable.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
+'                    itmx.SubItems(1) = .Cells("Prop.Model").ResultStr(0)
+'                    'подсчет кол-ва связей модуля
+'                    k = 0
+'                    For n = 1 To .Section(visSectionHyperlink).Count
+'                        k = k + IIf(.CellsU("Hyperlink." & n & ".SubAddress").ResultStr(0) = "", 0, 1)
+'                    Next
+'                    itmx.SubItems(2) = k
+'                    itmx.SubItems(3) = .Cells("Prop.NIO").Result(0) & "  |  " & .Shapes.Count - 1
+'                    x = 0
+'                    y = 0
+'                    For Each vsoShape In .Shapes
+'                        If (vsoShape.Name Like "PLCIOL*") Or (vsoShape.Name Like "PLCIOR*") Then
+'                            'подсчет кол-ва связанных входов
+'                            x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
+'                            'подсчет кол-ва подключенных входов
+'                            For n = 1 To 4
+'                                If vsoShape.Cells("User.w" & n).Result(0) <> 0 Then
+'                                    y = y + 1
+'                                    Exit For
+'                                End If
+'                            Next
+'                        End If
+'                    Next
+'                    itmx.SubItems(4) = x & "  |  " & y
+'
+'              End With
+'            Next i
+'        Case typePLCIOChild 'Если макрос активировался дочерним PLCIO - значит искали PLCIO
+'            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
+'                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
+'                    Set itmx = lstvTable.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
+'                    itmx.SubItems(1) = .CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0)
+'                    wires = IIf(.Cells("User.w1").Result(0) <> 0, .Cells("User.w1").Result(0), "")
+'                    For j = 2 To 4
+'                        wires = IIf(.Cells("User.w" & j).Result(0) <> 0, wires & ", " & .Cells("User.w" & j).Result(0), wires & "")
+'                    Next j
+'                    itmx.SubItems(2) = wires
+'                    wires = ""
+'                End With
+'            Next i
+'    End Select
 
 End Sub
 
-Private Sub lstvParent_DblClick()
+Private Sub lstvTable_DblClick()
 
     Select Case FindType
         Case typePLCModChild  'Если макрос активировался дочерним - значит искали родителей
             'Создаем связь как и было задумано
-            AddReferencePLCMod shpChild, shpParent
+            AddReferencePLCMod glShape, shpParent
         Case typePLCIOChild 'Если макрос активировался родителем - значит искали дочерних
-            'Меняем местами родителя/дочернего, т.к. в переменной shpChild содержится родитель, а в shpParent дочерний
-            AddReferencePLCIO shpChild, shpParent
+            'Меняем местами родителя/дочернего, т.к. в переменной glShape содержится родитель, а в shpParent дочерний
+            AddReferencePLCIO glShape, shpParent
     End Select
 
     'Активация событий. Они чета сомодезактивируются xD
@@ -255,7 +265,7 @@ Private Sub lstvParent_DblClick()
     
 End Sub
 
-Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
+Private Sub lstvTable_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Dim vsoShape As Visio.Shape
     Dim ShapeID As String
     Dim PageID As String
@@ -294,15 +304,15 @@ End Sub
 
 Private Sub lblContent_Click() ' выровнять ширину столбцов по содержимому
    Dim colNum As Long
-   For colNum = 0 To lstvParent.ColumnHeaders.Count - 1
-      Call SendMessage(lstvParent.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE)
+   For colNum = 0 To lstvTable.ColumnHeaders.Count - 1
+      Call SendMessage(lstvTable.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE)
    Next
 End Sub
 
 Private Sub lblHeaders_Click() ' выровнять ширину столбцов по заголовкам
    Dim colNum As Long
-   For colNum = 0 To lstvParent.ColumnHeaders.Count - 1
-      Call SendMessage(lstvParent.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
+   For colNum = 0 To lstvTable.ColumnHeaders.Count - 1
+      Call SendMessage(lstvTable.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
    Next
 End Sub
 
@@ -315,29 +325,17 @@ Private Sub tbtnFiltr_Click()
         tbtnFiltr.Caption = ChrW(9660) 'вниз
     End If
     frameTab.Top = frameFilters.Top + frameFilters.Height
-    Me.Height = frameTab.Top + frameTab.Height + 26
+    Me.Height = frameTab.Top + frameTab.Height + 36
+    lblResult.Top = Me.Height - 35
 End Sub
 
-Private Sub UserForm_Initialize() ' инициализация формы
-    Set colShapes = New Collection
-    Set colPages = New Collection
-    
-    Me.Height = 360 ' высота формы
-    
-    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
-    
-   ' lblPLC.Caption = ""
-   ' lblPLCMod.Caption = ""
 
-    lstvParent.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
-
-End Sub
 
  Sub btnClose_Click() ' выгрузка формы
 
     With ActiveWindow
-        .Page = shpChild.ContainingPage
-        .Select shpChild, visDeselectAll + visSubSelect     ' выделение шейпа
+        .Page = glShape.ContainingPage
+        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
         .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
                     '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
     End With
