@@ -257,7 +257,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     Dim DeltaY As Single
     Dim dN As Single 'смещение миниатюр по вертикали
     Dim i As Integer
-    Dim n As Integer 'число контактов в катушке
+    Dim N As Integer 'число контактов в катушке
     
     DeltaX = 0.295275590551181
     DeltaY = -0.246062992125984
@@ -290,7 +290,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                 
             Case typeCoil, typeParent 'Катушка реле
             
-                n = 0
+                N = 0
                 'Перебираем активные ссылки на контакты
                 For i = 1 To vsoShape.Section(visSectionScratch).Count 'Ищем строку в Scratch
                     If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'не пустая строка
@@ -301,10 +301,10 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                         shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!Scratch.C" & i
                         shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
                         shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
-                        shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + n * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
+                        shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + N * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
                         shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
                         shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
-                        n = n + 1
+                        N = N + 1
                     End If
                 Next
         End Select

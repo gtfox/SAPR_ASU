@@ -41,6 +41,7 @@ Public Sub Fill_ComboBox(DBName As String, SQLQuery As String, cmbx As ComboBox,
     cmbx.ColumnCount = 1
     i = 0
     With rst
+    If .EOF Then Exit Sub
         .MoveFirst
         If Skip Then .MoveNext 'Пропускаем первый элемент
         Do Until .EOF

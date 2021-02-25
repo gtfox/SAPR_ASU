@@ -367,14 +367,14 @@ Public Sub spEXP_2_XLS()
     Dim pName As String
     Dim np As Page
     Dim pg As Page
-    Dim n As Integer
+    Dim N As Integer
     pName = "С"
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item("С")
     get_data
-    For n = 2 To ActiveDocument.DocumentSheet.Cells("user.coc")
-        pName = "С." & n
+    For N = 2 To ActiveDocument.DocumentSheet.Cells("user.coc")
+        pName = "С." & N
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data
     Next

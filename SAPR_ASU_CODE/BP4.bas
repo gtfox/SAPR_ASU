@@ -23,8 +23,8 @@ Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
     Dim r%, form$
     r = ActiveDocument.Pages.Count
     ReDim ma(r)
-    Dim pg As Page, sh As Shape, listing$, wn As Window, n%, pos As Shape, prim As Shape
-    listing = "": n = 0
+    Dim pg As Page, sh As Shape, listing$, wn As Window, N%, pos As Shape, prim As Shape
+    listing = "": N = 0
     For i = pp To ActiveDocument.Pages.Count
         Set pg = ActiveDocument.Pages(i)
         'pg.Shapes("Рамка").Cells("fields.value").FormulaU = "0"
@@ -33,8 +33,8 @@ Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
         If pg.Shapes("Рамка").Cells("prop.type").ResultStr("") <> "" Then
             If InStr(1, pg.Shapes("Рамка").Shapes("FORMA3").Shapes("shifr").Cells("fields.value").ResultStr(""), ".CO") = 0 Then
                 listing = listing & ";" & pg.Name
-                n = n + 1
-                ma(n) = pg.Shapes("Рамка").ID
+                N = N + 1
+                ma(N) = pg.Shapes("Рамка").ID
             End If
         End If
     Next i
@@ -44,7 +44,7 @@ Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
     ActivePage.PageSheet.Cells("user.store").FormulaU = Chr(34) & listing & Chr(34)
     'wn.Close
     Set sh = ShpObj
-    For i = 1 To n
+    For i = 1 To N
 
         Set prim = sh.Shapes("pos" & i).Shapes(3)
         Set pos = prim.Parent
@@ -57,10 +57,10 @@ Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
         
     Next
     On Error GoTo L1
-    sh.Shapes("pos" & n).Shapes(4).Cells("user.text").FormulaU = "=IF(User.N-1-thedoc!user.coc-User.C>1,User.C&""-""&User.N-1-thedoc!user.coc,User.C)"
-    sh.Cells("prop.n").Formula = n
-    MsgBox "Ведомость рабочих чертежей добавлена" & vbCrLf & vbCrLf & "Найдено листов N:" & n, vbInformation
+    sh.Shapes("pos" & N).Shapes(4).Cells("user.text").FormulaU = "=IF(User.N-1-thedoc!user.coc-User.C>1,User.C&""-""&User.N-1-thedoc!user.coc,User.C)"
+    sh.Cells("prop.n").Formula = N
+    MsgBox "Ведомость рабочих чертежей добавлена" & vbCrLf & vbCrLf & "Найдено листов N:" & N, vbInformation
     Exit Sub
 L1:
-    MsgBox "Нет листов для ВРЧ. N:" & n & vbCrLf & vbCrLf & "На всех листах должны быть рамки" & vbCrLf & "и хотя бы в одной указано наименование листа", vbCritical, "Ошибка"
+    MsgBox "Нет листов для ВРЧ. N:" & N & vbCrLf & vbCrLf & "На всех листах должны быть рамки" & vbCrLf & "и хотя бы в одной указано наименование листа", vbCritical, "Ошибка"
 End Sub

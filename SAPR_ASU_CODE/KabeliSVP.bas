@@ -388,7 +388,7 @@ Public Sub AddPagesSVP()
     Dim Index As Integer
     Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому нореру
     Dim ss As String
-    Dim i As Integer, ii As Integer, j As Integer, n As Integer
+    Dim i As Integer, ii As Integer, j As Integer, N As Integer
     
     ShinaNumber = False
     

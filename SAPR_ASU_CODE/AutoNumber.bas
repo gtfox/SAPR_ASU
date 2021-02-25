@@ -129,7 +129,7 @@ Public Sub ReNumber()
     Dim shpMas() As Shape
     Dim shpTemp As Shape
     Dim ss As String
-    Dim i As Integer, ii As Integer, j As Integer, n As Integer
+    Dim i As Integer, ii As Integer, j As Integer, N As Integer
     
     Set colShp = New Collection
     

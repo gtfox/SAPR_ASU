@@ -166,7 +166,7 @@ Private Sub lstvParent_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeade
 End Sub
 
 Sub Fill_lstvParent() ' заполнение списка родительских элементов схемы
-    Dim i, j, x, y, n, k As Integer
+    Dim i, j, x, y, N, k As Integer
     Dim itmx As ListItem
     Dim wires As String
     Dim vsoShape As Visio.Shape
@@ -180,8 +180,8 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     itmx.SubItems(1) = .Cells("Prop.Model").ResultStr(0)
                     'подсчет кол-ва связей модуля
                     k = 0
-                    For n = 1 To .Section(visSectionHyperlink).Count
-                        k = k + IIf(.CellsU("Hyperlink." & n & ".SubAddress").ResultStr(0) = "", 0, 1)
+                    For N = 1 To .Section(visSectionHyperlink).Count
+                        k = k + IIf(.CellsU("Hyperlink." & N & ".SubAddress").ResultStr(0) = "", 0, 1)
                     Next
                     itmx.SubItems(2) = k
                     itmx.SubItems(3) = .Cells("Prop.NIO").Result(0) & "  |  " & .Shapes.Count - 1
@@ -192,8 +192,8 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                             'подсчет кол-ва связанных входов
                             x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
                             'подсчет кол-ва подключенных входов
-                            For n = 1 To 4
-                                If vsoShape.Cells("User.w" & n).Result(0) <> 0 Then
+                            For N = 1 To 4
+                                If vsoShape.Cells("User.w" & N).Result(0) <> 0 Then
                                     y = y + 1
                                     Exit For
                                 End If

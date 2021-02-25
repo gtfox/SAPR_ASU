@@ -69,7 +69,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     
     Dim BoxNumber As Integer 'Номер шкафа к которому подключен кабель/датчик
     Dim i As Integer
-    Dim n As Integer
+    Dim N As Integer
     Dim MultiCable As Boolean
     
     'Dim UndoScopeID1 As Long
