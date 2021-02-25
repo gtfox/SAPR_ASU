@@ -30,11 +30,113 @@ Dim mstrAdrParentPLCMod() As String
 Dim shpParentPLC As Visio.Shape 'Родительский плк с модулями
 Dim shpParentPLCMod As Visio.Shape 'Родительский модуль со входами внутри  родительского плк
 Dim vsoShp As Visio.Shape
-Dim bError As Boolean
+Dim bBlock As Boolean
+
+Private Sub FiltersCmbxChange()
+    Dim SQLQuery As String
+    Dim fltrKategoriya As String
+    Dim fltrGruppa As String
+    Dim fltrPodgruppa As String
+    Dim fltrMode As Integer
+    Dim fltrWHERE As String
+    Dim DBName As String
+
+
+    If cmbxKategoriya.ListIndex = -1 Then
+        fltrKategoriya = ""
+    Else
+        fltrKategoriya = "Прайс.КатегорииКод=" & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1)
+    End If
+    If cmbxGruppa.ListIndex = -1 Then
+        fltrGruppa = ""
+    Else
+        fltrGruppa = "Прайс.ГруппыКод=" & cmbxGruppa.List(cmbxGruppa.ListIndex, 1)
+    End If
+    If cmbxPodgruppa.ListIndex = -1 Then
+        fltrPodgruppa = ""
+    Else
+        fltrPodgruppa = "Прайс.ПодгруппыКод=" & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1)
+    End If
+    
+    fltrMode = IIf(fltrKategoriya = "", 0, 4) + IIf(fltrGruppa = "", 0, 2) + IIf(fltrPodgruppa = "", 0, 1)
+
+    '    0   0   0
+    '    0   0   1
+    '    0   1   0
+    '    0   1   1
+    '    1   0   0
+    '    1   0   1
+    '    1   1   0
+    '    1   1   1
+    
+    Select Case fltrMode
+        Case 0
+            fltrWHERE = ""
+        Case 1
+            fltrWHERE = " WHERE " & fltrPodgruppa
+        Case 2
+            fltrWHERE = " WHERE " & fltrGruppa
+        Case 3
+            fltrWHERE = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa
+        Case 4
+            fltrWHERE = " WHERE " & fltrKategoriya
+        Case 5
+            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa
+        Case 6
+            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa
+        Case 7
+            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa
+        Case Else
+            fltrWHERE = ""
+    End Select
+    
+    SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод " & _
+                "FROM Прайс " & fltrWHERE & ";"
+
+
+    Fill_lstvTablePrice "FilterSQLQuery", SQLQuery
+    
+    
+    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
+    
+    If fltrKategoriya = "" Then
+        SQLQuery = "SELECT FilterSQLQuery.КатегорииКод, Категории.Категория " & _
+                    "FROM Категории INNER JOIN FilterSQLQuery ON Категории.КодКатегории = FilterSQLQuery.КатегорииКод " & _
+                    "GROUP BY FilterSQLQuery.КатегорииКод, Категории.Категория;"
+        Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
+    End If
+    
+    If fltrGruppa = "" Then
+        SQLQuery = "SELECT FilterSQLQuery.ГруппыКод, Группы.Группа " & _
+                    "FROM Группы INNER JOIN FilterSQLQuery ON Группы.КодГруппы = FilterSQLQuery.ГруппыКод " & _
+                    "GROUP BY FilterSQLQuery.ГруппыКод, Группы.Группа;"
+        Fill_ComboBox DBName, SQLQuery, cmbxGruppa
+    End If
+    
+    If fltrPodgruppa = "" Then
+        SQLQuery = "SELECT FilterSQLQuery.ПодгруппыКод, Подгруппы.Подгруппа " & _
+                    "FROM Подгруппы INNER JOIN FilterSQLQuery ON Подгруппы.КодПодгруппы = FilterSQLQuery.ПодгруппыКод " & _
+                    "GROUP BY FilterSQLQuery.ПодгруппыКод, Подгруппы.Подгруппа;"
+        Fill_ComboBox DBName, SQLQuery, cmbxPodgruppa
+    End If
+
+    ReSize
+    
+End Sub
+
+Private Sub cmbxKategoriya_Change()
+    If Not bBlock Then FiltersCmbxChange
+End Sub
+
+Private Sub cmbxGruppa_Change()
+    If Not bBlock Then FiltersCmbxChange
+End Sub
+
+Private Sub cmbxPodgruppa_Change()
+    If Not bBlock Then FiltersCmbxChange
+End Sub
 
 Private Sub UserForm_Initialize() ' инициализация формы
-    Set colShapes = New Collection
-    Set colPages = New Collection
 
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     lstvTable.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
@@ -42,7 +144,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTable.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTable.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTable.ColumnHeaders.Add , , "Цена" ' SubItems(2)
-    lstvTable.ColumnHeaders.Add , , "Макс./Сущ.вх." ' SubItems(3)
+    'lstvTable.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
@@ -50,44 +152,27 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
-    
-    
-'    cmbxProizvoditel.ColumnCount = 3 'Показ столбцов
-'    cmbxProizvoditel.AddItem "111"
-'    cmbxProizvoditel.Column(1, 0) = "222"
-'    cmbxProizvoditel.Column(2, 0) = "+222"
-'    cmbxProizvoditel.AddItem "333"
-'    cmbxProizvoditel.Column(1, 1) = "444"
-'    cmbxProizvoditel.Column(2, 1) = "+444"
 
+    Dim SQLQuery As String
 
-    cmbxProizvoditel.ColumnCount = 1 'Столбцы скрыты
-    cmbxProizvoditel.AddItem "111"
-    cmbxProizvoditel.List(0, 1) = "222"
-    cmbxProizvoditel.List(0, 2) = "+222"
-    cmbxProizvoditel.AddItem "333"
-    cmbxProizvoditel.List(1, 1) = "444"
-    cmbxProizvoditel.List(1, 2) = "+444"
-    
-'    ggg = cmbxProizvoditel.List(1, 1)
+    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель " & _
+                "FROM Производители;"
+                
+    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel, True
 
 End Sub
 
 Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDB
 
-    Fill_lstvTable
+    'Fill_lstvTablePrice
 
-    Call lblHeaders_Click ' выровнять ширину столбцов по заголовкам
 
-    ReSize
+
+    'ReSize
     
-    If bError Then
-        Unload Me
-    Else
-        frmDB.Show
-    End If
-    
+    frmDB.Show
+
 End Sub
 
 
@@ -126,12 +211,15 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     txtNazvanie2.Width = frameNazvanie.Width / 4
     txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
     txtNazvanie3.Width = frameNazvanie.Width / 4
-    
+'    Me.Hide
+'    Me.Show
     
 End Sub
 
 Private Sub cmbxProizvoditel_Change()
-
+    Reset_FiltersCmbx
+    'Fill_lstvTablePrice
+    'ReSize
 End Sub
 
 Private Sub tbtnBD_Click()
@@ -155,95 +243,65 @@ Private Sub lstvTable_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     
 End Sub
 
-Sub Fill_lstvTable() ' заполнение списка родительских элементов схемы
-    Dim i, j, x, y, n, k As Integer
+Sub Fill_lstvTablePrice(QueryDefName As String, SQLQuery As String) ' заполнение списка найденных позиций в базе
+    Dim i As Double
     Dim itmx As ListItem
-    Dim wires As String
-    Dim vsoShape As Visio.Shape
-    lstvTable.ListItems.Clear
-    
     Dim dbsDatabase As DAO.Database
     Dim rstRecordset As DAO.Recordset
     Dim strPath As String
-    Dim SQLQuery As String
-    Dim List As String
-    
-    'Определяем запрос SQL для отбора записей из базы данных
-    SQLQuery = "SELECT КодПозиции, Артикул, Название, Цена " & _
-                "FROM Прайс;"
 
     'Создаем набор записей для получения списка
-    strPath = ThisDocument.path & "SAPR_ASU_IEK.accdb" 'Schneider IEK ABB
+    strPath = ThisDocument.path & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
     Set dbsDatabase = GetDBEngine.OpenDatabase(strPath)
-    Set rstRecordset = dbsDatabase.CreateQueryDef("", SQLQuery).OpenRecordset(dbOpenDynaset)  'Создание набора записей
-    
-    '---Ищем необходимую запись в наборе данных и по ней создаем набор значений для списка для заданных параметров
-    'With rst
+    On Error Resume Next
+    dbsDatabase.QueryDefs.Delete QueryDefName
+    Set rstRecordset = dbsDatabase.CreateQueryDef(QueryDefName, SQLQuery).OpenRecordset(dbOpenDynaset)  'Создание набора записей
 
+    lstvTable.ListItems.Clear
+    i = 0
     rstRecordset.MoveFirst
     Do Until rstRecordset.EOF
-'        Set itmx = lstvTable.ListItems.Add(, """" & rstRecordset![КодПозиции] & """", rstRecordset![Артикул])
-        Set itmx = lstvTable.ListItems.Add(, """" & rstRecordset![КодПозиции] & """", rstRecordset![КодПозиции])
-        itmx.SubItems(1) = rstRecordset![Артикул]
-        itmx.SubItems(2) = rstRecordset![Название]
-        itmx.SubItems(3) = rstRecordset![Цена]
+        Set itmx = lstvTable.ListItems.Add(, """" & rstRecordset.Fields("КодПозиции").Value & """", rstRecordset.Fields("Артикул").Value)
+        itmx.SubItems(1) = rstRecordset.Fields("Название").Value
+        itmx.SubItems(2) = rstRecordset.Fields("Цена").Value
         
         rstRecordset.MoveNext
         i = i + 1
     Loop
-    'End With
-    lblResult.Caption = "Найдено записей: " & i 'rstRecordset.RecordCount
-'
-'
-'
-'
-'
-'    Select Case FindType
-'        Case typePLCModChild  'Если макрос активировался дочерним PLCModChild - значит искали родителей PLCModParent
-'            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
-'                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-'                    Set itmx = lstvTable.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
-'                    itmx.SubItems(1) = .Cells("Prop.Model").ResultStr(0)
-'                    'подсчет кол-ва связей модуля
-'                    k = 0
-'                    For n = 1 To .Section(visSectionHyperlink).Count
-'                        k = k + IIf(.CellsU("Hyperlink." & n & ".SubAddress").ResultStr(0) = "", 0, 1)
-'                    Next
-'                    itmx.SubItems(2) = k
-'                    itmx.SubItems(3) = .Cells("Prop.NIO").Result(0) & "  |  " & .Shapes.Count - 1
-'                    x = 0
-'                    y = 0
-'                    For Each vsoShape In .Shapes
-'                        If (vsoShape.Name Like "PLCIOL*") Or (vsoShape.Name Like "PLCIOR*") Then
-'                            'подсчет кол-ва связанных входов
-'                            x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
-'                            'подсчет кол-ва подключенных входов
-'                            For n = 1 To 4
-'                                If vsoShape.Cells("User.w" & n).Result(0) <> 0 Then
-'                                    y = y + 1
-'                                    Exit For
-'                                End If
-'                            Next
-'                        End If
-'                    Next
-'                    itmx.SubItems(4) = x & "  |  " & y
-'
-'              End With
-'            Next i
-'        Case typePLCIOChild 'Если макрос активировался дочерним PLCIO - значит искали PLCIO
-'            For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
-'                With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-'                    Set itmx = lstvTable.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0)) '.Cells("TheText").ResultStr("")
-'                    itmx.SubItems(1) = .CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0)
-'                    wires = IIf(.Cells("User.w1").Result(0) <> 0, .Cells("User.w1").Result(0), "")
-'                    For j = 2 To 4
-'                        wires = IIf(.Cells("User.w" & j).Result(0) <> 0, wires & ", " & .Cells("User.w" & j).Result(0), wires & "")
-'                    Next j
-'                    itmx.SubItems(2) = wires
-'                    wires = ""
-'                End With
-'            Next i
-'    End Select
+    lblResult.Caption = "Найдено записей: " & i
+    
+    Set dbsDatabase = Nothing
+    Set rstRecordset = Nothing
+    
+    Call lblHeaders_Click ' выровнять ширину столбцов по заголовкам
+End Sub
+
+
+Private Sub Reset_FiltersCmbx()
+    Dim DBName As String
+    Dim SQLQuery As String
+    
+    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
+    
+    bBlock = True
+    
+    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
+    
+    SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
+                "FROM Категории;"
+    Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
+    
+    SQLQuery = "SELECT Группы.КодГруппы, Группы.Группа " & _
+                "FROM Группы;"
+    Fill_ComboBox DBName, SQLQuery, cmbxGruppa
+        
+    SQLQuery = "SELECT Подгруппы.КодПодгруппы, Подгруппы.Подгруппа " & _
+                "FROM Подгруппы;"
+    Fill_ComboBox DBName, SQLQuery, cmbxPodgruppa
+    
+    bBlock = False
+    
+    lstvTable.ListItems.Clear
 
 End Sub
 
@@ -323,6 +381,7 @@ Private Sub tbtnFiltr_Click()
     Else
         frameFilters.Height = 0
         tbtnFiltr.Caption = ChrW(9660) 'вниз
+        Reset_FiltersCmbx
     End If
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
@@ -342,3 +401,4 @@ End Sub
     Unload Me
     
 End Sub
+
