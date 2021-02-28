@@ -11,7 +11,7 @@ Option Explicit
 'Активация формы создания связи PLC
 Public Sub AddReferencePLCFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferencePLC
-    frmAddReferencePLC.Run shpChild 'Передали его в форму
+    frmAddReferencePLC.run shpChild 'Передали его в форму
 End Sub
 
 Public Sub AddReferencePLC(shpChild As Visio.Shape, shpParent As Visio.Shape)

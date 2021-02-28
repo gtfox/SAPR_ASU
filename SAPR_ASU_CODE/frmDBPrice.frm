@@ -42,21 +42,28 @@ Private Sub UserForm_Initialize() ' инициализация формы
 
     Dim SQLQuery As String
 
-    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель " & _
+    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
     Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel, True
+    
+    cmbxProizvoditel.style = fmStyleDropDownList
+    cmbxKategoriya.style = fmStyleDropDownList
+    cmbxGruppa.style = fmStyleDropDownList
+    cmbxPodgruppa.style = fmStyleDropDownList
 
 End Sub
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
+Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBPrice
     ArtikulDB = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
     If ArtikulDB <> "" Then
         bBlock = True
-        cmbxProizvoditel.ListIndex = glShape.Cells("User.KodProizvoditelyaDB").Result(0) - 2
+        For i = 0 To cmbxProizvoditel.ListCount - 1
+            If cmbxProizvoditel.List(i, 2) = glShape.Cells("User.KodProizvoditelyaDB").Result(0) Then cmbxProizvoditel.ListIndex = i
+        Next
         txtArtikul.Value = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
         tbtnFiltr.Value = False
         Find_ItemsByText
@@ -282,9 +289,24 @@ Private Sub Reset_FiltersCmbx()
     lblResult.Caption = "Найдено записей: 0"
 End Sub
 
-Private Sub lstvTablePrice_ItemClick(ByVal Item As MSComctlLib.ListItem)
+Private Sub btnFavAdd_Click()
+    If mstrShpData(2) <> "" Then
+        If Not bBlock Then
+            bBlock = True
+            tbtnFav = False
+            bBlock = False
+            Me.Hide
+            Load frmDBIzbrannoe
+    
+        End If
+        Load frmDBAddToIzbrannoe
+        
+        frmDBAddToIzbrannoe.run glShape, mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
+    End If
+End Sub
 
-    mstrShpData(0) = cmbxProizvoditel.ListIndex + 2
+Private Sub lstvTablePrice_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    mstrShpData(0) = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
@@ -406,7 +428,7 @@ Private Sub tbtnFav_Click()
         bBlock = False
         Me.Hide
         Load frmDBIzbrannoe
-        frmDBIzbrannoe.Run glShape
+        frmDBIzbrannoe.run glShape
     End If
 End Sub
 

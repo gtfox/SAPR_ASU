@@ -42,7 +42,7 @@ Dim shpParentPLCMod As Visio.Shape 'Родительский модуль со �
 Dim vsoShp As Visio.Shape
 Dim bError As Boolean
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReferencePLCMod
+Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReferencePLCMod
     Set shpChild = vsoShape 'И определили его в форме frmAddReferencePLCMod
     
     FindType = shpChild.Cells("User.SAType").Result(0)

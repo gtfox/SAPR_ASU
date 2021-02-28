@@ -34,7 +34,7 @@ Dim colPages As Collection
 Dim FindType As Integer 'Кто запустил создание связи (родитль/дочерний)
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReference
+Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReference
     Set shpChild = vsoShape 'И определили его в форме frmAddReference
     
     FindType = shpChild.Cells("User.SAType").Result(0)

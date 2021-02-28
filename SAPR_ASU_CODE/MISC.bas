@@ -85,13 +85,13 @@ Sub ObjInfo()
         vsoSelection.IterationMode = visSelModeOnlySub
         'For Each sh In vsoSelection
             If vsoSelection.PrimaryItem Is Nothing Then
-                frmObjInfo.Run ActivePage
+                frmObjInfo.run ActivePage
             Else
-                frmObjInfo.Run vsoSelection.PrimaryItem
+                frmObjInfo.run vsoSelection.PrimaryItem
             End If
         'Next
     Else
-        frmObjInfo.Run vsoSelection.PrimaryItem
+        frmObjInfo.run vsoSelection.PrimaryItem
     End If
 End Sub
 

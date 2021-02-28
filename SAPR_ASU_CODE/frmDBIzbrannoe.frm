@@ -1,5 +1,3 @@
-
-
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmDBIzbrannoe - Форма поиска и задания данных для элемента схемы из БД Избранное
@@ -21,9 +19,11 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 Dim glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
-Dim mstrShpData(5) As String
+Dim mstrShpData(6) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
+
+
 
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
@@ -34,6 +34,10 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
 
+    cmbxProizvoditel.style = fmStyleDropDownList
+    cmbxKategoriya.style = fmStyleDropDownList
+    cmbxGruppa.style = fmStyleDropDownList
+    cmbxPodgruppa.style = fmStyleDropDownList
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
@@ -45,29 +49,19 @@ Private Sub UserForm_Initialize() ' инициализация формы
 
     Dim SQLQuery As String
 
-    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель " & _
+    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel, True
+    Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel
     
     Reset_FiltersCmbx
 
 End Sub
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
+Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBIzbrannoe
-'    ArtikulDB = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
-'    If ArtikulDB <> "" Then
-'        bBlock = True
-'        cmbxProizvoditel.ListIndex = glShape.Cells("User.KodProizvoditelyaDB").Result(0) - 2
-'        txtArtikul.Value = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
-'        tbtnFiltr.Value = False
-'        Find_ItemsByText
-'        txtArtikul.Value = ""
-'        bBlock = False
-'    End If
 
     frmDBIzbrannoe.Show
     
@@ -293,6 +287,21 @@ Sub Find_ItemsByText()
  
 End Sub
 
+Private Sub btnFavDel_Click()
+    Dim DBName As String
+    Dim SQLQuery As String
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "Удаление записи из Избранного") = vbYes Then
+        If mstrShpData(6) <> "" Then
+            DBName = "SAPR_ASU_Izbrannoe.accdb"
+            SQLQuery = "DELETE Избранное.* " & _
+                        "FROM Избранное " & _
+                        "WHERE Избранное.КодПозиции=" & mstrShpData(6) & ";"
+            ExecuteSQL DBName, SQLQuery
+            Find_ItemsByText
+        End If
+    End If
+End Sub
+
 Private Sub Reset_FiltersCmbx()
     Dim DBName As String
     Dim SQLQuery As String
@@ -315,13 +324,16 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    Dim mStr() As String
+    mStr = Split(Replace(Item.Key, """", ""), "/")
 
-    mstrShpData(0) = cmbxProizvoditel.ListIndex + 2
+    mstrShpData(0) = mStr(1)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
-    mstrShpData(4) = cmbxProizvoditel.Value
+    mstrShpData(4) = Item.SubItems(3)
     mstrShpData(5) = Item.SubItems(2)
+    mstrShpData(6) = mStr(0)
     
 End Sub
 
@@ -361,8 +373,8 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     cmbxPodgruppa.Width = frameFilters.Width - cmbxPodgruppa.Left - 6
     btnClose.Left = Me.Width - btnClose.Width - 10
     tbtnFiltr.Left = Me.Width - tbtnFiltr.Width - 10
-    btnFavAdd.Left = btnClose.Left - btnFavAdd.Width - 10
-    btnETM.Left = btnFavAdd.Left - btnETM.Width - 2
+    btnFavDel.Left = btnClose.Left - btnFavDel.Width - 10
+    btnETM.Left = btnFavDel.Left - btnETM.Width - 2
     frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
     cmbxProizvoditel.Width = frameProizvoditel.Width - 12
     'lblResult.Top = Me.Height - 35
@@ -471,8 +483,8 @@ End Sub
 Sub btnClose_Click() ' выгрузка формы
 
     With ActiveWindow
-        .Page = glShape.ContainingPage
-        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
+'        .Page = glShape.ContainingPage
+'        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
         .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
                     '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
     End With

@@ -10,7 +10,7 @@ Option Explicit
 
 Dim shpIO As Visio.Shape 'шейп из модуля PLC
 
-Sub Run(vsoShape As Visio.Shape) 'Приняли шейп из модуля PLC
+Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля PLC
     Set shpIO = vsoShape 'И определили его в форме frmGenIO
     frmGenIO.Show
 End Sub

@@ -11,7 +11,7 @@ Option Explicit
 'Активация формы создания связи элементов схемы
 Public Sub AddReferenceRelayFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferenceRelay
-    frmAddReferenceRelay.Run shpChild 'Передали его в форму
+    frmAddReferenceRelay.run shpChild 'Передали его в форму
 End Sub
 
 Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)

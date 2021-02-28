@@ -11,7 +11,7 @@ Option Explicit
 'Активация формы создания связи модулей внутри PLC
 Public Sub AddReferencePLCModFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferencePLCMod
-    frmAddReferencePLCMod.Run shpChild 'Передали его в форму
+    frmAddReferencePLCMod.run shpChild 'Передали его в форму
 End Sub
 
 

@@ -109,7 +109,7 @@ Private Sub xls_query(imya_lista As String)
     On Error Resume Next
     If oExcel.Worksheets(imya_lista) Is Nothing Then
         'действия, если листа нет
-        oExcel.Run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
+        oExcel.run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
     Else
         'действия, если лист есть
     End If

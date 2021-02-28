@@ -104,7 +104,7 @@ End Function
 'Активация формы генерации входов
 Public Sub dofrmGenIO(shpIO As Visio.Shape) 'Получили шейп с листа
     Load frmGenIO
-    frmGenIO.Run shpIO 'Передали его в форму
+    frmGenIO.run shpIO 'Передали его в форму
 End Sub
 
 Sub GenIOPLC(shpIO As Visio.Shape, NIO As Integer)

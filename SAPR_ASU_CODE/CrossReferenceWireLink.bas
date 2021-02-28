@@ -11,7 +11,7 @@ Option Explicit
 'Активация формы создания связи разрывов проводов
 Public Sub AddReferenceWireLinkFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferenceWireLink
-    frmAddReferenceWireLink.Run shpChild 'Передали его в форму
+    frmAddReferenceWireLink.run shpChild 'Передали его в форму
 End Sub
 
 Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)

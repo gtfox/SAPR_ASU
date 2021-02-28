@@ -11,7 +11,7 @@ Option Explicit
 'Активация формы создания связи элементов ВНЕ ШКАФА
 Public Sub AddReferenceSensorFrm(shpChild As Visio.Shape) 'Получили шейп с листа
     Load frmAddReferenceSensor
-    frmAddReferenceSensor.Run shpChild 'Передали его в форму
+    frmAddReferenceSensor.run shpChild 'Передали его в форму
 End Sub
 
 '------------------------------------------------------------------------------------------------------------
