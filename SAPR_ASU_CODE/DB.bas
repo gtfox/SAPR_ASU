@@ -8,6 +8,8 @@
 
 Option Explicit
 
+Public Const NaboryColor   As Long = &HBD0429
+
 'Активация формы выбора элементов схемы из БД
 Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
     Load frmDBPrice
@@ -57,7 +59,7 @@ Public Sub Fill_ComboBox(DBName As String, SQLQuery As String, cmbx As ComboBox)
         .MoveFirst
         Do Until .EOF
             cmbx.AddItem .Fields(1).Value
-            cmbx.List(i, 1) = "" & IIf(.Fields(0).Value = "", "", .Fields(0).Value)
+            cmbx.List(i, 1) = "" & .Fields(0).Value
             i = i + 1
             .MoveNext
         Loop
@@ -93,7 +95,9 @@ Public Sub Fill_cmbxProizvoditel(DBName As String, SQLQuery As String, cmbx As C
 End Sub
 
 'Заполняет lstvTable запросами из БД
-Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefName As String, lstvTable As ListView, Optional ByVal Izbrannoe As Boolean = False) As Double
+Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefName As String, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As Double
+    'TableType=1 - Избранное
+    'TableType=2 - Набор
     Dim i As Double
     Dim itmx As ListItem
     Dim rst As DAO.Recordset
@@ -107,11 +111,35 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
             Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & """", .Fields("Артикул").Value)
             itmx.SubItems(1) = .Fields("Название").Value
             itmx.SubItems(2) = .Fields("Цена").Value
-            If Izbrannoe Then itmx.SubItems(3) = .Fields("Производитель").Value
+            'itmx.SubItems(3) = .Fields("Единица").Value
+            If TableType = 1 Or TableType = 2 Then itmx.SubItems(3) = .Fields("Производитель").Value
+            If TableType = 2 Then itmx.SubItems(4) = .Fields("Количество").Value
+            
+            'красим наборы
+            If TableType = 1 Then  'and .Fields("Артикул").Value like "Набор_*" then
+                If .Fields("ПодгруппыКод").Value = 2 Then
+                    itmx.ForeColor = NaboryColor
+    '                    itmx.Bold = True
+                    For i = 1 To itmx.ListSubItems.Count
+    '                        itmx.ListSubItems(i).Bold = True
+                        itmx.ListSubItems(i).ForeColor = NaboryColor
+                    Next
+                End If
+            End If
             i = i + 1
             .MoveNext
         Loop
     End With
     Fill_lstvTable = i
     Set rst = Nothing
+End Function
+
+'Заполняет lstvTableNabor запросами из БД
+Public Function Fill_lstvTableNabor(DBName As String, IzbPozCod As String, lstvTable As ListView) As String
+    Dim SQLQuery As String
+
+    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель " & _
+                "FROM Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод " & _
+                "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
+    Fill_lstvTableNabor = Fill_lstvTable(DBName, SQLQuery, "", lstvTable, 2)
 End Function

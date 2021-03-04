@@ -2,6 +2,8 @@ Dim glShape As Visio.Shape
 
 
 
+
+
 Sub UserForm_Initialize()
     Dim SQLQuery As String
 
@@ -18,9 +20,9 @@ End Sub
 
 Sub run(vsoShape As Visio.Shape, Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String)
     Set glShape = vsoShape
-    textArtikul.Value = Artikul
-    textNazvanie.Value = Nazvanie
-    textCena.Value = Cena
+    txtArtikul.Value = Artikul
+    txtNazvanie.Value = Nazvanie
+    txtCena.Value = Cena
     For i = 0 To cmbxProizvoditel.ListCount - 1
         If cmbxProizvoditel.List(i, 2) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
     Next
@@ -35,10 +37,10 @@ Private Sub btnAdd_Click()
     Set vsoShape = glShape
     DBName = "SAPR_ASU_Izbrannoe.accdb"
     SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод ) " & _
-                "SELECT """ & textArtikul.Value & """, """ & textNazvanie.Value & """, """ & textCena.Value & """, " & cmbxKategoriya.ListIndex + 1 & ", " & cmbxGruppa.ListIndex + 1 & ", " & cmbxPodgruppa.ListIndex + 1 & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
+                "SELECT """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & cmbxKategoriya.ListIndex + 1 & ", " & cmbxGruppa.ListIndex + 1 & ", " & cmbxPodgruppa.ListIndex + 1 & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
     ExecuteSQL DBName, SQLQuery
     Unload Me
-    frmDBIzbrannoe.txtArtikul.Value = textArtikul.Value
+    frmDBIzbrannoe.txtArtikul.Value = txtArtikul.Value
     frmDBIzbrannoe.Find_ItemsByText
     frmDBIzbrannoe.txtArtikul.Value = ""
     frmDBIzbrannoe.run vsoShape
@@ -63,51 +65,42 @@ Sub Reset_FiltersCmbx()
     cmbxPodgruppa.ListIndex = 0
 End Sub
 
-Private Sub textCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+Private Sub txtCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
     If (KeyAscii < 48 Or KeyAscii > 57) And (KeyAscii <> 44 And KeyAscii <> 46) Then KeyAscii = 0
 End Sub
 
+Private Sub cmbxPodgruppa_Change()
+    If cmbxPodgruppa.ListIndex = 1 Then
+        MsgBox "Подгруппа ""Наборы"" используется только для наборов", vbOKOnly + vbInformation, "Информация"
+        cmbxPodgruppa.ListIndex = 0
+    End If
+End Sub
+
 Private Sub CommandButton1_Click()
-    frmDBAddGroup.Caption = "Добавить производителя"
+    frmDBAddGroup.Caption = "Создать производителя"
     frmDBAddGroup.lblName = "Имя производителя:"
-    frmDBAddGroup.lblFile.Visible = True
-    frmDBAddGroup.textFile.Visible = True
-    frmDBAddGroup.btnAdd.Top = 48
-    frmDBAddGroup.btnClose.Top = 48
-    frmDBAddGroup.Height = 94
+    frmDBAddGroup.chbxAddFile.Visible = True
     frmDBAddGroup.run 1
 End Sub
 
 Private Sub CommandButton2_Click()
-    frmDBAddGroup.Caption = "Добавить категорию"
+    frmDBAddGroup.Caption = "Создать категорию"
     frmDBAddGroup.lblName = "Имя категории:"
-    frmDBAddGroup.lblFile.Visible = False
-    frmDBAddGroup.textFile.Visible = False
-    frmDBAddGroup.btnAdd.Top = 30
-    frmDBAddGroup.btnClose.Top = 30
-    frmDBAddGroup.Height = 76
+    frmDBAddGroup.chbxAddFile.Visible = False
     frmDBAddGroup.run 2
 End Sub
 
 Private Sub CommandButton3_Click()
-    frmDBAddGroup.Caption = "Добавить группу"
+    frmDBAddGroup.Caption = "Создать группу"
     frmDBAddGroup.lblName = "Имя группы:"
-    frmDBAddGroup.lblFile.Visible = False
-    frmDBAddGroup.textFile.Visible = False
-    frmDBAddGroup.btnAdd.Top = 30
-    frmDBAddGroup.btnClose.Top = 30
-    frmDBAddGroup.Height = 76
+    frmDBAddGroup.chbxAddFile.Visible = False
     frmDBAddGroup.run 3
 End Sub
 
 Private Sub CommandButton4_Click()
-    frmDBAddGroup.Caption = "Добавить подгруппу"
+    frmDBAddGroup.Caption = "Создать подгруппу"
     frmDBAddGroup.lblName = "Имя подгруппы:"
-    frmDBAddGroup.lblFile.Visible = False
-    frmDBAddGroup.textFile.Visible = False
-    frmDBAddGroup.btnAdd.Top = 30
-    frmDBAddGroup.btnClose.Top = 30
-    frmDBAddGroup.Height = 76
+    frmDBAddGroup.chbxAddFile.Visible = False
     frmDBAddGroup.run 4
 End Sub
 
@@ -119,7 +112,9 @@ Private Sub CommandButton5_Click()
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
                     "WHERE Производители.КодПроизводителя=" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
-        ExecuteSQL DBName, SQLQuery
+        If Not (cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1) <> "") Then
+            ExecuteSQL DBName, SQLQuery
+        End If
         UserForm_Initialize
     End If
 End Sub
@@ -132,7 +127,9 @@ Private Sub CommandButton6_Click()
         SQLQuery = "DELETE Категории.* " & _
                     "FROM Категории " & _
                     "WHERE Категории.КодКатегории=" & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ";"
-        ExecuteSQL DBName, SQLQuery
+        If cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) > 1 Then
+            ExecuteSQL DBName, SQLQuery
+        End If
         Reset_FiltersCmbx
     End If
 End Sub
@@ -145,7 +142,9 @@ Private Sub CommandButton7_Click()
         SQLQuery = "DELETE Группы.* " & _
                     "FROM Группы " & _
                     "WHERE Группы.КодГруппы=" & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ";"
-        ExecuteSQL DBName, SQLQuery
+        If cmbxGruppa.List(cmbxGruppa.ListIndex, 1) > 1 Then
+            ExecuteSQL DBName, SQLQuery
+        End If
         Reset_FiltersCmbx
     End If
 End Sub
@@ -158,7 +157,9 @@ Private Sub CommandButton8_Click()
         SQLQuery = "DELETE Подгруппы.* " & _
                     "FROM Подгруппы " & _
                     "WHERE Подгруппы.КодПодгруппы=" & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) & ";"
-        ExecuteSQL DBName, SQLQuery
+        If cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) > 2 Then
+            ExecuteSQL DBName, SQLQuery
+        End If
         Reset_FiltersCmbx
     End If
 End Sub

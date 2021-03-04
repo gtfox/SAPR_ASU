@@ -22,17 +22,27 @@ Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Dou
 Dim mstrShpData(6) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
-
+Dim mstrVybPozVNabore(6) As String
 
 
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
-    lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     
+    lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
+'    lstvTableIzbrannoe.ColumnHeaders.Add , , "Единица" ' SubItems(3)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
+    
+    lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
+    lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
+    lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
+    lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
+'    lstvTableNabor.ColumnHeaders.Add , , "Единица" ' SubItems(3)
+    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
+    lstvTableNabor.ColumnHeaders.Add , , "Количество" ' SubItems(4)
+    
 
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxKategoriya.style = fmStyleDropDownList
@@ -41,6 +51,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
+    Me.Top = 350
     lblResult.Top = Me.Height - 35
     
     tbtnFiltr.Caption = ChrW(9650)
@@ -176,7 +187,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     
     NameQueryDef = "FilterSQLQuery"
     
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, True)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
 
     Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
 
@@ -274,13 +285,13 @@ Sub Find_ItemsByText()
         NameQueryDef = "FilterSQLQuery"
         SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель " & _
                    "FROM Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, True)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
         NameQueryDef = ""
         SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, Производители.Производитель " & _
                    "FROM Производители INNER JOIN FilterSQLQuery ON Производители.КодПроизводителя = FilterSQLQuery.ПроизводительКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, True)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
     End If
 
     ReSize
@@ -290,14 +301,30 @@ End Sub
 Private Sub btnFavDel_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "Удаление записи из Избранного") = vbYes Then
+    If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "Удаление записи из Избранного") = vbYes Then
         If mstrShpData(6) <> "" Then
             DBName = "SAPR_ASU_Izbrannoe.accdb"
             SQLQuery = "DELETE Избранное.* " & _
                         "FROM Избранное " & _
                         "WHERE Избранное.КодПозиции=" & mstrShpData(6) & ";"
             ExecuteSQL DBName, SQLQuery
+            lstvTableNabor.ListItems.Clear
             Find_ItemsByText
+        End If
+    End If
+End Sub
+
+Private Sub btnNabDel_Click()
+    Dim DBName As String
+    Dim SQLQuery As String
+    If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(3) & vbCrLf & "Название: " & mstrVybPozVNabore(2) & vbCrLf & "Цена: " & mstrVybPozVNabore(5) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "Удаление записи из Набора") = vbYes Then
+        If mstrVybPozVNabore(6) <> "" Then
+            DBName = "SAPR_ASU_Izbrannoe.accdb"
+            SQLQuery = "DELETE Наборы.* " & _
+                        "FROM Наборы " & _
+                        "WHERE Наборы.КодПозиции=" & mstrVybPozVNabore(6) & ";"
+            ExecuteSQL DBName, SQLQuery
+            lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
         End If
     End If
 End Sub
@@ -325,6 +352,8 @@ End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Dim mStr() As String
+    Dim colNum As Long
+    
     mStr = Split(Replace(Item.Key, """", ""), "/")
 
     mstrShpData(0) = mStr(1)
@@ -335,6 +364,38 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     mstrShpData(5) = Item.SubItems(2)
     mstrShpData(6) = mStr(0)
     
+    If Item.ForeColor = NaboryColor Then
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
+
+        'выровнять ширину столбцов по заголовкам
+        For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
+            Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
+        Next
+            
+        lblSostav.Visible = True
+        
+        Me.Height = lstvTableNabor.Top + lstvTableNabor.Height + 26
+    Else
+        Me.Height = frameTab.Top + frameTab.Height + 36
+        lblSostav.Visible = False
+    End If
+    
+End Sub
+
+Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    Dim DBName As String
+    Dim mStr() As String
+
+    mStr = Split(Replace(Item.Key, """", ""), "/")
+    
+    mstrVybPozVNabore(0) = mStr(1)
+    mstrVybPozVNabore(1) = Item.Key
+    mstrVybPozVNabore(2) = Item.SubItems(1)
+    mstrVybPozVNabore(3) = Item
+    mstrVybPozVNabore(4) = Item.SubItems(3)
+    mstrVybPozVNabore(5) = Item.SubItems(2)
+    mstrVybPozVNabore(6) = mStr(0)
+
 End Sub
 
 Private Sub lstvTableIzbrannoe_DblClick()
@@ -352,18 +413,27 @@ End Sub
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTableIzbrannoe
     Dim lstvTableIzbrannoeWidth As Single
+    Dim WNabor As Single
 
     lblContent_Click
-    
+
     If lstvTableIzbrannoe.ListItems.Count < 1 Then Exit Sub
-        
-    If lstvTableIzbrannoe.ListItems(1).Width > 381 Then
-        lstvTableIzbrannoeWidth = lstvTableIzbrannoe.ListItems(1).Width
+    
+    If lstvTableNabor.ListItems.Count < 1 Then
+        WNabor = 0
     Else
-        lstvTableIzbrannoeWidth = 381
+        WNabor = lstvTableNabor.ListItems(1).Width
+    End If
+    
+        
+    If lstvTableIzbrannoe.ListItems(1).Width > 417 Then
+        lstvTableIzbrannoeWidth = IIf(lstvTableIzbrannoe.ListItems(1).Width > WNabor, lstvTableIzbrannoe.ListItems(1).Width, WNabor)
+    Else
+        lstvTableIzbrannoeWidth = 417
     End If
     
     lstvTableIzbrannoe.Width = lstvTableIzbrannoeWidth + 20
+    lstvTableNabor.Width = lstvTableIzbrannoe.Width
     frameTab.Width = lstvTableIzbrannoe.Width + 10
     
     frameFilters.Width = frameTab.Width
@@ -373,7 +443,8 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     cmbxPodgruppa.Width = frameFilters.Width - cmbxPodgruppa.Left - 6
     btnClose.Left = Me.Width - btnClose.Width - 10
     tbtnFiltr.Left = Me.Width - tbtnFiltr.Width - 10
-    btnFavDel.Left = btnClose.Left - btnFavDel.Width - 10
+    btnNabDel.Left = btnClose.Left - btnNabDel.Width - 10
+    btnFavDel.Left = btnNabDel.Left - btnFavDel.Width - 2
     btnETM.Left = btnFavDel.Left - btnETM.Width - 2
     frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
     cmbxProizvoditel.Width = frameProizvoditel.Width - 12
@@ -402,9 +473,12 @@ Private Sub tbtnFiltr_Click()
         cmbxProizvoditel.ListIndex = -1
         Reset_FiltersCmbx
     End If
+    lblSostav.Visible = False
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
     lblResult.Top = Me.Height - 35
+    lblSostav.Top = frameTab.Top + 222
+    lstvTableNabor.Top = lblSostav.Top + 12
 End Sub
 
 'Private Sub txtArtikul_Enter()

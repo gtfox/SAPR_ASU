@@ -23,6 +23,14 @@ Dim mstrShpData(5) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
 
+Private Sub btnNabAdd_Click()
+    If mstrShpData(2) <> "" Then
+        Me.Hide
+        Load frmDBAddToNabor
+        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
+    End If
+End Sub
+
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
@@ -351,7 +359,8 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     cmbxPodgruppa.Width = frameFilters.Width - cmbxPodgruppa.Left - 6
     btnClose.Left = Me.Width - btnClose.Width - 10
     tbtnFiltr.Left = Me.Width - tbtnFiltr.Width - 10
-    btnFavAdd.Left = btnClose.Left - btnFavAdd.Width - 10
+    btnNabAdd.Left = btnClose.Left - btnNabAdd.Width - 10
+    btnFavAdd.Left = btnNabAdd.Left - btnFavAdd.Width - 2
     btnETM.Left = btnFavAdd.Left - btnETM.Width - 2
     frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
     cmbxProizvoditel.Width = frameProizvoditel.Width - 12
