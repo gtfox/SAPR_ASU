@@ -39,6 +39,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
     'lstvTablePrice.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
+    lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(5)
 
 
     frameTab.Top = frameFilters.Top + frameFilters.Height

@@ -17,10 +17,10 @@ Sub UserForm_Initialize()
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-'    lstvTableNabor.ColumnHeaders.Add , , "Единица" ' SubItems(3)
     lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Количество" ' SubItems(4)
-    
+    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(4)
+    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(5)
+
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxNabor.style = fmStyleDropDownList
     cmbxEdinicy.style = fmStyleDropDownList
@@ -48,12 +48,18 @@ End Sub
 Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
+    Dim NewCena As Double
     DBName = "SAPR_ASU_Izbrannoe.accdb"
     
-SQLQuery = "INSERT INTO Наборы ( ИзбрПозицииКод, Артикул, Название, Цена, Количество, ПроизводительКод ) " & _
-            "SELECT " & cmbxNabor.List(cmbxNabor.ListIndex, 1) & ", """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & txtKolichestvo.Value & ", " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
-
+    SQLQuery = "INSERT INTO Наборы ( ИзбрПозицииКод, Артикул, Название, Цена, Количество, ПроизводительКод ) " & _
+                "SELECT " & cmbxNabor.List(cmbxNabor.ListIndex, 1) & ", """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & txtKolichestvo.Value & ", " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
     ExecuteSQL DBName, SQLQuery
+
+    NewCena = CalcCenaNabora(lstvTableNabor) + CDbl(txtCena.Value) * CInt(txtKolichestvo.Value)
+    SQLQuery = "UPDATE Избранное SET Избранное.Цена = """ & NewCena & """" & _
+                " WHERE Избранное.КодПозиции = " & cmbxNabor.List(cmbxNabor.ListIndex, 1) & ";"
+    ExecuteSQL DBName, SQLQuery
+    
     Unload Me
     frmDBPrice.Show
 End Sub
@@ -63,6 +69,17 @@ Private Sub cmbxNabor_Change()
     Load_lstvTableNabor
 End Sub
 
+Sub Load_lstvTableNabor()
+    Dim colNum As Long
+    If cmbxNabor.ListIndex > -1 Then
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
+    End If
+    'выровнять ширину столбцов по заголовкам
+    For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
+        Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
+    Next
+End Sub
+
 Sub Reload_cmbxNabor()
     Dim SQLQuery As String
     SQLQuery = "SELECT Избранное.КодПозиции,  Избранное.Название " & _
@@ -70,14 +87,6 @@ Sub Reload_cmbxNabor()
                 "WHERE Избранное.ПодгруппыКод=2;"
 
     Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxNabor
-End Sub
-Sub Load_lstvTableNabor()
-    Dim colNum As Long
-    lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
-    'выровнять ширину столбцов по заголовкам
-    For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
-        Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
-    Next
 End Sub
 
 Private Sub txtCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)

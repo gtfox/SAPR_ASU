@@ -99,6 +99,7 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
     'TableType=1 - Избранное
     'TableType=2 - Набор
     Dim i As Double
+    Dim j As Double
     Dim itmx As ListItem
     Dim rst As DAO.Recordset
     Set rst = GetRecordSet(DBName, SQLQuery, QueryDefName)
@@ -120,9 +121,9 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
                 If .Fields("ПодгруппыКод").Value = 2 Then
                     itmx.ForeColor = NaboryColor
     '                    itmx.Bold = True
-                    For i = 1 To itmx.ListSubItems.Count
-    '                        itmx.ListSubItems(i).Bold = True
-                        itmx.ListSubItems(i).ForeColor = NaboryColor
+                    For j = 1 To itmx.ListSubItems.Count
+    '                        itmx.ListSubItems(j).Bold = True
+                        itmx.ListSubItems(j).ForeColor = NaboryColor
                     Next
                 End If
             End If
@@ -142,4 +143,14 @@ Public Function Fill_lstvTableNabor(DBName As String, IzbPozCod As String, lstvT
                 "FROM Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод " & _
                 "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
     Fill_lstvTableNabor = Fill_lstvTable(DBName, SQLQuery, "", lstvTable, 2)
+End Function
+
+'Считаем цену набора
+Public Function CalcCenaNabora(lstvTable As ListView) As Double
+    Dim i As Integer
+    Dim Sum As Double
+    For i = 1 To lstvTable.ListItems.Count
+        Sum = Sum + CDbl(lstvTable.ListItems(i).SubItems(2)) * CInt(lstvTable.ListItems(i).SubItems(4))
+    Next
+    CalcCenaNabora = Sum
 End Function

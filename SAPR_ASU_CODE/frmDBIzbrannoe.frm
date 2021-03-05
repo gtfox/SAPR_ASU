@@ -34,6 +34,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
 '    lstvTableIzbrannoe.ColumnHeaders.Add , , "Единица" ' SubItems(3)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
+    lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(5)
     
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
@@ -41,7 +42,8 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
 '    lstvTableNabor.ColumnHeaders.Add , , "Единица" ' SubItems(3)
     lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Количество" ' SubItems(4)
+    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(4)
+    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(5)
     
 
     cmbxProizvoditel.style = fmStyleDropDownList
@@ -325,6 +327,11 @@ Private Sub btnNabDel_Click()
                         "WHERE Наборы.КодПозиции=" & mstrVybPozVNabore(6) & ";"
             ExecuteSQL DBName, SQLQuery
             lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
+
+            SQLQuery = "UPDATE Избранное SET Избранное.Цена = """ & CalcCenaNabora(lstvTableNabor) & """" & _
+                        " WHERE Избранное.КодПозиции = " & mstrShpData(6) & ";"
+            ExecuteSQL DBName, SQLQuery
+            Find_ItemsByText
         End If
     End If
 End Sub
@@ -366,18 +373,14 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
     If Item.ForeColor = NaboryColor Then
         lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
-
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
             Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
         Next
-            
-        lblSostav.Visible = True
-        
         Me.Height = lstvTableNabor.Top + lstvTableNabor.Height + 26
     Else
         Me.Height = frameTab.Top + frameTab.Height + 36
-        lblSostav.Visible = False
+        lblSostav.Caption = ""
     End If
     
 End Sub
@@ -473,7 +476,7 @@ Private Sub tbtnFiltr_Click()
         cmbxProizvoditel.ListIndex = -1
         Reset_FiltersCmbx
     End If
-    lblSostav.Visible = False
+    lblSostav.Caption = ""
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
     lblResult.Top = Me.Height - 35
