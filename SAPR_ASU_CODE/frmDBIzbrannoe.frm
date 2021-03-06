@@ -1,6 +1,6 @@
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
-' Module        : frmDBIzbrannoe - Форма поиска и задания данных для элемента схемы из БД Избранное
+' Module        : frmDBIzbrannoe - Форма поиска и задания данных для элемента схемы из БД Избранное. В одном файле разные производители.
 ' Author        : gtfox
 ' Date          : 2021.02.22
 ' Description   : Выбор данных из БД Избранное, фильтрация по категориям и полнотекстовый поиск
@@ -17,33 +17,32 @@ Private Const LVM_SETCOLUMNWIDTH As Long = (LVM_FIRST + 30)   ' 4126
 Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
-Dim glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
-Dim mstrShpData(6) As String
+Dim mstrShpData(7) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
-Dim mstrVybPozVNabore(6) As String
+Dim mstrVybPozVNabore(7) As String
 
 
 Private Sub UserForm_Initialize() ' инициализация формы
-    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
-    
+
     lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-'    lstvTableIzbrannoe.ColumnHeaders.Add , , "Единица" ' SubItems(3)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(5)
+    lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+    lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
+    lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
+
     
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-'    lstvTableNabor.ColumnHeaders.Add , , "Единица" ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(4)
-    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(5)
+    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
+    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
+    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
     
 
     cmbxProizvoditel.style = fmStyleDropDownList
@@ -69,15 +68,6 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     Reset_FiltersCmbx
 
-End Sub
-
-Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
-    Dim ArtikulDB As String
-
-    Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBIzbrannoe
-
-    frmDBIzbrannoe.Show
-    
 End Sub
 
 Private Sub Filter_CmbxChange(Ncmbx As Integer)
@@ -181,8 +171,8 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
 
 
-        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель " & _
-                   "FROM Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод " & fltrWHERE & ";"
+        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
+                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWHERE & ";"
                 
 '    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
     DBName = "SAPR_ASU_Izbrannoe.accdb"
@@ -285,14 +275,14 @@ Sub Find_ItemsByText()
 
     If cmbxKategoriya.ListIndex = -1 And cmbxGruppa.ListIndex = -1 And cmbxPodgruppa.ListIndex = -1 Then
         NameQueryDef = "FilterSQLQuery"
-        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель " & _
-                   "FROM Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод " & findWHERE & ";"
+        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
+                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & findWHERE & ";"
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
         NameQueryDef = ""
-        SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, Производители.Производитель " & _
-                   "FROM Производители INNER JOIN FilterSQLQuery ON Производители.КодПроизводителя = FilterSQLQuery.ПроизводительКод " & findWHERE & ";"
+        SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, Производители.Производитель, FilterSQLQuery.ЕдиницыКод, Единицы.Единица " & _
+                   "FROM Единицы INNER JOIN (Производители INNER JOIN FilterSQLQuery ON Производители.КодПроизводителя = FilterSQLQuery.ПроизводительКод) ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
     End If
 
@@ -358,6 +348,7 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
     Dim mStr() As String
     Dim colNum As Long
     
@@ -367,21 +358,26 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
-    mstrShpData(4) = Item.SubItems(3)
+    mstrShpData(4) = Item.SubItems(4)
     mstrShpData(5) = Item.SubItems(2)
     mstrShpData(6) = mStr(0)
+    mstrShpData(7) = Item.SubItems(3)
     
     If Item.ForeColor = NaboryColor Then
         lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
+        lstvTableNabor.Width = 417
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
             Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
         Next
         Me.Height = lstvTableNabor.Top + lstvTableNabor.Height + 26
     Else
+        lstvTableNabor.ListItems.Clear
         Me.Height = frameTab.Top + frameTab.Height + 36
         lblSostav.Caption = ""
     End If
+    
+    ReSize
     
 End Sub
 
@@ -395,47 +391,60 @@ Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
     mstrVybPozVNabore(1) = Item.Key
     mstrVybPozVNabore(2) = Item.SubItems(1)
     mstrVybPozVNabore(3) = Item
-    mstrVybPozVNabore(4) = Item.SubItems(3)
+    mstrVybPozVNabore(4) = Item.SubItems(4)
     mstrVybPozVNabore(5) = Item.SubItems(2)
     mstrVybPozVNabore(6) = mStr(0)
-
+    mstrVybPozVNabore(7) = Item.SubItems(3)
+    
 End Sub
 
 Private Sub lstvTableIzbrannoe_DblClick()
 
-    glShape.Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
-    glShape.Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
-    glShape.Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
-    glShape.Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
-    glShape.Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-    glShape.Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+    frmDBPrice.glShape.Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
+    frmDBPrice.glShape.Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
+    frmDBPrice.glShape.Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
+    frmDBPrice.glShape.Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+    frmDBPrice.glShape.Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
+    frmDBPrice.glShape.Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+    frmDBPrice.glShape.Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
 
     btnClose_Click
     
 End Sub
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTableIzbrannoe
-    Dim lstvTableIzbrannoeWidth As Single
-    Dim WNabor As Single
+    Dim TableIzbrannoeWidth As Single
+    Dim TableNaborWidth As Single
+    
+    lstvTableIzbrannoe.Width = 417
 
-    lblContent_Click
+'    lblContent_Click
+    lblHeaders_Click
 
     If lstvTableIzbrannoe.ListItems.Count < 1 Then Exit Sub
     
+    TableIzbrannoeWidth = lstvTableIzbrannoe.ListItems(1).Width
+    
     If lstvTableNabor.ListItems.Count < 1 Then
-        WNabor = 0
+        TableNaborWidth = 0
     Else
-        WNabor = lstvTableNabor.ListItems(1).Width
+        TableNaborWidth = lstvTableNabor.ListItems(1).Width
+    End If
+
+    If TableIzbrannoeWidth > TableNaborWidth Then
+        If TableIzbrannoeWidth < 417 Then
+            TableIzbrannoeWidth = 417
+        End If
+    Else
+        If TableNaborWidth > 417 Then
+            TableIzbrannoeWidth = TableNaborWidth
+        Else
+            TableIzbrannoeWidth = 417
+        End If
     End If
     
-        
-    If lstvTableIzbrannoe.ListItems(1).Width > 417 Then
-        lstvTableIzbrannoeWidth = IIf(lstvTableIzbrannoe.ListItems(1).Width > WNabor, lstvTableIzbrannoe.ListItems(1).Width, WNabor)
-    Else
-        lstvTableIzbrannoeWidth = 417
-    End If
+    lstvTableIzbrannoe.Width = TableIzbrannoeWidth
     
-    lstvTableIzbrannoe.Width = lstvTableIzbrannoeWidth + 20
     lstvTableNabor.Width = lstvTableIzbrannoe.Width
     frameTab.Width = lstvTableIzbrannoe.Width + 10
     
@@ -522,7 +531,7 @@ Private Sub tbtnBD_Click()
         bBlock = True
         tbtnBD = False
         bBlock = False
-        Unload Me
+        Me.Hide
         frmDBPrice.Show
     End If
 End Sub
@@ -559,12 +568,12 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
 
-    With ActiveWindow
-'        .Page = glShape.ContainingPage
-'        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
-        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
-                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
-    End With
+'    With ActiveWindow
+''        .Page = glShape.ContainingPage
+''        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
+'        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
+'                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
+'    End With
     Unload frmDBPrice
     Unload Me
     

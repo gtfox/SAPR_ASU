@@ -109,13 +109,19 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
         If .EOF Then Exit Function
         .MoveFirst
         Do Until .EOF
-            Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & """", .Fields("Артикул").Value)
+            Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & "/" & .Fields("ЕдиницыКод").Value & """", .Fields("Артикул").Value)
             itmx.SubItems(1) = .Fields("Название").Value
             itmx.SubItems(2) = .Fields("Цена").Value
-            'itmx.SubItems(3) = .Fields("Единица").Value
-            If TableType = 1 Or TableType = 2 Then itmx.SubItems(3) = .Fields("Производитель").Value
-            If TableType = 2 Then itmx.SubItems(4) = .Fields("Количество").Value
-            
+            itmx.SubItems(3) = .Fields("Единица").Value
+            If TableType = 1 Then
+                itmx.SubItems(4) = .Fields("Производитель").Value
+                itmx.SubItems(5) = "    "
+            ElseIf TableType = 2 Then
+                itmx.SubItems(4) = .Fields("Производитель").Value
+                itmx.SubItems(5) = .Fields("Количество").Value
+                itmx.SubItems(6) = "    "
+            End If
+
             'красим наборы
             If TableType = 1 Then  'and .Fields("Артикул").Value like "Набор_*" then
                 If .Fields("ПодгруппыКод").Value = 2 Then
@@ -139,8 +145,8 @@ End Function
 Public Function Fill_lstvTableNabor(DBName As String, IzbPozCod As String, lstvTable As ListView) As String
     Dim SQLQuery As String
 
-    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель " & _
-                "FROM Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод " & _
+    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
+                "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
                 "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
     Fill_lstvTableNabor = Fill_lstvTable(DBName, SQLQuery, "", lstvTable, 2)
 End Function
@@ -150,7 +156,7 @@ Public Function CalcCenaNabora(lstvTable As ListView) As Double
     Dim i As Integer
     Dim Sum As Double
     For i = 1 To lstvTable.ListItems.Count
-        Sum = Sum + CDbl(lstvTable.ListItems(i).SubItems(2)) * CInt(lstvTable.ListItems(i).SubItems(4))
+        Sum = Sum + CDbl(lstvTable.ListItems(i).SubItems(2)) * CInt(lstvTable.ListItems(i).SubItems(5))
     Next
     CalcCenaNabora = Sum
 End Function

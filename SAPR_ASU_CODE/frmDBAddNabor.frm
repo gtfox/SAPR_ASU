@@ -29,12 +29,11 @@ Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
     DBName = "SAPR_ASU_Izbrannoe.accdb"
-    SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод ) " & _
-                "SELECT ""Набор_" & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & "0" & """, " & cmbxKategoriya.ListIndex + 1 & ", " & cmbxGruppa.ListIndex + 1 & ", " & "2" & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
+    SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод, ЕдиницыКод ) " & _
+                "SELECT ""Набор_" & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & "0" & """, " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ", " & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ", " & "2" & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & "1" & ";"
     ExecuteSQL DBName, SQLQuery
     Unload Me
     frmDBAddToNabor.Reload_cmbxNabor
-'    frmDBAddToNabor.cmbxNabor.ListIndex = N
     frmDBAddToNabor.Show
 End Sub
 

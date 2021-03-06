@@ -9,7 +9,6 @@ Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 
-
 Sub UserForm_Initialize()
     Dim SQLQuery As String
     
@@ -17,9 +16,10 @@ Sub UserForm_Initialize()
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(4)
-    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(5)
+    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
+    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
+    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
 
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxNabor.style = fmStyleDropDownList
@@ -29,11 +29,15 @@ Sub UserForm_Initialize()
                 "FROM Производители;"
 
     Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel
+    
+    SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
+                "FROM Единицы;"
 
+    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxEdinicy
 
 End Sub
 
-Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String)
+Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String, EdinicaID As String)
     
     txtArtikul.Value = Artikul
     txtNazvanie.Value = Nazvanie
@@ -41,6 +45,11 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
     For i = 0 To cmbxProizvoditel.ListCount - 1
         If cmbxProizvoditel.List(i, 2) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
     Next
+    
+    For i = 0 To cmbxEdinicy.ListCount - 1
+        If cmbxEdinicy.List(i, 1) = EdinicaID Then cmbxEdinicy.ListIndex = i
+    Next
+    
     Reload_cmbxNabor
     frmDBAddToNabor.Show
 End Sub
@@ -51,8 +60,10 @@ Private Sub btnAdd_Click()
     Dim NewCena As Double
     DBName = "SAPR_ASU_Izbrannoe.accdb"
     
-    SQLQuery = "INSERT INTO Наборы ( ИзбрПозицииКод, Артикул, Название, Цена, Количество, ПроизводительКод ) " & _
-                "SELECT " & cmbxNabor.List(cmbxNabor.ListIndex, 1) & ", """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & txtKolichestvo.Value & ", " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
+    If cmbxNabor.ListIndex = -1 Then Exit Sub
+    
+    SQLQuery = "INSERT INTO Наборы ( ИзбрПозицииКод, Артикул, Название, Цена, Количество, ПроизводительКод, ЕдиницыКод ) " & _
+                "SELECT " & cmbxNabor.List(cmbxNabor.ListIndex, 1) & ", """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & txtKolichestvo.Value & ", " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & cmbxEdinicy.List(cmbxEdinicy.ListIndex, 1) & ";"
     ExecuteSQL DBName, SQLQuery
 
     NewCena = CalcCenaNabora(lstvTableNabor) + CDbl(txtCena.Value) * CInt(txtKolichestvo.Value)
@@ -61,7 +72,13 @@ Private Sub btnAdd_Click()
     ExecuteSQL DBName, SQLQuery
     
     Unload Me
-    frmDBPrice.Show
+    frmDBIzbrannoe.txtNazvanie2.Value = cmbxNabor.List(cmbxNabor.ListIndex, 0)
+    frmDBIzbrannoe.Find_ItemsByText
+    frmDBIzbrannoe.txtNazvanie2.Value = ""
+    frmDBIzbrannoe.lstvTableNabor.ListItems.Clear
+    frmDBIzbrannoe.Height = frmDBIzbrannoe.frameTab.Top + frmDBIzbrannoe.frameTab.Height + 36
+    frmDBIzbrannoe.lblSostav.Caption = ""
+    frmDBIzbrannoe.Show
 End Sub
 
 Private Sub cmbxNabor_Change()

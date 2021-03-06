@@ -1,8 +1,6 @@
 Dim iKey As Integer
 
-Private Sub btnClose_Click()
-    Unload Me
-End Sub
+
 
 Sub run(Key As Integer)
     iKey = Key
@@ -77,3 +75,6 @@ Private Sub chbxAddFile_Change()
         End If
 End Sub
 
+Private Sub btnClose_Click()
+    Unload Me
+End Sub

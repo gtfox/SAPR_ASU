@@ -1,7 +1,3 @@
-Dim glShape As Visio.Shape
-
-
-
 
 
 Sub UserForm_Initialize()
@@ -12,38 +8,49 @@ Sub UserForm_Initialize()
                 
     Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel
     
+    SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
+                "FROM Единицы;"
+
+    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxEdinicy
+    
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxKategoriya.style = fmStyleDropDownList
     cmbxGruppa.style = fmStyleDropDownList
     cmbxPodgruppa.style = fmStyleDropDownList
+    cmbxEdinicy.style = fmStyleDropDownList
 End Sub
 
-Sub run(vsoShape As Visio.Shape, Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String)
-    Set glShape = vsoShape
+Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String, EdinicaID As String)
     txtArtikul.Value = Artikul
     txtNazvanie.Value = Nazvanie
     txtCena.Value = Cena
     For i = 0 To cmbxProizvoditel.ListCount - 1
         If cmbxProizvoditel.List(i, 2) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
     Next
+    
+    For i = 0 To cmbxEdinicy.ListCount - 1
+        If cmbxEdinicy.List(i, 1) = EdinicaID Then cmbxEdinicy.ListIndex = i
+    Next
+
     Reset_FiltersCmbx
     frmDBAddToIzbrannoe.Show
 End Sub
 
 Private Sub btnAdd_Click()
-    Dim vsoShape As Visio.Shape
     Dim DBName As String
     Dim SQLQuery As String
-    Set vsoShape = glShape
     DBName = "SAPR_ASU_Izbrannoe.accdb"
-    SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод ) " & _
-                "SELECT """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & cmbxKategoriya.ListIndex + 1 & ", " & cmbxGruppa.ListIndex + 1 & ", " & cmbxPodgruppa.ListIndex + 1 & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
+    SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод, ЕдиницыКод ) " & _
+                "SELECT """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ", " & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ", " & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & cmbxEdinicy.List(cmbxEdinicy.ListIndex, 1) & ";"
     ExecuteSQL DBName, SQLQuery
     Unload Me
     frmDBIzbrannoe.txtArtikul.Value = txtArtikul.Value
     frmDBIzbrannoe.Find_ItemsByText
     frmDBIzbrannoe.txtArtikul.Value = ""
-    frmDBIzbrannoe.run vsoShape
+    frmDBIzbrannoe.lstvTableNabor.ListItems.Clear
+    frmDBIzbrannoe.Height = frmDBIzbrannoe.frameTab.Top + frmDBIzbrannoe.frameTab.Height + 36
+    frmDBIzbrannoe.lblSostav.Caption = ""
+    frmDBIzbrannoe.Show
 End Sub
 
 Sub Reset_FiltersCmbx()
@@ -166,5 +173,5 @@ End Sub
 
 Private Sub btnClose_Click()
 Unload Me
-frmDBIzbrannoe.run glShape
+frmDBPrice.Show
 End Sub

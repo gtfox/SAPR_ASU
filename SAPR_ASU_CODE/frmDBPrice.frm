@@ -1,6 +1,6 @@
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
-' Module        : frmDBPrice - Форма поиска и задания данных для элемента схемы из БД
+' Module        : frmDBPrice - Форма поиска и задания данных для элемента схемы из Баз Данных оборудования расположенных в отдельных файлах. Каждый файл - отдельный производитель
 ' Author        : gtfox
 ' Date          : 2021.02.22
 ' Description   : Выбор данных из БД прайс листа, фильтрация по категориям и полнотекстовый поиск
@@ -17,19 +17,11 @@ Private Const LVM_SETCOLUMNWIDTH As Long = (LVM_FIRST + 30)   ' 4126
 Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
-Dim glShape As Visio.Shape 'шейп из модуля DB
+Public glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
-Dim mstrShpData(5) As String
+Dim mstrShpData(6) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
-
-Private Sub btnNabAdd_Click()
-    If mstrShpData(2) <> "" Then
-        Me.Hide
-        Load frmDBAddToNabor
-        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
-    End If
-End Sub
 
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
@@ -38,8 +30,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTablePrice.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-    'lstvTablePrice.ColumnHeaders.Add , , "Производитель" ' SubItems(3)
-    lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(5)
+    lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(3)
 
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
@@ -60,6 +51,9 @@ Private Sub UserForm_Initialize() ' инициализация формы
     cmbxKategoriya.style = fmStyleDropDownList
     cmbxGruppa.style = fmStyleDropDownList
     cmbxPodgruppa.style = fmStyleDropDownList
+    
+    Load frmDBIzbrannoe
+    frmDBIzbrannoe.Find_ItemsByText
 
 End Sub
 
@@ -73,13 +67,27 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
         For i = 0 To cmbxProizvoditel.ListCount - 1
             If cmbxProizvoditel.List(i, 2) = glShape.Cells("User.KodProizvoditelyaDB").Result(0) Then cmbxProizvoditel.ListIndex = i
         Next
-        txtArtikul.Value = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
-        tbtnFiltr.Value = False
-        Find_ItemsByText
-        txtArtikul.Value = ""
-        bBlock = False
+        
+        If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
+            txtArtikul.Value = ArtikulDB
+            tbtnFiltr.Value = False
+            Find_ItemsByText
+            txtArtikul.Value = ""
+            bBlock = False
+            frmDBPrice.Show
+        Else
+            bBlock = False
+            frmDBIzbrannoe.bBlock = True
+            frmDBIzbrannoe.txtArtikul.Value = ArtikulDB
+            frmDBIzbrannoe.tbtnFiltr.Value = False
+            frmDBIzbrannoe.Find_ItemsByText
+            frmDBIzbrannoe.txtArtikul.Value = ""
+            frmDBIzbrannoe.bBlock = False
+            frmDBIzbrannoe.Show
+        End If
+    Else
+        frmDBPrice.Show
     End If
-    frmDBPrice.Show
     
 End Sub
 
@@ -173,8 +181,8 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
 
 
-    SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод " & _
-                "FROM Прайс " & fltrWHERE & ";"
+    SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод, Прайс.ЕдиницыКод, Единицы.Единица " & _
+                "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & fltrWHERE & ";"
                 
     DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
     
@@ -263,14 +271,14 @@ Sub Find_ItemsByText()
 
     If cmbxKategoriya.ListIndex = -1 And cmbxGruppa.ListIndex = -1 And cmbxPodgruppa.ListIndex = -1 Then
         NameQueryDef = "FilterSQLQuery"
-        SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод " & _
-                   "FROM Прайс " & findWHERE & ";"
+        SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод, Прайс.ЕдиницыКод, Единицы.Единица " & _
+                   "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & findWHERE & ";"
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
         NameQueryDef = ""
-        SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод " & _
-                   "FROM FilterSQLQuery " & findWHERE & ";"
+        SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, FilterSQLQuery.ЕдиницыКод, FilterSQLQuery.Единица " & _
+                   "FROM Единицы INNER JOIN FilterSQLQuery ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
     End If
 
@@ -299,29 +307,40 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub btnFavAdd_Click()
+    Dim mStr() As String
     If mstrShpData(2) <> "" Then
         If Not bBlock Then
             bBlock = True
             tbtnFav = False
             bBlock = False
             Me.Hide
-            Load frmDBIzbrannoe
-    
         End If
         Load frmDBAddToIzbrannoe
-        
-        frmDBAddToIzbrannoe.run glShape, mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
+        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
+    End If
+End Sub
+
+Private Sub btnNabAdd_Click()
+    Dim mStr() As String
+    If mstrShpData(2) <> "" Then
+        Me.Hide
+        Load frmDBAddToNabor
+        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
     End If
 End Sub
 
 Private Sub lstvTablePrice_ItemClick(ByVal Item As MSComctlLib.ListItem)
+    'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
     mstrShpData(0) = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
     mstrShpData(4) = cmbxProizvoditel.Value
     mstrShpData(5) = Item.SubItems(2)
-    
+    mstrShpData(6) = Item.SubItems(3)
+
 End Sub
 
 Private Sub lstvTablePrice_DblClick()
@@ -332,25 +351,28 @@ Private Sub lstvTablePrice_DblClick()
     glShape.Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
     glShape.Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
     glShape.Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+    glShape.Cells("Prop.EdDB").Formula = """" & mstrShpData(6) & """"
 
     btnClose_Click
     
 End Sub
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTablePrice
-    Dim lstvTablePriceWidth As Single
+    Dim TablePriceWidth As Single
+    
+    lstvTablePrice.Width = 417
 
-    lblContent_Click
+    lblHeaders_Click
     
     If lstvTablePrice.ListItems.Count < 1 Then Exit Sub
-        
-    If lstvTablePrice.ListItems(1).Width > 381 Then
-        lstvTablePriceWidth = lstvTablePrice.ListItems(1).Width
+
+    If lstvTablePrice.ListItems(1).Width > 417 Then
+        TablePriceWidth = lstvTablePrice.ListItems(1).Width
     Else
-        lstvTablePriceWidth = 381
+        TablePriceWidth = 417
     End If
     
-    lstvTablePrice.Width = lstvTablePriceWidth + 20
+    lstvTablePrice.Width = TablePriceWidth + 20
     frameTab.Width = lstvTablePrice.Width + 10
     
     frameFilters.Width = frameTab.Width
@@ -374,9 +396,6 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     txtNazvanie2.Width = (frameNazvanie.Width - 16) / 2
     txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
     txtNazvanie3.Width = frameNazvanie.Width / 4
-'    Me.Hide
-'    Me.Show
-'    lblHeaders_Click
     
 End Sub
 
@@ -437,8 +456,7 @@ Private Sub tbtnFav_Click()
         tbtnFav = False
         bBlock = False
         Me.Hide
-        Load frmDBIzbrannoe
-        frmDBIzbrannoe.run glShape
+        frmDBIzbrannoe.Show
     End If
 End Sub
 
@@ -470,13 +488,14 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
 
-    With ActiveWindow
-        .Page = glShape.ContainingPage
-        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
-        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
-                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
-    End With
-
+'    With ActiveWindow
+'        .Page = glShape.ContainingPage
+'        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
+'        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
+'                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
+'    End With
+    
+    Unload frmDBIzbrannoe
     Unload Me
     
 End Sub
