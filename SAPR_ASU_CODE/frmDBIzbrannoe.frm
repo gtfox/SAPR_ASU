@@ -33,8 +33,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(3)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
-
-    
+   
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
@@ -43,12 +42,17 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
     lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
     lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
-    
+
+    cmbxMagazin.Clear
+    cmbxMagazin.AddItem "ЭТМ"
+    cmbxMagazin.AddItem "АВС"
+    cmbxMagazin.ListIndex = 0
 
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxKategoriya.style = fmStyleDropDownList
     cmbxGruppa.style = fmStyleDropDownList
     cmbxPodgruppa.style = fmStyleDropDownList
+    cmbxMagazin.style = fmStyleDropDownList
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
@@ -449,9 +453,10 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     btnNabDel.Left = btnClose.Left - btnNabDel.Width - 10
     btnFavDel.Left = btnNabDel.Left - btnFavDel.Width - 2
     btnETM.Left = btnFavDel.Left - btnETM.Width - 2
+    btnAVS.Left = btnETM.Left
+    cmbxMagazin.Left = btnClose.Left
     frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
     cmbxProizvoditel.Width = frameProizvoditel.Width - 12
-    'lblResult.Top = Me.Height - 35
     lblResult.Left = frameTab.Width - lblResult.Width
     btnFind.Left = frameTab.Width - btnFind.Width - 6
     frameNazvanie.Width = btnFind.Left - frameNazvanie.Left - 6
@@ -460,9 +465,6 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     txtNazvanie2.Width = (frameNazvanie.Width - 16) / 2
     txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
     txtNazvanie3.Width = frameNazvanie.Width / 4
-'    Me.Hide
-'    Me.Show
-'    lblHeaders_Click
     
 End Sub
 
@@ -484,18 +486,27 @@ Private Sub tbtnFiltr_Click()
     lstvTableNabor.Top = lblSostav.Top + 12
 End Sub
 
-'Private Sub txtArtikul_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie1_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie2_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie3_Enter()
-'    btnFind_Click
-'End Sub
+Private Sub cmbxMagazin_Change()
+    Select Case cmbxMagazin.ListIndex
+        Case 0 'ЭТМ
+            btnETM.Visible = True
+            btnAVS.Visible = False
+        Case 1 'АВС
+            btnETM.Visible = False
+            btnAVS.Visible = True
+        Case Else
+            btnETM.Visible = True
+            btnAVS.Visible = False
+    End Select
+End Sub
+
+Private Sub btnETM_Click()
+    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+End Sub
+
+Private Sub btnAVS_Click()
+    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+End Sub
 
 Private Sub btnFind_Click()
     Find_ItemsByText
@@ -517,6 +528,10 @@ Private Sub cmbxProizvoditel_Change()
    If Not bBlock Then Find_ItemsByText
 End Sub
 
+Private Sub tbtnFav_Click()
+    tbtnFav = True
+End Sub
+
 Private Sub tbtnBD_Click()
     If Not bBlock Then
         bBlock = True
@@ -525,10 +540,6 @@ Private Sub tbtnBD_Click()
         Me.Hide
         frmDBPrice.Show
     End If
-End Sub
-
-Private Sub tbtnFav_Click()
-    tbtnFav = True
 End Sub
 
 Private Sub lblContent_Click() ' выровнять ширину столбцов по содержимому
@@ -546,7 +557,6 @@ Private Sub lblHeaders_Click() ' выровнять ширину столбцо�
 End Sub
 
 Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
-
     With lstvTableIzbrannoe
         .Sorted = False
         .SortKey = ColumnHeader.SubItemIndex
@@ -554,19 +564,10 @@ Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.Col
         .SortOrder = Abs(.SortOrder Xor 1)
         .Sorted = True
     End With
-    
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
-
-'    With ActiveWindow
-''        .Page = glShape.ContainingPage
-''        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
-'        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
-'                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
-'    End With
     Unload frmDBPrice
     Unload Me
-    
 End Sub
 

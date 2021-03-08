@@ -167,16 +167,59 @@ Public Function CalcCenaNabora(lstvTable As ListView) As Double
     CalcCenaNabora = Sum
 End Function
 
+'Открываем форму с информацией о товаре из выбранного магазина
+Public Sub MagazinInfo(Artikul As String, NomerMagazina As Integer)
+    Dim mstrTempFile() As String
+    Dim strTempFile As String
+    Dim strImgURL As String
+    Dim mstrTovar As Variant
+    Dim link As String
+    Dim linkCatalog As String
 
-'Получаем товар со страницы поиска товарана сайте ETM.ru
-Public Function ParseHTML_ETM(Articul As String) As String()
+    If Artikul = "" Then Exit Sub
+    
+    Select Case NomerMagazina
+        Case 0 'ЭТМ
+            frmDBMagazinInfo.linkFind = "https://www.etm.ru/catalog/?searchValue=" & Artikul
+            mstrTovar = ParseHTML_ETM(Artikul)
+        Case 1 'АВС Элктро
+            frmDBMagazinInfo.linkFind = "https://avselectro.ru/search/index.php?q=" & Artikul
+            mstrTovar = ParseHTML_AVS(Artikul)
+        Case Else
+            frmDBMagazinInfo.linkFind = "https://www.etm.ru/catalog/?searchValue=" & Artikul
+            mstrTovar = ParseHTML_ETM(Artikul)
+    End Select
+    
+    linkCatalog = mstrTovar(0)
+    strImgURL = mstrTovar(4)
+    mstrTempFile = Split(strImgURL, "/")
+    If UBound(mstrTempFile) = -1 Then Exit Sub
+    strTempFile = ThisDocument.path & mstrTempFile(UBound(mstrTempFile))
+    lngRC = URLDownloadToFile(0, strImgURL, strTempFile, 0, 0)
+    If Right(strImgURL, 3) = "png" Then
+        strTempFile = ConvertToJPG(strTempFile)
+    End If
+    On Error Resume Next
+    frmDBMagazinInfo.imgKartinka.Picture = LoadPicture(strTempFile)
+    Kill strTempFile
+    frmDBMagazinInfo.lblNazvanie = mstrTovar(1)
+    frmDBMagazinInfo.txtCena = mstrTovar(2)
+    frmDBMagazinInfo.txtCenaRozn = mstrTovar(3)
+    frmDBMagazinInfo.linkCatalog = mstrTovar(0)
+
+    frmDBMagazinInfo.run
+
+End Sub
+
+'Получаем товар со страницы поиска товара на сайте ETM.ru
+Public Function ParseHTML_ETM(Artikul As String) As String()
     Dim HtmlFile As Object
     Dim Elemet As Object ', Elemet2 As Object
     Dim mstrTovar(4) As String
     Dim rUrl As String
     Dim done As Integer
 
-    rUrl = "https://www.etm.ru/catalog/?searchValue=" & Articul
+    rUrl = "https://www.etm.ru/catalog/?searchValue=" & Artikul
     
     Set HtmlFile = CreateObject("HtmlFile")
 
@@ -207,14 +250,14 @@ Public Function ParseHTML_ETM(Articul As String) As String()
     ParseHTML_ETM = mstrTovar
 End Function
 
-'Получаем товар со страницы поиска товарана сайте avselectro.ru
-Public Function ParseHTML_AVS(Articul As String) As String()
+'Получаем товар со страницы поиска товара на сайте avselectro.ru
+Public Function ParseHTML_AVS(Artikul As String) As String()
     Dim HtmlFile As Object
     Dim Elemet As Object
     Dim mstrTovar(4) As String
     Dim rUrl As String
 
-    rUrl = "https://avselectro.ru/search/index.php?q=" & Articul
+    rUrl = "https://avselectro.ru/search/index.php?q=" & Artikul
     
     Set HtmlFile = CreateObject("HtmlFile")
 
@@ -252,6 +295,7 @@ Public Function ParseHTML_AVS(Articul As String) As String()
     ParseHTML_AVS = mstrTovar
 End Function
 
+'Получает страницу сайта в строку
 Public Function GetHtml(ByVal url As String) As String
     With CreateObject("msxml2.xmlhttp")
         .Open "GET", url, False
@@ -261,6 +305,7 @@ Public Function GetHtml(ByVal url As String) As String
     End With
 End Function
 
+'Конвертирует картринку PNG в JPG при помощи Excel
 Public Function ConvertToJPG(ImgPNG As String) As String
     Dim pic As Object
     Dim oExcel As Excel.Application
@@ -270,7 +315,7 @@ Public Function ConvertToJPG(ImgPNG As String) As String
     strTempXls = ThisDocument.path & "temp.xls"
     Set oExcel = CreateObject("Excel.Application")
     If Dir(strTempXls, 16) = "" Then
-    Set wb = oExcel.Workbooks.Add
+        Set wb = oExcel.Workbooks.Add
         wb.SaveAs filename:=strTempXls
     Else
         Set wb = oExcel.Workbooks.Open(strTempXls)

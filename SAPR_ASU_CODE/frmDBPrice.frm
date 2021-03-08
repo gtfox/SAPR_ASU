@@ -23,17 +23,25 @@ Dim mstrShpData(6) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
 
-
-
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
-    lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     
+    lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTablePrice.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
     lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(3)
-
+    
+    cmbxMagazin.Clear
+    cmbxMagazin.AddItem "ЭТМ"
+    cmbxMagazin.AddItem "АВС"
+    cmbxMagazin.ListIndex = 0
+    
+    cmbxProizvoditel.style = fmStyleDropDownList
+    cmbxKategoriya.style = fmStyleDropDownList
+    cmbxGruppa.style = fmStyleDropDownList
+    cmbxPodgruppa.style = fmStyleDropDownList
+    cmbxMagazin.style = fmStyleDropDownList
 
     frameTab.Top = frameFilters.Top + frameFilters.Height
     Me.Height = frameTab.Top + frameTab.Height + 36
@@ -48,12 +56,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
                 "FROM Производители;"
                 
     Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel, True
-    
-    cmbxProizvoditel.style = fmStyleDropDownList
-    cmbxKategoriya.style = fmStyleDropDownList
-    cmbxGruppa.style = fmStyleDropDownList
-    cmbxPodgruppa.style = fmStyleDropDownList
-    
+
     Load frmDBIzbrannoe
     frmDBIzbrannoe.Find_ItemsByText
 
@@ -385,9 +388,10 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     btnNabAdd.Left = btnClose.Left - btnNabAdd.Width - 10
     btnFavAdd.Left = btnNabAdd.Left - btnFavAdd.Width - 2
     btnETM.Left = btnFavAdd.Left - btnETM.Width - 2
+    btnAVS.Left = btnETM.Left
+    cmbxMagazin.Left = btnClose.Left
     frameProizvoditel.Width = btnETM.Left - frameProizvoditel.Left - 6
     cmbxProizvoditel.Width = frameProizvoditel.Width - 12
-    'lblResult.Top = Me.Height - 35
     lblResult.Left = frameTab.Width - lblResult.Width
     btnFind.Left = frameTab.Width - btnFind.Width - 6
     frameNazvanie.Width = btnFind.Left - frameNazvanie.Left - 6
@@ -396,7 +400,7 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     txtNazvanie2.Width = (frameNazvanie.Width - 16) / 2
     txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
     txtNazvanie3.Width = frameNazvanie.Width / 4
-    
+
 End Sub
 
 Private Sub tbtnFiltr_Click()
@@ -413,57 +417,27 @@ Private Sub tbtnFiltr_Click()
     lblResult.Top = Me.Height - 35
 End Sub
 
-Private Sub btnETM_Click()
-    Dim mstrTempFile() As String
-    Dim strTempFile As String
-    Dim strImgURL As String
-    Dim mstrTovar As Variant
-    Dim link As String
-    Dim linkCatalog As String
-    
-    
-
-    If mstrShpData(3) = "" Then Exit Sub
-    
-    mstrTovar = ParseHTML_ETM(mstrShpData(3))
-'    mstrTovar = ParseHTML_AVS(mstrShpData(3))
-    linkCatalog = mstrTovar(0)
-    strImgURL = mstrTovar(4)
-    mstrTempFile = Split(strImgURL, "/")
-    strTempFile = ThisDocument.path & mstrTempFile(UBound(mstrTempFile))
-    lngRC = URLDownloadToFile(0, strImgURL, strTempFile, 0, 0)
-    If Right(strImgURL, 3) = "png" Then
-        strTempFile = ConvertToJPG(strTempFile)
-    End If
-    On Error Resume Next
-    frmETMInfo.imgKartinka.Picture = LoadPicture(strTempFile)
-    Kill strTempFile
-    frmETMInfo.lblNazvanie = mstrTovar(1)
-    frmETMInfo.txtCena = mstrTovar(2)
-    frmETMInfo.txtCenaRozn = mstrTovar(3)
-
-    frmETMInfo.linkCatalog = mstrTovar(0)
-    frmETMInfo.linkFind = "https://www.etm.ru/catalog/?searchValue=" & mstrShpData(3)
-'    frmETMInfo.linkFind = "https://avselectro.ru/search/index.php?q=" & mstrShpData(3)
-    
-    frmETMInfo.run
-
+Private Sub cmbxMagazin_Change()
+    Select Case cmbxMagazin.ListIndex
+        Case 0 'ЭТМ
+            btnETM.Visible = True
+            btnAVS.Visible = False
+        Case 1 'АВС
+            btnETM.Visible = False
+            btnAVS.Visible = True
+        Case Else
+            btnETM.Visible = True
+            btnAVS.Visible = False
+    End Select
 End Sub
 
+Private Sub btnETM_Click()
+    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+End Sub
 
-
-'Private Sub txtArtikul_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie1_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie2_Enter()
-'    btnFind_Click
-'End Sub
-'Private Sub txtNazvanie3_Enter()
-'    btnFind_Click
-'End Sub
+Private Sub btnAVS_Click()
+    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+End Sub
 
 Private Sub btnFind_Click()
     Find_ItemsByText
@@ -514,7 +488,6 @@ Private Sub lblHeaders_Click() ' выровнять ширину столбцо�
 End Sub
 
 Private Sub lstvTablePrice_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
-
     With lstvTablePrice
         .Sorted = False
         .SortKey = ColumnHeader.SubItemIndex
@@ -522,20 +495,10 @@ Private Sub lstvTablePrice_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnH
         .SortOrder = Abs(.SortOrder Xor 1)
         .Sorted = True
     End With
-    
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
-
-'    With ActiveWindow
-'        .Page = glShape.ContainingPage
-'        .Select glShape, visDeselectAll + visSubSelect     ' выделение шейпа
-'        .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
-'                    '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
-'    End With
-    
     Unload frmDBIzbrannoe
     Unload Me
-    
 End Sub
 
