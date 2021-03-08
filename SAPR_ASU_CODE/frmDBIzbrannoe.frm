@@ -64,7 +64,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
     
     Reset_FiltersCmbx
 
@@ -174,8 +174,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
         SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWHERE & ";"
                 
-'    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
+    DBName = DBNameIzbrannoe
     
     NameQueryDef = "FilterSQLQuery"
     
@@ -189,9 +188,6 @@ End Sub
 
 Sub Fill_FiltersByResultSQLQuery(DBName As String, fltrKategoriya As String, fltrGruppa As String, fltrPodgruppa As String)
     Dim SQLQuery As String
-    
-'    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
 
     If fltrKategoriya = "" Then
         SQLQuery = "SELECT FilterSQLQuery.КатегорииКод, Категории.Категория " & _
@@ -224,11 +220,8 @@ Sub Find_ItemsByText()
     Dim findProizvoditel As String
     Dim findArtikul As String
     Dim findNazvanie As String
-    
-'    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
-    
-'    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
+
+    DBName = DBNameIzbrannoe
     
     If txtArtikul.Value = "" Then
         findArtikul = ""
@@ -295,7 +288,7 @@ Private Sub btnFavDel_Click()
     Dim SQLQuery As String
     If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "Удаление записи из Избранного") = vbYes Then
         If mstrShpData(6) <> "" Then
-            DBName = "SAPR_ASU_Izbrannoe.accdb"
+            DBName = DBNameIzbrannoe
             SQLQuery = "DELETE Избранное.* " & _
                         "FROM Избранное " & _
                         "WHERE Избранное.КодПозиции=" & mstrShpData(6) & ";"
@@ -311,12 +304,12 @@ Private Sub btnNabDel_Click()
     Dim SQLQuery As String
     If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(3) & vbCrLf & "Название: " & mstrVybPozVNabore(2) & vbCrLf & "Цена: " & mstrVybPozVNabore(5) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "Удаление записи из Набора") = vbYes Then
         If mstrVybPozVNabore(6) <> "" Then
-            DBName = "SAPR_ASU_Izbrannoe.accdb"
+            DBName = DBNameIzbrannoe
             SQLQuery = "DELETE Наборы.* " & _
                         "FROM Наборы " & _
                         "WHERE Наборы.КодПозиции=" & mstrVybPozVNabore(6) & ";"
             ExecuteSQL DBName, SQLQuery
-            lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
+            lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBName, mstrShpData(6), lstvTableNabor)
 
             SQLQuery = "UPDATE Избранное SET Избранное.Цена = """ & CalcCenaNabora(lstvTableNabor) & """" & _
                         " WHERE Избранное.КодПозиции = " & mstrShpData(6) & ";"
@@ -329,10 +322,9 @@ End Sub
 Private Sub Reset_FiltersCmbx()
     Dim DBName As String
     Dim SQLQuery As String
-'    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
+
     bBlock = True
-'    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
+    DBName = DBNameIzbrannoe
     SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
                 "FROM Категории;"
     Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
@@ -349,23 +341,23 @@ End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
-    Dim mStr() As String
+    Dim mstr() As String
     Dim colNum As Long
     
-    mStr = Split(Replace(Item.Key, """", ""), "/")
+    mstr = Split(Replace(Item.Key, """", ""), "/")
 
-    mstrShpData(0) = mStr(1)
+    mstrShpData(0) = mstr(1)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
     mstrShpData(4) = Item.SubItems(4)
     mstrShpData(5) = Item.SubItems(2)
-    mstrShpData(6) = mStr(0)
+    mstrShpData(6) = mstr(0)
     mstrShpData(7) = Item.SubItems(3)
     
     If Item.ForeColor = NaboryColor Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", mstrShpData(6), lstvTableNabor)
-        lstvTableNabor.Width = 417
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoe, mstrShpData(6), lstvTableNabor)
+        lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
             Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
@@ -382,18 +374,17 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
 End Sub
 
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
-    Dim DBName As String
-    Dim mStr() As String
+    Dim mstr() As String
 
-    mStr = Split(Replace(Item.Key, """", ""), "/")
+    mstr = Split(Replace(Item.Key, """", ""), "/")
     
-    mstrVybPozVNabore(0) = mStr(1)
+    mstrVybPozVNabore(0) = mstr(1)
     mstrVybPozVNabore(1) = Item.Key
     mstrVybPozVNabore(2) = Item.SubItems(1)
     mstrVybPozVNabore(3) = Item
     mstrVybPozVNabore(4) = Item.SubItems(4)
     mstrVybPozVNabore(5) = Item.SubItems(2)
-    mstrVybPozVNabore(6) = mStr(0)
+    mstrVybPozVNabore(6) = mstr(0)
     mstrVybPozVNabore(7) = Item.SubItems(3)
     
 End Sub
@@ -416,7 +407,7 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     Dim TableIzbrannoeWidth As Single
     Dim TableNaborWidth As Single
     
-    lstvTableIzbrannoe.Width = 417
+    lstvTableIzbrannoe.Width = frmMinWdth
 
 '    lblContent_Click
     lblHeaders_Click
@@ -432,14 +423,14 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     End If
 
     If TableIzbrannoeWidth > TableNaborWidth Then
-        If TableIzbrannoeWidth < 417 Then
-            TableIzbrannoeWidth = 417
+        If TableIzbrannoeWidth < frmMinWdth Then
+            TableIzbrannoeWidth = frmMinWdth
         End If
     Else
-        If TableNaborWidth > 417 Then
+        If TableNaborWidth > frmMinWdth Then
             TableIzbrannoeWidth = TableNaborWidth
         Else
-            TableIzbrannoeWidth = 417
+            TableIzbrannoeWidth = frmMinWdth
         End If
     End If
     

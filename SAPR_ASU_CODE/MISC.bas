@@ -155,6 +155,22 @@ MsgBox ("длина линии " & dl & " м")
 End Sub
 
 
+
+'Sub ЦБР()
+'    Dim str As String
+'    Dim xmDoc As Object
+'
+'    Set xmDoc = CreateObject("msxml2.DOMDocument")
+'    xmDoc.async = 0
+'    xmDoc.Load ("http://www.cbr.ru/scripts/XML_daily.asp")
+'    With xmDoc.SelectSingleNode("*/Valute[CharCode='USD']")
+'        str = CDbl(.ChildNodes(4).Text) / Val(.ChildNodes(2).Text)
+'    End With
+'    Set xmDoc = Nothing
+'End Sub
+
+
+
 '    For Each vsoShape In ActivePage.Shapes
 '        n = vsoShape.LayerCount
 '        If n > 0 Then

@@ -6,9 +6,15 @@
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
-Option Explicit
+'Option Explicit
+
+Public Const frmMinWdth As Integer = 417 'Минимальна ширина формы
+Public Const DBNameIzbrannoe As String = "SAPR_ASU_Izbrannoe.accdb" 'Имя файла избронного
 
 Public Const NaboryColor   As Long = &HBD0429
+
+Public Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+
 
 'Активация формы выбора элементов схемы из БД
 Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
@@ -159,4 +165,133 @@ Public Function CalcCenaNabora(lstvTable As ListView) As Double
         Sum = Sum + CDbl(lstvTable.ListItems(i).SubItems(2)) * CInt(lstvTable.ListItems(i).SubItems(5))
     Next
     CalcCenaNabora = Sum
+End Function
+
+
+'Получаем товар со страницы поиска товарана сайте ETM.ru
+Public Function ParseHTML_ETM(Articul As String) As String()
+    Dim HtmlFile As Object
+    Dim Elemet As Object ', Elemet2 As Object
+    Dim mstrTovar(4) As String
+    Dim rUrl As String
+    Dim done As Integer
+
+    rUrl = "https://www.etm.ru/catalog/?searchValue=" & Articul
+    
+    Set HtmlFile = CreateObject("HtmlFile")
+
+    With HtmlFile
+        .Body.innerhtml = GetHtml(rUrl)
+        For Each Elemet In .getElementsByTagName("a")
+            If Elemet.ClassName = "nameofgood" Then
+                mstrTovar(0) = Replace(Elemet.GetAttribute("href"), "about:", "https://www.etm.ru") 'Каталог
+                mstrTovar(1) = Elemet.innertext 'Название
+                Exit For
+            End If
+        Next
+        done = 0
+        For Each Elemet In .getElementsByTagName("div")
+            Select Case Elemet.ClassName
+                Case "catalog-col-right sale"
+                    mstrTovar(2) = Elemet.getElementsByTagName("span")(0).innertext 'Цена
+                    mstrTovar(3) = Elemet.getElementsByTagName("span")(3).innertext 'Цена розница
+                    done = done + 1
+                Case "catalog-col-img"
+                    mstrTovar(4) = "https:" & Elemet.getElementsByTagName("img")(0).GetAttribute("data-originalSrc") 'Картинка
+                    done = done + 1
+                Case Else
+            End Select
+            If done = 2 Then Exit For
+        Next
+    End With
+    ParseHTML_ETM = mstrTovar
+End Function
+
+'Получаем товар со страницы поиска товарана сайте avselectro.ru
+Public Function ParseHTML_AVS(Articul As String) As String()
+    Dim HtmlFile As Object
+    Dim Elemet As Object
+    Dim mstrTovar(4) As String
+    Dim rUrl As String
+
+    rUrl = "https://avselectro.ru/search/index.php?q=" & Articul
+    
+    Set HtmlFile = CreateObject("HtmlFile")
+
+    With HtmlFile
+        .Body.innerhtml = GetHtml(rUrl)
+        For Each Elemet In .getElementsByTagName("div")
+            Select Case Elemet.ClassName
+                Case "info__title"
+                    mstrTovar(0) = Replace(Elemet.getElementsByTagName("a")(0).GetAttribute("href"), "about:", "https://avselectro.ru") 'Каталог
+                    mstrTovar(1) = Elemet.getElementsByTagName("span")(0).innertext 'Название
+                    Exit For
+                Case Else
+            End Select
+        Next
+        done = 0
+        For Each Elemet In .getElementsByTagName("span")
+            Select Case Elemet.ClassName
+                Case "m-price"
+                    mstrTovar(2) = Elemet.innertext 'Цена
+                    done = done + 1
+                Case "crossed-out"
+                    mstrTovar(3) = Elemet.innertext 'Цена розница
+                    done = done + 1
+                Case Else
+            End Select
+            If done = 2 Then Exit For
+        Next
+        For Each Elemet In .getElementsByTagName("a")
+            If Elemet.ClassName = "lightzoom" Then
+                mstrTovar(4) = Replace(Elemet.GetAttribute("href"), "about:", "https://avselectro.ru") 'Картинка
+                Exit For
+            End If
+        Next
+    End With
+    ParseHTML_AVS = mstrTovar
+End Function
+
+Public Function GetHtml(ByVal url As String) As String
+    With CreateObject("msxml2.xmlhttp")
+        .Open "GET", url, False
+        .send
+        Do: DoEvents: Loop Until .ReadyState = 4
+        GetHtml = .responsetext
+    End With
+End Function
+
+Public Function ConvertToJPG(ImgPNG As String) As String
+    Dim pic As Object
+    Dim oExcel As Excel.Application
+    Dim wb As Excel.Workbook
+    Dim strTempXls As String
+    
+    strTempXls = ThisDocument.path & "temp.xls"
+    Set oExcel = CreateObject("Excel.Application")
+    If Dir(strTempXls, 16) = "" Then
+    Set wb = oExcel.Workbooks.Add
+        wb.SaveAs filename:=strTempXls
+    Else
+        Set wb = oExcel.Workbooks.Open(strTempXls)
+    End If
+    wb.Activate
+    Set pic = wb.ActiveSheet.Pictures.Insert(ImgPNG)
+    pic.Width = 300
+    pic.Height = 300
+    pic.Copy
+
+    With wb.Worksheets(1).ChartObjects.Add(0, 0, pic.Width, pic.Height).Chart
+        .Paste
+        .Export Left(ImgPNG, Len(ImgPNG) - 3) & "jpg", "jpg"
+    End With
+    
+    wb.Close SaveChanges:=False
+    oExcel.Application.Quit
+    
+    Kill ImgPNG
+    Kill strTempXls
+    
+    ConvertToJPG = Left(ImgPNG, Len(ImgPNG) - 3) & "jpg"
+
 End Function

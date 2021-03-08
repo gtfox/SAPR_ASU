@@ -28,23 +28,25 @@ Sub UserForm_Initialize()
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
 
-    Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
     
-    SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
-                "FROM Единицы;"
 
-    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxEdinicy
 
 End Sub
 
 Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String, EdinicaID As String)
-    
+    Dim SQLQuery As String
     txtArtikul.Value = Artikul
     txtNazvanie.Value = Nazvanie
     txtCena.Value = Cena
     For i = 0 To cmbxProizvoditel.ListCount - 1
         If cmbxProizvoditel.List(i, 2) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
     Next
+    
+    SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
+            "FROM Единицы;"
+
+    Fill_ComboBox DBNameIzbrannoe, SQLQuery, cmbxEdinicy
     
     For i = 0 To cmbxEdinicy.ListCount - 1
         If cmbxEdinicy.List(i, 1) = EdinicaID Then cmbxEdinicy.ListIndex = i
@@ -58,7 +60,7 @@ Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
     Dim NewCena As Double
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
+    DBName = DBNameIzbrannoe
     
     If cmbxNabor.ListIndex = -1 Then Exit Sub
     
@@ -89,7 +91,7 @@ End Sub
 Sub Load_lstvTableNabor()
     Dim colNum As Long
     If cmbxNabor.ListIndex > -1 Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor("SAPR_ASU_Izbrannoe.accdb", cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoe, cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
     End If
     'выровнять ширину столбцов по заголовкам
     For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -103,7 +105,7 @@ Sub Reload_cmbxNabor()
                 "FROM Избранное " & _
                 "WHERE Избранное.ПодгруппыКод=2;"
 
-    Fill_ComboBox "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxNabor
+    Fill_ComboBox DBNameIzbrannoe, SQLQuery, cmbxNabor
 End Sub
 
 Private Sub txtCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
@@ -121,7 +123,7 @@ Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "Удаление записи из Производителей") = vbYes Then
-        DBName = "SAPR_ASU_Izbrannoe.accdb"
+        DBName = DBNameIzbrannoe
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
                     "WHERE Производители.КодПроизводителя=" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"

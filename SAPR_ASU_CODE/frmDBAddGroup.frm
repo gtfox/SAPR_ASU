@@ -16,7 +16,7 @@ Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
     
-    DBName = "SAPR_ASU_Izbrannoe.accdb"
+    DBName = DBNameIzbrannoe
 
     Select Case iKey
         Case 1, 5, 8

@@ -23,6 +23,8 @@ Dim mstrShpData(6) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
 
+
+
 Private Sub UserForm_Initialize() ' инициализация формы
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
@@ -45,7 +47,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel "SAPR_ASU_Izbrannoe.accdb", SQLQuery, cmbxProizvoditel, True
+    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel, True
     
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxKategoriya.style = fmStyleDropDownList
@@ -198,8 +200,6 @@ End Sub
 
 Sub Fill_FiltersByResultSQLQuery(DBName As String, fltrKategoriya As String, fltrGruppa As String, fltrPodgruppa As String)
     Dim SQLQuery As String
-    
-    DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
 
     If fltrKategoriya = "" Then
         SQLQuery = "SELECT FilterSQLQuery.КатегорииКод, Категории.Категория " & _
@@ -307,7 +307,7 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub btnFavAdd_Click()
-    Dim mStr() As String
+    Dim mstr() As String
     If mstrShpData(2) <> "" Then
         If Not bBlock Then
             bBlock = True
@@ -316,18 +316,18 @@ Private Sub btnFavAdd_Click()
             Me.Hide
         End If
         Load frmDBAddToIzbrannoe
-        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
+        mstr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mstr(2)
     End If
 End Sub
 
 Private Sub btnNabAdd_Click()
-    Dim mStr() As String
+    Dim mstr() As String
     If mstrShpData(2) <> "" Then
         Me.Hide
         Load frmDBAddToNabor
-        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
+        mstr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mstr(2)
     End If
 End Sub
 
@@ -360,16 +360,16 @@ End Sub
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTablePrice
     Dim TablePriceWidth As Single
     
-    lstvTablePrice.Width = 417
+    lstvTablePrice.Width = frmMinWdth
 
     lblHeaders_Click
     
     If lstvTablePrice.ListItems.Count < 1 Then Exit Sub
 
-    If lstvTablePrice.ListItems(1).Width > 417 Then
+    If lstvTablePrice.ListItems(1).Width > frmMinWdth Then
         TablePriceWidth = lstvTablePrice.ListItems(1).Width
     Else
-        TablePriceWidth = 417
+        TablePriceWidth = frmMinWdth
     End If
     
     lstvTablePrice.Width = TablePriceWidth + 20
@@ -412,6 +412,45 @@ Private Sub tbtnFiltr_Click()
     Me.Height = frameTab.Top + frameTab.Height + 36
     lblResult.Top = Me.Height - 35
 End Sub
+
+Private Sub btnETM_Click()
+    Dim mstrTempFile() As String
+    Dim strTempFile As String
+    Dim strImgURL As String
+    Dim mstrTovar As Variant
+    Dim link As String
+    Dim linkCatalog As String
+    
+    
+
+    If mstrShpData(3) = "" Then Exit Sub
+    
+    mstrTovar = ParseHTML_ETM(mstrShpData(3))
+'    mstrTovar = ParseHTML_AVS(mstrShpData(3))
+    linkCatalog = mstrTovar(0)
+    strImgURL = mstrTovar(4)
+    mstrTempFile = Split(strImgURL, "/")
+    strTempFile = ThisDocument.path & mstrTempFile(UBound(mstrTempFile))
+    lngRC = URLDownloadToFile(0, strImgURL, strTempFile, 0, 0)
+    If Right(strImgURL, 3) = "png" Then
+        strTempFile = ConvertToJPG(strTempFile)
+    End If
+    On Error Resume Next
+    frmETMInfo.imgKartinka.Picture = LoadPicture(strTempFile)
+    Kill strTempFile
+    frmETMInfo.lblNazvanie = mstrTovar(1)
+    frmETMInfo.txtCena = mstrTovar(2)
+    frmETMInfo.txtCenaRozn = mstrTovar(3)
+
+    frmETMInfo.linkCatalog = mstrTovar(0)
+    frmETMInfo.linkFind = "https://www.etm.ru/catalog/?searchValue=" & mstrShpData(3)
+'    frmETMInfo.linkFind = "https://avselectro.ru/search/index.php?q=" & mstrShpData(3)
+    
+    frmETMInfo.run
+
+End Sub
+
+
 
 'Private Sub txtArtikul_Enter()
 '    btnFind_Click
