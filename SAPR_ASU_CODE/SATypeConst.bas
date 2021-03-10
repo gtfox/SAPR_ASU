@@ -35,8 +35,11 @@ Public Const typeCablePL As Integer = 90 'Кабель вне шкафа на П
 
 Public Const typeVynoskaPL As Integer = 95 'Выноска на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
-Public Const typeActuator As Integer = 100 'Привод вне шкафа
-Public Const typeSensor As Integer = 110 'Датчик вне шкафа
+Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor
+Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский)
+Public Const typeSensorIO As Integer = 111 'Вход/Выход внутри датчика вне шкафа. Содержит несколько клемм (Не нумеруется)
+Public Const typeSensorTerm As Integer = 112 'Клемма внутри typeSensorIO внутри датчика вне шкафа.
+
 Public Const typeFSASensor As Integer = 120 'Датчик на ФСА
 Public Const typeFSAPodval As Integer = 130 'Датчик на ФСА в подвале
 

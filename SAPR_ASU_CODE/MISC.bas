@@ -45,14 +45,14 @@ Function ShapeSATypeIs(vsoShape As Visio.Shape, SAType As Integer) As Boolean
 '------------------------------------------------------------------------------------------------------------
 ' Function        : ShapeSATypeIs - Проверяет существование параметра User.SAType и возвращает его соответствие переданному
 '------------------------------------------------------------------------------------------------------------
-    ShapeSATypeIs = IIf(ShapeSAType(vsoShape) = SAType, True, False)
+        ShapeSATypeIs = IIf(ShapeSAType(vsoShape) = SAType, True, False)
 End Function
 
 Public Function ShapeByHyperLink(HyperLinkToShape As String) As Visio.Shape
 '------------------------------------------------------------------------------------------------------------
 ' Function      : ShapeByHyperLink - Преобразует строку в шейп
                 'Строка типа "Схема.3/Sheet.4" разбивается на имя листа и имя шейпа
-                'ивыдается в качестве объекта-шейпа
+                'и выдается в качестве объекта-шейпа
                 'Если нет ссылки или шейпа на выход идет Nothing
 '------------------------------------------------------------------------------------------------------------
     Dim mstrAdrToShape() As String 'массив строк имя страницы и имя шейпа
