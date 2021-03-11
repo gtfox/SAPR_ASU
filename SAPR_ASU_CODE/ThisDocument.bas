@@ -38,7 +38,7 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal Shape As IVShape)
         Select Case Shape.Cells("User.SAType").Result(0) 'В зависимости от типа выбираем способ удаления
             Case typeNO, typeNC 'Контакт реле NO,NC (дочерний)
                 DeleteRelayChild Shape
-            Case typeCoil, typeParent, typeElement, typeTerminal 'Катушка реле KL (родительский)
+            Case typeCoil, typeParent, typeElement, typeTerm 'Катушка реле KL (родительский)
             'Добавить все остальные, которые соединяются проводами
                 DeleteRelayParent Shape
             Case typeWireLinkR  'Разрыв провода (дочерний)
@@ -173,7 +173,7 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
         
             'Не нумеруем, т.к. нумеруется в процессе соединения
             
-        Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafa, typeBox
+        Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeBox
         
             'Не нумеруем при вбросе
         

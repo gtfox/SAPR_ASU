@@ -81,11 +81,11 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
                                 End Select
                                 If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
                                     Select Case UserType
-                                        Case typeTerminal 'Клеммы
+                                        Case typeTerm 'Клеммы
                                             If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
                                                 FindMAX vsoShapeOnPage
                                             End If
-                                        Case typeCoil, typeParent, typeElement, typeTerminal, typeSensor, typeActuator, typeFSASensor, typeFSAPodval, typePLCParent, typeElectroPlan, typeElectroOneWire, typeOPSPlan 'Остальные элементы
+                                        Case typeCoil, typeParent, typeElement, typeTerm, typeSensor, typeActuator, typeFSASensor, typeFSAPodval, typePLCParent, typeElectroPlan, typeElectroOneWire, typeOPSPlan 'Остальные элементы
                                             FindMAX vsoShapeOnPage
                                     End Select
                                 End If

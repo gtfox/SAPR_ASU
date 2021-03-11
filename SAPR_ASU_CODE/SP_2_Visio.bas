@@ -116,7 +116,7 @@ Private Sub xls_query(imya_lista As String)
     
     'oExcel.GoTo Reference:=sp.Worksheets(1).Range("A2")
     'oExcel.ActiveCell.Select
-    lLastRow = oExcel.Sheets(imya_lista).Cells(oExcel.Sheets(imya_lista).Rows.Count, 1).End(xlUp).row
+    lLastRow = oExcel.Sheets(imya_lista).Cells(oExcel.Sheets(imya_lista).Rows.Count, 1).End(xlUp).Row
     Set UserRange = oExcel.Worksheets(imya_lista).Range("A3:I" & lLastRow) 'oExcel.InputBox _
     '(Prompt:="Выберите диапазон A3:Ix", _
     'Title:="Выбор диапазона", _
@@ -415,7 +415,7 @@ Public Sub spEXP_2_XLS()
     apx.Sheets("SP (2)").Name = "EXP_2_XLS"
     
     
-    lLastRow = apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row
+    lLastRow = apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
     apx.Application.CutCopyMode = False
     apx.Worksheets("EXP_2_XLS").Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
@@ -431,8 +431,8 @@ Public Sub spEXP_2_XLS()
             Next yx
         Next xx
         
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row).WrapText = False
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
    
 
     wb.Close SaveChanges:=True

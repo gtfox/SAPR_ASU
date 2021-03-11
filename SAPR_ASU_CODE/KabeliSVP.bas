@@ -340,7 +340,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         'Ищем вход в датчике соединенный с текущим кабелем
         For Each shpWire In shpCable.Shapes
             For i = 1 To shpWire.Connects.Count
-                If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerminal) Then
+                If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
                     Set cellKlemmaShkafa = shpWire.Connects(i).ToCell
                     NumberKlemmaShkafa = shpWire.Connects(i).ToSheet.Cells("Prop.Number").Result(0)
                 ElseIf ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensorTerm) Then
@@ -411,7 +411,7 @@ Function FillColTerms(colWires As Collection) As Collection
         If ShapeSATypeIs(shpWire, typeWire) Then
             If shpWire.Connects.Count = 2 Then
                 For i = 1 To shpWire.Connects.Count
-                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerminal) Then
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
                         colTerms.Add shpWire.Connects(i).ToSheet
                     End If
                 Next
