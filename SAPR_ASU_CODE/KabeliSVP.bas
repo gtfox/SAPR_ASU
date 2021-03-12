@@ -3,7 +3,7 @@
 ' Author        : gtfox
 ' Date          : 2020.09.21
 ' Description   : Вставка и нумерация кабелей на эл. схеме, на планах и автосоздание схемы внешних проводок (СВП)
-' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
+' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 Public PastePoint As Variant 'Точка вставки следующего датчика

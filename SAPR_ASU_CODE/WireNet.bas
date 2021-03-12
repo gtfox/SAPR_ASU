@@ -3,7 +3,7 @@
 ' Author        : gtfox
 ' Date          : 2020.06.03
 ' Description   : Соединение/отсоединение проводов, нумерация, удаление, стрелки/точки на концах, взаимодействие с элементами
-' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
+' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 Public bUnGlue As Boolean 'Запрет обработки события ConnectionsDeleted

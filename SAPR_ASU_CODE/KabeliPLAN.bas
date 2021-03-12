@@ -4,7 +4,7 @@
 ' Author        : gtfox
 ' Date          : 2020.10.09
 ' Description   : Автопрокладка кабелей по лоткам, подсчет длины, выноски кабелей
-' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
+' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 

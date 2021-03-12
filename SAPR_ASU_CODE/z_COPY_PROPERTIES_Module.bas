@@ -68,8 +68,8 @@
 Option Explicit
 
 Dim SelObj As Visio.Selection  ' Выделенные шейпы
-Dim SH1 As Object
-Dim SH2 As Object
+Dim SH1 As Visio.Shape
+Dim SH2 As Visio.Shape
 
 Sub RunCopyPropSelectedShapes(Section As Integer, ReplaceValue As Boolean, RemoveRow As Boolean)
 ' Процедура копирования пользовательских свойств шейпа для именованных строк

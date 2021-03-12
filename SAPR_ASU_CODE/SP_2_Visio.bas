@@ -15,7 +15,7 @@
                 ' Я решил разбивать строки в Excel, и тогда в Visio не надо считать высоту через ShapeSheet.
                 ' Деление многострочной ячейки на строки происходит на основе особенности реализации шейпа надпись в Excel. Задаем ширину прямоугольника и помещаем длинный текст. Он переносится, чтобы поместится в ширину. А особенностью является то, что мы можем обращаться отдельно к каждой получившейся строке в этом прямоугольнике через коллекции.
                 ' Макрос написан на основе singleTextCellToRows https://www.planetaexcel.ru/forum/index.php?PAGE_NAME=message&FID=1&TID=77447&TITLE_SEO=77447-perenos-teksta-na-sleduyushchuyu-stroku-pri-zapolnenii-stolbtsa-po-shi&MID=841387#message841387
-' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://yadi.sk/d/24V8ngEM_8KXyg
+' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
                 'на основе этого:
                 '------------------------------------------------------------------------------------------------------------

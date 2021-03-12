@@ -3,7 +3,7 @@
 ' Author        : gtfox
 ' Date          : 2020.09.09
 ' Description   : Перекрестные ссылки элементов ВНЕ ШКАФА и их обеспечение
-' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://yadi.sk/d/24V8ngEM_8KXyg
+' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 Option Explicit
