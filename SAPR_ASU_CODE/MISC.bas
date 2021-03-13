@@ -154,7 +154,9 @@ dl = CableLength(snap1)
 MsgBox ("длина линии " & dl & " м")
 End Sub
 
-
+'    ReDim arrValue(10, 1)
+'    arrValue = [{"1", "2";"11", "22";"111", "222"}]
+'    UBarrCellName = UBound(arrValue)
 
 'Sub ЦБР()
 '    Dim str As String
