@@ -347,17 +347,36 @@ Private Sub lstvTablePrice_ItemClick(ByVal Item As MSComctlLib.ListItem)
 End Sub
 
 Private Sub lstvTablePrice_DblClick()
-
-    glShape.Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
-    glShape.Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
-    glShape.Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
-    glShape.Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
-    glShape.Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-    glShape.Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
-    glShape.Cells("Prop.EdDB").Formula = """" & mstrShpData(6) & """"
-
-    btnClose_Click
+    Dim vsoShape As Visio.Shape
     
+    With glShape
+        .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
+        .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
+        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
+        .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+        .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
+        .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+        .Cells("Prop.EdDB").Formula = """" & mstrShpData(6) & """"
+    End With
+    
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> glShape And ShapeSAType(vsoShape) = ShapeSAType(glShape) Then
+                With vsoShape
+                    .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
+                    .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
+                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
+                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
+                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(6) & """"
+                End With
+            End If
+        Next
+    End If
+    
+    btnClose_Click
+
 End Sub
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTablePrice

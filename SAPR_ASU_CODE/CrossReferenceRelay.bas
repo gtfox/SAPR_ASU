@@ -264,7 +264,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     dN = -9.84251968503937E-02
     
     Set vsoPage = ActivePage
-    Set vsoMaster = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Thumb")
+    Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Thumb")
     
     'Удаляем миниатюры контактов, если они были
     ThumbDelete vsoShape

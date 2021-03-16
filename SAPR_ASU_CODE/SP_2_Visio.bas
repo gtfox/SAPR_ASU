@@ -167,7 +167,7 @@ Private Sub fill_table(bEvents As Boolean)  ' заполнение специф�
 
     ActivePage.Shapes.ItemFromID(1).Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
     Set pg = ActivePage
-    Set mast = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Спецификация") 'ActiveDocument.Masters.Item("Спецификация")
+    Set mast = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Спецификация") 'ActiveDocument.Masters.Item("Спецификация")
     pg.Drop mast, 6.889764, 8.661417
     
     Dim target As Shape ' целевой шейп
@@ -310,7 +310,7 @@ Function AddNamedPage(pName As String) As Visio.Page
     Set aPage = ActiveDocument.Pages.Add
     aPage.Name = pName
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
     'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
     'Номера страниц "=pagenumber()-thedoc!user.coc"

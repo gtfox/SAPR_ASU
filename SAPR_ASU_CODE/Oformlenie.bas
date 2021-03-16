@@ -267,7 +267,7 @@ Function AddSAPage(PageName As String) As Visio.Page
     Dim Npage As Integer
     Dim MaxNumber As Double
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
     Set colPages = New Collection
     
     For Each vsoPage In ActiveDocument.Pages

@@ -157,8 +157,8 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
     Dim AbsPinY As Double
     
     Set vsoPage = ActivePage
-    Set vsoMasterKlemma = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Term")
-    Set vsoMasterProvod = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("w1")
+    Set vsoMasterKlemma = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Term")
+    Set vsoMasterProvod = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("w1")
 
     For Each shpSensorTerm In shpSensorIO.Shapes
         If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then

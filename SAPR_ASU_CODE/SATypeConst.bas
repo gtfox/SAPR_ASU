@@ -47,8 +47,9 @@ Public Const typeBox As Integer = 140 'Шкафы, распределитель�
 
 Public Const typeElectroOneWire As Integer = 150 'Однолинейная схема
 
-Public Const typeVidShkafaDIN As Integer = 160 'Внешний вид шкафа внутри (на дин-рейке) (Не нумеруется)
-Public Const typeVidShkafaDver As Integer = 160 'Внешний вид шкафа снаружи (на двери)(Не нумеруется)
+Public Const typeVidShkafaDIN As Integer = 160 'Внешний вид шкафа. Элементы внутри (на дин-рейке) (Не нумеруется)
+Public Const typeVidShkafaDver As Integer = 161 'Внешний вид шкафа. Элементы снаружи (на двери)(Не нумеруется)
+Public Const typeVidShkafaShkaf As Integer = 162 'Внешний вид шкафа. Сам шкаф(Не нумеруется)
 
 Public Const typeDuctPlan As Integer = 170 'Лотки на ПЛАНЕ, кабельные трассы (Не нумеруется)
 Public Const typeElectroPlan As Integer = 180 'ЭС ЭО на плане

@@ -173,7 +173,7 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
         
             'Не нумеруем, т.к. нумеруется в процессе соединения
             
-        Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeBox
+        Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
         
             'Не нумеруем при вбросе
         

@@ -39,7 +39,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
     Dim sPath, sFile As String
     Dim objFSO As Object, objFile As Object
     Dim MastOD As Master
-    Set MastOD = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.ItemU("ОД")
+    Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.ItemU("ОД")
 
     
     
@@ -390,7 +390,7 @@ Function AddNamedPageOD(pName As String) As Visio.Page
     Set aPage = ActiveDocument.Pages.Add
     aPage.Name = pName
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
     'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
     'Номера страниц "=pagenumber()-thedoc!user.coc"

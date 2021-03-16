@@ -24,6 +24,8 @@ Dim NameQueryDef As String
 Dim mstrVybPozVNabore(7) As String
 
 
+
+
 Private Sub UserForm_Initialize() ' инициализация формы
 
     lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
@@ -377,6 +379,39 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
 End Sub
 
+Private Sub lstvTableIzbrannoe_DblClick()
+    Dim vsoShape As Visio.Shape
+    
+    With frmDBPrice.glShape
+        .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
+        .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
+        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
+        .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+        .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
+        .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+        .Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
+    End With
+    
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> frmDBPrice.glShape And ShapeSAType(vsoShape) = ShapeSAType(frmDBPrice.glShape) Then
+                With vsoShape
+                    .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
+                    .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
+                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
+                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
+                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
+                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
+                End With
+            End If
+        Next
+    End If
+    
+    btnClose_Click
+    
+End Sub
+
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Dim mstr() As String
 
@@ -393,19 +428,40 @@ Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
 End Sub
 
-Private Sub lstvTableIzbrannoe_DblClick()
-
-    frmDBPrice.glShape.Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
-    frmDBPrice.glShape.Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
-    frmDBPrice.glShape.Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
-    frmDBPrice.glShape.Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
-    frmDBPrice.glShape.Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-    frmDBPrice.glShape.Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
-    frmDBPrice.glShape.Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
-
+Private Sub lstvTableNabor_DblClick()
+    Dim vsoShape As Visio.Shape
+    
+    With frmDBPrice.glShape
+        .Cells("User.KodProizvoditelyaDB").Formula = mstrVybPozVNabore(0)
+        .Cells("User.KodPoziciiDB").Formula = Replace(mstrVybPozVNabore(1), """", "")
+        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(2), """", """""") & """"
+        .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(3) & """"
+        .Cells("Prop.ProizvoditelDB").Formula = """" & mstrVybPozVNabore(4) & """"
+        .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(5) & """"
+        .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(7) & """"
+    End With
+    
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> frmDBPrice.glShape And ShapeSAType(vsoShape) = ShapeSAType(frmDBPrice.glShape) Then
+                With vsoShape
+                    .Cells("User.KodProizvoditelyaDB").Formula = mstrVybPozVNabore(0)
+                    .Cells("User.KodPoziciiDB").Formula = Replace(mstrVybPozVNabore(1), """", "")
+                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(2), """", """""") & """"
+                    .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(3) & """"
+                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrVybPozVNabore(4) & """"
+                    .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(5) & """"
+                    .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(7) & """"
+                End With
+            End If
+        Next
+    End If
+    
     btnClose_Click
     
 End Sub
+
+
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTableIzbrannoe
     Dim TableIzbrannoeWidth As Single

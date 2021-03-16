@@ -33,7 +33,10 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
     Set colElemets = New Collection
 
     'Находим шкаф
-    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
+    For Each vsoShape In ActivePage.Shapes
+        If ShapeSATypeIs(vsoShape, typeVidShkafaShkaf) Then Set shpShkaf = vsoShape: Exit For
+    Next
+'    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
@@ -140,7 +143,10 @@ Sub VertRazmery() '(selElemets As Visio.Section)
     Set colElemets = New Collection
 
     'Находим шкаф
-    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
+    For Each vsoShape In ActivePage.Shapes
+        If ShapeSATypeIs(vsoShape, typeVidShkafaShkaf) Then Set shpShkaf = vsoShape: Exit For
+    Next
+'    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
