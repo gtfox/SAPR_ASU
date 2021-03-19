@@ -1,66 +1,160 @@
-'------------------------------------------------------------------------------------------------------------
-' Module        : BP4 - Ведомость рабочих чертежей
-' Author        : gtfox на основе Surrogate::Vedomost2019.vss
-' Date          : 2019.09.22
-' Description   : Не требует запуска. Он запускается автоматически при добавлении шейпа ВРЧ. Чтобы обновить ВРЧ удаляем старый шейп и кидаем новый.
-'               : Добавлять ВРЧ на первый лист ОД надо в последнюю очередь, когда есть все листы с рамками и в больших рамках указано наименование листов.
-' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
-'------------------------------------------------------------------------------------------------------------
-                'на основе этого:
-                '------------------------------------------------------------------------------------------------------------
-                ' Module    : BP4:BP4_corrector Ведомость рабочих чертежей
-                ' Author    : Surrogate
-                ' Date      : 30.08.2019
-                ' Purpose   : Мастер для создания ведомости рабочих чертежей
-                ' Links     : https://visio.getbb.ru/viewtopic.php?p=200, https://visio.getbb.ru/download/file.php?id=1087
-                '------------------------------------------------------------------------------------------------------------
-Option Base 1
+Sub FillBP4(shpBP4 As Visio.Shape)
+    Dim colRamki As Collection
+    Dim vsoPage As Visio.Page
+    Set colRamki = New Collection
+    
+    If shpBP4.Cells("User.v").Result(0) > 0 Then
+        For i = 1 To 30
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").Text = " "
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").Text = " "
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".3").Text = " "
+        Next
+    End If
 
-Sub BP4_corrector(ShpObj As Visio.Shape, pp As Integer)
-    Dim isSpec As Boolean
-    isSpec = False
-    Dim ma() As Integer
-    Dim r%, form$
-    r = ActiveDocument.Pages.Count
-    ReDim ma(r)
-    Dim pg As Page, sh As Shape, listing$, wn As Window, N%, pos As Shape, prim As Shape
-    listing = "": N = 0
-    For i = pp To ActiveDocument.Pages.Count
-        Set pg = ActiveDocument.Pages(i)
-        'pg.Shapes("Рамка").Cells("fields.value").FormulaU = "0"
-        'pg.Shapes("Рамка").Cells("fields.value").FormulaU = "=PAGENUMBER()-1"
-        On Error GoTo L1
-        If pg.Shapes("Рамка").Cells("prop.type").ResultStr("") <> "" Then
-            If InStr(1, pg.Shapes("Рамка").Shapes("FORMA3").Shapes("shifr").Cells("fields.value").ResultStr(""), ".CO") = 0 Then
-                listing = listing & ";" & pg.Name
-                N = N + 1
-                ma(N) = pg.Shapes("Рамка").ID
-            End If
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        On Error GoTo err
+        Set shpRamka = vsoPage.Shapes("Рамка")
+        If shpRamka.Cells("prop.type").ResultStr(0) <> "" And _
+           shpRamka.Cells("user.n").Result(0) = 3 And _
+           Right(shpRamka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").ResultStr(""), 3) <> ".CO" _
+        Then
+            colRamki.Add shpRamka
         End If
-    Next i
-    Set pg = ActiveDocument.Pages(pp)
-    'Set wn = Application.ActiveWindow.Page.PageSheet.OpenSheetWindow
-    'Application.ActiveWindow.Shape.Cells("user.store").FormulaU = Chr(34) & listing & Chr(34)
-    ActivePage.PageSheet.Cells("user.store").FormulaU = Chr(34) & listing & Chr(34)
-    'wn.Close
-    Set sh = ShpObj
-    For i = 1 To N
-
-        Set prim = sh.Shapes("pos" & i).Shapes(3)
-        Set pos = prim.Parent
-        pos.Cells("prop.det.format").FormulaForceU = "GUARD(ThePage!User.store)"
-        pos.Cells("prop.det.value").FormulaForceU = "INDEX(" & i & " ,Prop.det.Format)"
-        'form = "IF(0=0,SETF(GetRef(User.ch)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!user.ch" & Chr(34) & ")+SETF(GetRef(User.de)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!user.de" & Chr(34) & ")+SETF(GetRef(User.pn)," & Chr(34) & "=Pages[" & Chr(34) & "&Prop.det&" & Chr(34) & "]!sheet." & ma(i) & "!fields.value" & Chr(34) & "),33)"
-        'pos.Cells("user.set").FormulaU = form
-        pos.CellsSRC(visSectionAction, 0, visActionAction).FormulaU = "GOTOPAGE(Prop.det)"
-        pos.CellsSRC(visSectionAction, 0, visActionMenu).FormulaU = """Перейти на ""&Prop.det"
-        
+err:
     Next
-    On Error GoTo L1
-    sh.Shapes("pos" & N).Shapes(4).Cells("user.text").FormulaU = "=IF(User.N-1-thedoc!user.coc-User.C>1,User.C&""-""&User.N-1-thedoc!user.coc,User.C)"
-    sh.Cells("prop.n").Formula = N
-    MsgBox "Ведомость рабочих чертежей добавлена" & vbCrLf & vbCrLf & "Найдено листов N:" & N, vbInformation
-    Exit Sub
-L1:
-    MsgBox "Нет листов для ВРЧ. N:" & N & vbCrLf & vbCrLf & "На всех листах должны быть рамки" & vbCrLf & "и хотя бы в одной указано наименование листа", vbCritical, "Ошибка"
+
+    For i = 1 To colRamki.Count
+        NazvanieRazdela = colRamki(i).Cells("prop.type").ResultStr(0)
+        NachaloRazdela = colRamki(i).Cells("User.NomerLista").Result(0)
+        If colRamki.Count >= (i + 1) Then
+            KonecRazdela = colRamki(i + 1).Cells("User.NomerLista").Result(0)
+            If KonecRazdela - NachaloRazdela <= 1 Then KonecRazdela = 0
+        Else
+            KonecRazdela = colRamki(i).Cells("User.ChisloListov").Result(0)
+        End If
+        
+        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").Text = NachaloRazdela & IIf(KonecRazdela = 0 Or KonecRazdela = NachaloRazdela, "", "-" & KonecRazdela)
+        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").Text = NazvanieRazdela
+    Next
+   
+End Sub
+
+Sub fff()
+'Преобразует строки шейпа спецификации в шейп ВРЧ
+    Dim shRow As Shape
+    Dim shCell As Shape
+    Dim strSource() As String
+    Set shRow = ActivePage.Shapes.ItemFromID(1)
+    
+    For i = 1 To 30
+        Set shCell = shRow.Shapes.Item("row" & i).Shapes.Item(i & ".1")
+        strSource = Split(shCell.CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU, "!")
+        With shCell
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = strSource(0) & "!Width*15/185"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).FormulaU = strSource(0) & "!Width*0"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
+        End With
+        Set shCell = shRow.Shapes.Item("row" & i).Shapes.Item(i & ".2")
+        With shCell
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = strSource(0) & "!Width*140/185"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).FormulaU = strSource(0) & "!Width*15/185"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
+            .CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "0 pt"
+            .CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
+        End With
+        Set shCell = shRow.Shapes.Item("row" & i).Shapes.Item(i & ".3")
+        With shCell
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = strSource(0) & "!Width*30/185"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).FormulaU = strSource(0) & "!Width*155/185"
+            .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
+        End With
+        For j = 4 To 9
+            shRow.Shapes.Item("row" & i).Shapes.Item(i & "." & j).Delete
+        Next
+    Next
+End Sub
+
+
+
+Sub www()
+'Сохраняем потеряные формулы из работающей спецификации
+    Dim vsoShape As Visio.Shape
+    Dim sRowName As String
+    Dim arrValue(29)
+    Dim arrRowNameValue()
+    Dim i As Integer
+    Dim j As Integer
+    Dim UBarrCellName As Integer
+    Dim UBarrValue As Integer
+    Dim UBarrRowNameValue As Integer
+    Dim ShpRowCount As Integer
+    Dim strToFile As String
+    Dim strFile As String
+    
+    Dim shRow As Shape
+    Dim shCell As Shape
+    Dim strSource() As String
+    Set shRow = ActivePage.Shapes.ItemFromID(1)
+    
+    strFile = ThisDocument.path & "tempValue.vb"
+    
+    For i = 0 To 29
+        arrValue(i) = shRow.Shapes.Item("row" & i + 1).Cells("height").FormulaU
+    Next
+    
+    UBarrValue = UBound(arrValue)
+    For i = 0 To UBarrValue
+        strToFile = strToFile & """" & arrValue(i) & """" & IIf(i = UBarrValue, ")", ", _" & vbNewLine)
+    Next
+
+    AddIntoTXTfile strFile, strToFile
+
+End Sub
+
+
+Sub eee()
+'Записывает потеряные формулы в строки шейпа спецификации который станет ВРЧ
+    Dim shRow As Shape
+    Dim shCell As Shape
+    Dim strSource() As String
+    Set shRow = ActivePage.Shapes.ItemFromID(1)
+
+www1 = Array("GUARD(MAX(Sheet.23!User.Row_1,Sheet.24!User.Row_1,Sheet.25!User.Row_1))", _
+"GUARD(MAX(Sheet.33!User.Row_1,Sheet.34!User.Row_1,Sheet.35!User.Row_1))", _
+"GUARD(MAX(Sheet.43!User.Row_1,Sheet.44!User.Row_1,Sheet.45!User.Row_1))", _
+"GUARD(MAX(Sheet.53!User.Row_1,Sheet.54!User.Row_1,Sheet.55!User.Row_1))", _
+"GUARD(MAX(Sheet.63!User.Row_1,Sheet.64!User.Row_1,Sheet.65!User.Row_1))", _
+"GUARD(MAX(Sheet.73!User.Row_1,Sheet.74!User.Row_1,Sheet.75!User.Row_1))", _
+"GUARD(MAX(Sheet.83!User.Row_1,Sheet.84!User.Row_1,Sheet.85!User.Row_1))", _
+"GUARD(MAX(Sheet.93!User.Row_1,Sheet.94!User.Row_1,Sheet.95!User.Row_1))", _
+"GUARD(MAX(Sheet.103!User.Row_1,Sheet.104!User.Row_1,Sheet.105!User.Row_1))", _
+"GUARD(MAX(Sheet.113!User.Row_1,Sheet.114!User.Row_1,Sheet.115!User.Row_1))", _
+"GUARD(MAX(Sheet.123!User.Row_1,Sheet.124!User.Row_1,Sheet.125!User.Row_1))", _
+"GUARD(MAX(Sheet.133!User.Row_1,Sheet.134!User.Row_1,Sheet.135!User.Row_1))", _
+"GUARD(MAX(Sheet.143!User.Row_1,Sheet.144!User.Row_1,Sheet.145!User.Row_1))", _
+"GUARD(MAX(Sheet.153!User.Row_1,Sheet.154!User.Row_1,Sheet.155!User.Row_1))", _
+"GUARD(MAX(Sheet.163!User.Row_1,Sheet.164!User.Row_1,Sheet.165!User.Row_1))", _
+"GUARD(MAX(Sheet.173!User.Row_1,Sheet.174!User.Row_1,Sheet.175!User.Row_1))", _
+"GUARD(MAX(Sheet.183!User.Row_1,Sheet.184!User.Row_1,Sheet.185!User.Row_1))", _
+"GUARD(MAX(Sheet.193!User.Row_1,Sheet.194!User.Row_1,Sheet.195!User.Row_1))", _
+"GUARD(MAX(Sheet.203!User.Row_1,Sheet.204!User.Row_1,Sheet.205!User.Row_1))", _
+"GUARD(MAX(Sheet.213!User.Row_1,Sheet.214!User.Row_1,Sheet.215!User.Row_1))", _
+"GUARD(MAX(Sheet.223!User.Row_1,Sheet.224!User.Row_1,Sheet.225!User.Row_1))", _
+"GUARD(MAX(Sheet.233!User.Row_1,Sheet.234!User.Row_1,Sheet.235!User.Row_1))", _
+"GUARD(MAX(Sheet.243!User.Row_1,Sheet.244!User.Row_1,Sheet.245!User.Row_1))", _
+"GUARD(MAX(Sheet.253!User.Row_1,Sheet.254!User.Row_1,Sheet.255!User.Row_1))")
+
+www2 = Array("GUARD(MAX(Sheet.263!User.Row_1,Sheet.264!User.Row_1,Sheet.265!User.Row_1))", _
+"GUARD(MAX(Sheet.273!User.Row_1,Sheet.274!User.Row_1,Sheet.275!User.Row_1))", _
+"GUARD(MAX(Sheet.283!User.Row_1,Sheet.284!User.Row_1,Sheet.285!User.Row_1))", _
+"GUARD(MAX(Sheet.293!User.Row_1,Sheet.294!User.Row_1,Sheet.295!User.Row_1))", _
+"GUARD(MAX(Sheet.303!User.Row_1,Sheet.304!User.Row_1,Sheet.305!User.Row_1))", _
+"GUARD(MAX(Sheet.313!User.Row_1,Sheet.314!User.Row_1,Sheet.315!User.Row_1))")
+
+    For i = 1 To 24
+        shRow.Shapes.Item("row" & i).Cells("height").FormulaU = www1(i - 1)
+    Next
+    For i = 1 To 6
+        shRow.Shapes.Item("row" & i + 24).Cells("height").FormulaU = www2(i - 1)
+    Next
 End Sub

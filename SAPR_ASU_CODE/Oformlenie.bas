@@ -45,8 +45,8 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     Dim i As Integer
     Dim colShapes As New Collection
     Set colShapes = New Collection
-    Const RamkaLevo As Double = 0.78740157480315 '20 mm
-    Const RamkaPravo As Double = 0.196850393700787 '5 mm
+    Const RamkaLevo As Double = 20 / 25.4 '20 mm
+    Const RamkaPravo As Double = 5 / 25.4 '5 mm
 
     'Удаляем существующие ячейки зон начиная с В... и с 2...
     
@@ -67,13 +67,13 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
 
     PageScale = ActivePage.PageSheet.CellsU("DrawingScale") / ActivePage.PageSheet.CellsU("PageScale")
     OffsetFrame = ActiveDocument.DocumentSheet.CellsU("User.OffsetFrame")
-    shpSetkaKoord.Shapes("HZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.LocationC") * PageScale - RamkaPravo - RamkaLevo + OffsetFrame
-    shpSetkaKoord.Shapes("VZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.LocationA") * PageScale - OffsetFrame
+    shpSetkaKoord.Shapes("HZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.SA_Pole1") * PageScale - RamkaPravo - RamkaLevo + OffsetFrame
+    shpSetkaKoord.Shapes("VZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.SA_PoleA") * PageScale - OffsetFrame
     
     'Вставляем горизонтальные блоки
     Ostalos = shpSetkaKoord.CellsU("Width").ResultIU - shpSetkaKoord.Shapes("HZone").CellsU("Width").ResultIU
     Set LastShape = shpSetkaKoord.Shapes("HZone")
-    ShirinaZony = ActiveDocument.DocumentSheet.CellsU("User.LocationD")
+    ShirinaZony = ActiveDocument.DocumentSheet.CellsU("User.SA_PoleGor")
     Do While Ostalos > 0
         If Ostalos >= ShirinaZony * PageScale Then
             Set NewShape = shpSetkaKoord.Drop(LastShape, 0, 0)
@@ -100,7 +100,7 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     Ostalos = shpSetkaKoord.CellsU("Height").ResultIU - shpSetkaKoord.Shapes("VZone").CellsU("Width").ResultIU
     Set LastShape = shpSetkaKoord.Shapes("VZone")
     LastShape.CellsU("TxtAngle").FormulaU = "IF(" + shpSetkaKoord.NameID + "!Scratch.C1=0, 0 deg, 270 deg)"
-    ShirinaZony = ActiveDocument.DocumentSheet.CellsU("User.LocationB")
+    ShirinaZony = ActiveDocument.DocumentSheet.CellsU("User.SA_PoleVert")
     Do While Ostalos > 0
         If Ostalos >= ShirinaZony * PageScale Then
             Set NewShape = shpSetkaKoord.Drop(LastShape, 0, 0)
@@ -267,7 +267,7 @@ Function AddSAPage(PageName As String) As Visio.Page
     Dim Npage As Integer
     Dim MaxNumber As Double
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
     Set colPages = New Collection
     
     For Each vsoPage In ActiveDocument.Pages
@@ -318,5 +318,6 @@ Function AddSAPage(PageName As String) As Visio.Page
     Set AddSAPage = vsoPage
     
 End Function
+
 
 

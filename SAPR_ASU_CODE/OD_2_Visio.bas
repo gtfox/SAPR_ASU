@@ -31,8 +31,8 @@ Private Sub OD_2_Visio(A4 As Boolean)
     nA3 = 1
 
     Dim vsoCharacters1 As Visio.Characters
-    Dim oStartPage As Range
-    Dim oEndPage As Range
+    Dim oStartPage As Word.Range
+    Dim oEndPage As Word.Range
     Dim nStartPageNum As Long
     Dim nPagesCount As Long
     Dim nEndPageNum As Long

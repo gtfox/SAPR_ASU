@@ -428,7 +428,7 @@ Sub SetArrow(Arrow As String, connect As IVConnect)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : SetArrow - Задает вид окончания провода
 '------------------------------------------------------------------------------------------------------------
-    If Arrow = "254" Then Arrow = "USE(""RedArrow"")"
+    If Arrow = "254" Then Arrow = "USE(""endRedArrow"")"
     Select Case connect.FromPart
         Case visBegin
             connect.FromSheet.Cells("BeginArrow").Formula = Arrow

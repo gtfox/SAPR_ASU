@@ -189,6 +189,10 @@ Private Sub fill_table(bEvents As Boolean)  ' заполнение специф�
             Set target = rw.Shapes.Item(tn)
             If FTx = 2 Or FTx = 9 Then target.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
             target.Text = arr(FTy, FTx)
+            If FTx = 2 And arr(FTy, 1) = "" Then
+                target.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
+                target.CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание
+            End If
         Next FTx
         If bEvents Then
             DoEvents
