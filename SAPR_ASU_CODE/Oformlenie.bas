@@ -14,7 +14,7 @@ Public Sub UpdateZoneOnPage()
     Dim vsoShape As Visio.Shape
     For Each vsoShape In ActivePage.Shapes
         If vsoShape.Name Like "SETKA KOORD*" Then UpdateZoneBlocks vsoShape
-        Next
+    Next
 End Sub
 
 Public Sub UpdateZoneInDoc()
@@ -66,7 +66,7 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     'Копируем начальные блоки и задаем их ширину
 
     PageScale = ActivePage.PageSheet.CellsU("DrawingScale") / ActivePage.PageSheet.CellsU("PageScale")
-    OffsetFrame = ActiveDocument.DocumentSheet.CellsU("User.OffsetFrame")
+    OffsetFrame = ActiveDocument.DocumentSheet.CellsU("User.SA_FR_OffsetFrame")
     shpSetkaKoord.Shapes("HZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.SA_Pole1") * PageScale - RamkaPravo - RamkaLevo + OffsetFrame
     shpSetkaKoord.Shapes("VZone").CellsU("Width").Formula = ActiveDocument.DocumentSheet.CellsU("User.SA_PoleA") * PageScale - OffsetFrame
     
@@ -131,7 +131,7 @@ Public Sub LockTitleBlock()
 '------------------------------------------------------------------------------------------------------------
 
     Dim vsoLayer1 As Visio.Layer
-    Set vsoLayer1 = Application.ActiveWindow.Page.Layers("TitleBlock")
+    Set vsoLayer1 = Application.ActiveWindow.Page.Layers("SA_Рамка")
     
     If vsoLayer1.CellsC(visLayerLock).FormulaU = 0 Then
         
@@ -166,8 +166,8 @@ Sub DrawingPageColor()
     Application.Settings.FreeformDrawingPrecision = 5
     Application.Settings.FreeformDrawingSmoothing = 5
     Application.DrawingPaths = "D:\YandexDisk\VISIO\SAPR_ASU"
-    Application.TemplatePaths = "C:\Program Files\Radica\Electra\"
-    Application.StencilPaths = "C:\Program Files\Radica\Electra\"
+    Application.TemplatePaths = "D:\YandexDisk\VISIO\SAPR_ASU"
+    Application.StencilPaths = "D:\YandexDisk\VISIO\SAPR_ASU"
     Application.HelpPaths = ""
     Application.AddonPaths = ""
     Application.StartupPaths = ""
@@ -183,31 +183,7 @@ Private Sub SetStyleGost()
 ' Macros        : SetStyleGost - Изменение стилей под Гост
 '------------------------------------------------------------------------------------------------------------
 
-    Dim vsoStyle As Visio.style
-    Set vsoStyle = Application.ActiveDocument.Styles("EE Normal")
-    vsoStyle.CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.2 mm"
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterFont).FormulaU = 93
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = 2
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterSize).FormulaU = "11 pt"
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterDblUnderline).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterOverline).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterStrikethru).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, 11).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterDoubleStrikethrough).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterRTLText).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterUseVertical).FormulaU = False
-
-    Set vsoStyle = Application.ActiveDocument.Styles("Pin Normal")
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterFont).FormulaU = 93
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = 2
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterSize).FormulaU = "8 pt"
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterDblUnderline).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterOverline).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterStrikethru).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, 11).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterDoubleStrikethrough).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterRTLText).FormulaU = False
-    vsoStyle.CellsSRC(visSectionCharacter, 0, visCharacterUseVertical).FormulaU = False
+    ПеределкаСтандартныхСтилей
     
     'сетка 2,5 мм
     Dim vsoShape As Shape
@@ -229,31 +205,37 @@ Private Sub SetStyleGost()
     
 End Sub
 
-Private Sub Pole_Spec()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : Pole_Spec - Массовая установка свойств в спецификации (поля 10pt до и 5/1pt  после текста во 2 и 9 столбце )
-'------------------------------------------------------------------------------------------------------------
+Sub ПеределкаСтандартныхСтилей()
+    Dim vsoStyle As Visio.style
 
-    For i = 1 To 30
-    
-        Application.ActiveWindow.Page.Shapes("Спецификация").Shapes("row" & i).Shapes(i & ".2").CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "10 pt"
-        Application.ActiveWindow.Page.Shapes("Спецификация").Shapes("row" & i).Shapes(i & ".2").CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "10 pt"
-        
-        Application.ActiveWindow.Page.Shapes("Спецификация").Shapes("row" & i).Shapes(i & ".9").CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "5 pt"
-        Application.ActiveWindow.Page.Shapes("Спецификация").Shapes("row" & i).Shapes(i & ".9").CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "1 pt"
-    Next i
+    For i = 1 To Application.ActiveDocument.Styles.Count
+        Set vsoStyle = Application.ActiveDocument.Styles.ItemFromID(i)
+        If vsoStyle.NameU = "No Style" Or _
+            vsoStyle.NameU = "Text Only" Or _
+            vsoStyle.NameU = "None" Or _
+            vsoStyle.NameU = "Normal" Or _
+            vsoStyle.NameU = "Guide" _
+        Then
+            With vsoStyle
+                .CellsSRC(visSectionCharacter, 0, visCharacterFont).FormulaU = 112
+                .CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = 2
+                .CellsSRC(visSectionCharacter, 0, visCharacterSize).FormulaU = "11 pt"
+                .CellsSRC(visSectionCharacter, 0, visCharacterDblUnderline).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, visCharacterOverline).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, visCharacterStrikethru).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, 11).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, visCharacterDoubleStrikethrough).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, visCharacterRTLText).FormulaU = False
+                .CellsSRC(visSectionCharacter, 0, visCharacterUseVertical).FormulaU = False
+                .CellsSRC(visSectionObject, visRowText, visTxtBlkTopMargin).FormulaU = "0 pt"
+                .CellsSRC(visSectionObject, visRowText, visTxtBlkBottomMargin).FormulaU = "0 pt"
+                .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.2 mm"
+                .CellsSRC(visSectionObject, visRowLine, visLinePattern).FormulaU = 1
+            End With
+        End If
+    Next
 End Sub
 
-Private Sub Pole_VRCh()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : Pole_VRCh - Установка полей текста ВРЧ 10pt
-'------------------------------------------------------------------------------------------------------------
-
-For i = 1 To 15
-    Application.ActiveWindow.Page.Shapes("В Р Ч").Shapes(i).Shapes(3).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "10 pt"
-Next i
-
-End Sub
 
 Function AddSAPage(PageName As String) As Visio.Page
 '------------------------------------------------------------------------------------------------------------
@@ -265,9 +247,9 @@ Function AddSAPage(PageName As String) As Visio.Page
     Dim Ramka As Visio.Master
     Dim shpRamka As Visio.Shape
     Dim Npage As Integer
-    Dim MaxNumber As Double
+    Dim MaxNumber As Integer
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_SHAPE.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
     Set colPages = New Collection
     
     For Each vsoPage In ActiveDocument.Pages
@@ -281,27 +263,25 @@ Function AddSAPage(PageName As String) As Visio.Page
         Set vsoPage = ActiveDocument.Pages.Add
         vsoPage.Name = PageName
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
+        ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
-
 
     Else
         'Ищем номер последней страницы
-        For Each vsoPage In colPages
-            Npage = CDbl(IIf(Mid(vsoPage.Name, Len(PageName) + 2) = "", 0, Mid(vsoPage.Name, Len(PageName) + 2)))
-            If Npage > MaxNumber Then MaxNumber = Npage
-        Next
-        
-        If Npage = 0 Then
+        MaxNumber = MaxPageNumber(colPages)
+
+        If MaxNumber = 0 Then
             'Создаем вторую страницу
             Set vsoPage = ActiveDocument.Pages.Add
             vsoPage.Name = PageName & ".2"
         Else
             'Создаем последующие страницы
             Set vsoPage = ActiveDocument.Pages.Add
-            vsoPage.Name = PageName & "." & CStr(Npage + 1)
+            vsoPage.Name = PageName & "." & CStr(MaxNumber + 1)
         End If
         
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
+        ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
 
         
@@ -310,8 +290,8 @@ Function AddSAPage(PageName As String) As Visio.Page
     shpRamka.Cells("Prop.TNUM") = 0
     vsoPage.PageSheet.Cells("PageWidth").Formula = "420 MM"
     vsoPage.PageSheet.Cells("PageHeight").Formula = "297 MM"
-    vsoPage.PageSheet.Cells("Paperkind").Formula = 9
-    vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 1
+    vsoPage.PageSheet.Cells("Paperkind").Formula = 8
+    vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 2
     
     LockTitleBlock
 
@@ -320,4 +300,128 @@ Function AddSAPage(PageName As String) As Visio.Page
 End Function
 
 
+Sub fff()
+Dim eee As Page
+Set eee = AddSAPage("PageName")
+End Sub
 
+
+Sub AddSAPageNext()
+'------------------------------------------------------------------------------------------------------------
+' Sub           : AddSAPageNext - Добавляет страницу САПР-АСУ за текущей, копируя ее свойства
+                'Переименовывает страницы раздела идущие за вставляемой страницей
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim vsoPageNew As Visio.Page
+    Dim colPagesAll As Collection
+    Dim colPagesAfter As Collection
+    Dim Ramka As Visio.Master
+    Dim shpRamka As Visio.Shape
+    Dim MaxNpageU As Integer
+    Dim MaxNpage As Integer
+    Dim NameActivePage As String
+    Dim PageName As String
+    Dim PageNumber As Integer
+    Dim Index As Integer
+    Dim ItemCol As Integer
+    
+    Set colPagesAfter = New Collection
+    Set colPagesAll = New Collection
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
+    NameActivePage = ActivePage.Name
+    Index = ActivePage.Index
+    PageName = GetPageName(NameActivePage)
+    PageNumber = GetPageNumber(NameActivePage)
+    
+    'Ищем страницы раздела больше текущей
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName & "*" Then
+            colPagesAll.Add vsoPage
+            If GetPageNumber(vsoPage.Name) > PageNumber Then
+                colPagesAfter.Add vsoPage
+            End If
+        End If
+    Next
+    
+    'Если вставляем страницу в середину раздела
+    If colPagesAfter.Count > 0 Then
+        'Сдвигаем = Переименовываем все листы ниже текущего : к номеру последнего прибавляем + 1
+        While colPagesAfter.Count > 0
+            ItemCol = FindPageMaxNumber(colPagesAfter)
+            Set vsoPage = colPagesAfter.Item(ItemCol)
+            colPagesAfter.Remove ItemCol
+            vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1)
+        Wend
+    End If
+    
+    'Находим максимальный номер страницы в NameU и Name
+    MaxNpage = MaxPageNumber(colPagesAll)
+    MaxNpageU = MaxPageNumberU(colPagesAll)
+    'Создаем страницу раздела с максимальным номером
+    Set vsoPageNew = ActiveDocument.Pages.Add
+    vsoPageNew.Name = PageName & "." & CStr(IIf(MaxNpage > MaxNpageU, MaxNpage, MaxNpageU) + 1)
+    'Переименовываем вставленный лист в нумерацию Name после текущего
+    vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
+    'Положение новой страницы сразу за текущей
+    vsoPageNew.Index = Index + 1
+    Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
+    ActiveDocument.Masters.Item("Рамка").Delete
+    shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
+    shpRamka.Cells("Prop.CNUM") = 0
+    shpRamka.Cells("Prop.TNUM") = 0
+    vsoPageNew.PageSheet.Cells("PageWidth").Formula = "420 MM"
+    vsoPageNew.PageSheet.Cells("PageHeight").Formula = "297 MM"
+    vsoPageNew.PageSheet.Cells("Paperkind").Formula = 8
+    vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = 2
+    
+    LockTitleBlock
+
+End Sub
+
+Function GetPageName(NamePage As String) As String
+    Dim mstrName() As String
+    mstrName = Split(NamePage, ".")
+    GetPageName = mstrName(0)
+End Function
+
+Function GetPageNumber(NamePage As String) As Integer
+    Dim mstrName() As String
+    mstrName = Split(NamePage, ".")
+    If UBound(mstrName) > 0 Then GetPageNumber = CInt(mstrName(1)) Else GetPageNumber = 1
+End Function
+
+Function FindPageMaxNumber(colPages As Collection) As Integer
+    Dim vsoPage As Visio.Page
+    Dim vsoPageMax As Visio.Page
+    Dim MaxNumber As Integer
+    Dim Npage As Integer
+    Dim i As Integer
+    Dim ItemCol As Integer
+    For i = 1 To colPages.Count
+        Npage = GetPageNumber(colPages.Item(i).Name)
+        If Npage > MaxNumber Then MaxNumber = Npage: ItemCol = i
+    Next
+    FindPageMaxNumber = ItemCol
+End Function
+
+Function MaxPageNumber(colPages As Collection) As Integer
+    Dim vsoPage As Visio.Page
+    Dim MaxNumber As Integer
+    Dim Npage As Integer
+    For Each vsoPage In colPages
+        Npage = GetPageNumber(vsoPage.Name)
+        If Npage > MaxNumber Then MaxNumber = Npage
+    Next
+    MaxPageNumber = MaxNumber
+End Function
+
+Function MaxPageNumberU(colPages As Collection) As Integer
+    Dim vsoPage As Visio.Page
+    Dim MaxNumber As Integer
+    Dim Npage As Integer
+    For Each vsoPage In colPages
+        Npage = GetPageNumber(vsoPage.NameU)
+        If Npage > MaxNumber Then MaxNumber = Npage
+    Next
+    MaxPageNumberU = MaxNumber
+End Function

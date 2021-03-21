@@ -1,8 +1,10 @@
+
 Public linkCatalog As String
 Public linkFind As String
 
 Sub run()
     Dim fWidth As Long
+
     If lblNazvanie.Width < imgKartinka.Width + frameMain.Width Then
         Me.Width = imgKartinka.Width + frameMain.Width + 18
     Else
@@ -13,17 +15,17 @@ Sub run()
 '    lblNazvanie.Left = imgKartinka.Width + 6
     btnClose.Left = Me.Width - btnClose.Width - 9
     frameMain.Left = imgKartinka.Width + 6
-    If imgKartinka.Height > 142 Then
+    If imgKartinka.Height > 162 Then
         Me.Height = imgKartinka.Height + 54
     Else
-        Me.Height = 142
+        Me.Height = 162
     End If
     
     Me.Show
 End Sub
 
 Private Sub btnCatalog_Click()
-    CreateObject("WScript.Shell").run linkCatalog
+    If linkCatalog <> "" Then CreateObject("WScript.Shell").run linkCatalog
 End Sub
 
 Private Sub btnFind_Click()

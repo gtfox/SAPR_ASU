@@ -182,7 +182,7 @@ Public Sub MagazinInfo(Artikul As String, NomerMagazina As Integer)
         Case 0 'ЭТМ
             frmDBMagazinInfo.linkFind = "https://www.etm.ru/catalog/?searchValue=" & Artikul
             mstrTovar = ParseHTML_ETM(Artikul)
-        Case 1 'АВС Элктро
+        Case 1 'АВС Электро
             frmDBMagazinInfo.linkFind = "https://avselectro.ru/search/index.php?q=" & Artikul
             mstrTovar = ParseHTML_AVS(Artikul)
         Case Else
@@ -193,7 +193,7 @@ Public Sub MagazinInfo(Artikul As String, NomerMagazina As Integer)
     linkCatalog = mstrTovar(0)
     strImgURL = mstrTovar(4)
     mstrTempFile = Split(strImgURL, "/")
-    If UBound(mstrTempFile) = -1 Then Exit Sub
+    If UBound(mstrTempFile) = -1 Then GoTo err
     strTempFile = ThisDocument.path & mstrTempFile(UBound(mstrTempFile))
     lngRC = URLDownloadToFile(0, strImgURL, strTempFile, 0, 0)
     If Right(strImgURL, 3) = "png" Then
@@ -206,7 +206,7 @@ Public Sub MagazinInfo(Artikul As String, NomerMagazina As Integer)
     frmDBMagazinInfo.txtCena = mstrTovar(2)
     frmDBMagazinInfo.txtCenaRozn = mstrTovar(3)
     frmDBMagazinInfo.linkCatalog = mstrTovar(0)
-
+err:
     frmDBMagazinInfo.run
 
 End Sub
@@ -224,6 +224,7 @@ Public Function ParseHTML_ETM(Artikul As String) As String()
     Set HtmlFile = CreateObject("HtmlFile")
 
     With HtmlFile
+'        AddIntoTXTfile ThisDocument.path & "temp.html", GetHtml(rUrl)
         .Body.innerhtml = GetHtml(rUrl)
         For Each Elemet In .getElementsByTagName("a")
             If Elemet.ClassName = "nameofgood" Then
@@ -262,6 +263,7 @@ Public Function ParseHTML_AVS(Artikul As String) As String()
     Set HtmlFile = CreateObject("HtmlFile")
 
     With HtmlFile
+'        AddIntoTXTfile ThisDocument.path & "temp.html", GetHtml(rUrl)
         .Body.innerhtml = GetHtml(rUrl)
         For Each Elemet In .getElementsByTagName("div")
             Select Case Elemet.ClassName
@@ -296,9 +298,9 @@ Public Function ParseHTML_AVS(Artikul As String) As String()
 End Function
 
 'Получает страницу сайта в строку
-Public Function GetHtml(ByVal url As String) As String
+Public Function GetHtml(ByVal URL As String) As String
     With CreateObject("msxml2.xmlhttp")
-        .Open "GET", url, False
+        .Open "GET", URL, False
         .send
         Do: DoEvents: Loop Until .ReadyState = 4
         GetHtml = .responsetext
@@ -309,29 +311,29 @@ End Function
 Public Function ConvertToJPG(ImgPNG As String) As String
     Dim pic As Object
     Dim oExcel As Excel.Application
-    Dim wb As Excel.Workbook
+    Dim WB As Excel.Workbook
     Dim strTempXls As String
     
     strTempXls = ThisDocument.path & "temp.xls"
     Set oExcel = CreateObject("Excel.Application")
     If Dir(strTempXls, 16) = "" Then
-        Set wb = oExcel.Workbooks.Add
-        wb.SaveAs filename:=strTempXls
+        Set WB = oExcel.Workbooks.Add
+        WB.SaveAs filename:=strTempXls
     Else
-        Set wb = oExcel.Workbooks.Open(strTempXls)
+        Set WB = oExcel.Workbooks.Open(strTempXls)
     End If
-    wb.Activate
-    Set pic = wb.ActiveSheet.Pictures.Insert(ImgPNG)
+    WB.Activate
+    Set pic = WB.ActiveSheet.Pictures.Insert(ImgPNG)
     pic.Width = 300
     pic.Height = 300
     pic.Copy
 
-    With wb.Worksheets(1).ChartObjects.Add(0, 0, pic.Width, pic.Height).Chart
+    With WB.Worksheets(1).ChartObjects.Add(0, 0, pic.Width, pic.Height).Chart
         .Paste
         .Export Left(ImgPNG, Len(ImgPNG) - 3) & "jpg", "jpg"
     End With
     
-    wb.Close SaveChanges:=False
+    WB.Close SaveChanges:=False
     oExcel.Application.Quit
     
     Kill ImgPNG

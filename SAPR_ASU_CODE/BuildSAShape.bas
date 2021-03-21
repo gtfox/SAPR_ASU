@@ -272,16 +272,6 @@ Sub SetValueToSelSections()
 
     Set vsoShape = ActivePage.Shapes.ItemFromID(163)
     
-'SectionNumber = visSectionUser 'User 242
-'sSectionName = "User."
-'            arrRowName = Array("Location", "SAType", "Name", "Dropped", "KodProizvoditelyaDB", "KodPoziciiDB")
-'            arrValue = Array("TheDoc!User.LocationPage&FORMAT(ThePage!User.PageNumber-1,""0"")&TheDoc!User.LocationSeparator&IF(PinY<0,"" - "","""")&IF(User.Location.Prompt<26,"""",CHAR(64+INT(User.Location.Prompt/26)))&CHAR(65+MODULUS(User.Location.Prompt,26))&FORMAT(IF(PinX<0,-1,1)*(INT((ABS(PinX)-(TheDoc!User.LocationC*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))/(TheDoc!User.LocationD*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))+2),""0"");INT((ABS(PinY)-(TheDoc!User.LocationA*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))/(TheDoc!User.LocationB*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))+1+IF(PinY<0,1,0)", _
-'                            "4;", _
-'                            "Prop.SymName&Prop.Number;", _
-'                            "0;""""", _
-'                            ";""""", _
-'                            ";""Код позиции/Код производителя/Код единицы""")
-'SetValueToOneSection vsoShape, arrValue, arrRowName, SectionNumber, RowNumber
 
 SectionNumber = visSectionUser 'User 242
 sSectionName = "User."
@@ -397,7 +387,7 @@ SubSelect:
     Select Case arrSectionNumber(i)
         Case visSectionUser 'User 242
             arrRowName = Array("Location", "SAType", "Name", "Dropped", "StartNumDopKont", "KodProizvoditelyaDB", "KodPoziciiDB")
-            arrValue = Array("TheDoc!User.LocationPage&FORMAT(ThePage!User.PageNumber-1,""0"")&TheDoc!User.LocationSeparator&IF(PinY<0,"" - "","""")&IF(User.Location.Prompt<26,"""",CHAR(64+INT(User.Location.Prompt/26)))&CHAR(65+MODULUS(User.Location.Prompt,26))&FORMAT(IF(PinX<0,-1,1)*(INT((ABS(PinX)-(TheDoc!User.LocationC*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))/(TheDoc!User.LocationD*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))+2),""0"");INT((ABS(PinY)-(TheDoc!User.LocationA*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))/(TheDoc!User.LocationB*(ThePage!DrawingScale/ThePage!PageScale)*25.4 mm))+1+IF(PinY<0,1,0)", _
+            arrValue = Array("", _
                             "2;", _
                             "Prop.SymName&Prop.Number;", _
                             "1;""""", _

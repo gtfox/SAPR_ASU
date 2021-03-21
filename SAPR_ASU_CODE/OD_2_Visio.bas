@@ -39,7 +39,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
     Dim sPath, sFile As String
     Dim objFSO As Object, objFile As Object
     Dim MastOD As Master
-    Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.ItemU("ОД")
+    Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("ОД")
 
     
     
@@ -281,9 +281,9 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         ActivePage.Drop MastOD, 6.889764, 8.661417
                         With ActiveWindow.Selection.Item(1) 'сдвигаем ОД влево
                             .Cells("Geometry1.NoLine").Formula = 1 'скрываем рамку текста
-                            .Cells("PinX").FormulaForceU = "=GUARD((25 mm-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
-                            .Cells("PinY").FormulaForceU = "(ThePage!PageHeight-TheDoc!User.OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
-                            .Cells("Height").FormulaForceU = "=ThePage!PageHeight-TheDoc!User.OffsetFrame*2"
+                            .Cells("PinX").FormulaForceU = "=GUARD((25 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
+                            .Cells("PinY").FormulaForceU = "(ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+                            .Cells("Height").FormulaForceU = "=ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame*2"
                             .Cells("Actions.right.Invisible").Formula = 0
                             .Cells("Actions.left.Invisible").Formula = 1
                         End With
@@ -390,13 +390,9 @@ Function AddNamedPageOD(pName As String) As Visio.Page
     Set aPage = ActiveDocument.Pages.Add
     aPage.Name = pName
     
-    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")  'ActiveDocument.Masters.Item("Рамка")
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
-    'ActivePage.Shapes(1).Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
-    'Номера страниц "=pagenumber()-thedoc!user.coc"
-'    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("shifr").Cells("fields.value").FormulaU = "=TheDoc!User.dec & "".CO"""
-'    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("list").Cells("fields.value").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.coc - PAGECOUNT()"
-'    ActivePage.Shapes(1).Shapes("FORMA3").Shapes("listov").Cells("fields.value").FormulaU = "=TheDoc!User.coc"
+    ActiveDocument.Masters.Item("Рамка").Delete
     ActivePage.Shapes(1).Cells("user.n.value") = 6
     ActivePage.Shapes(1).Cells("Prop.cnum.value") = 0
     ActivePage.Shapes(1).Cells("Prop.tnum.value") = 0

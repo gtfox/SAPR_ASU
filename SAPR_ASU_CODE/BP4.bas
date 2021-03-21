@@ -1,3 +1,21 @@
+'------------------------------------------------------------------------------------------------------------
+' Module        : BP4 - Ведомость рабочих чертежей
+' Author        : gtfox на основе шейпа от Surrogate::speka2003
+' Date          : 2021.03.21
+' Description   : Запускается пкм на шейпе "Обновить ВРЧ".
+'               : Обновлять ВРЧ надо в последнюю очередь, перед печатью, когда есть все листы с рамками и в больших рамках указано наименование листов.
+' Link          : https://visio.getbb.ru/viewtopic.php?p=14130, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
+'------------------------------------------------------------------------------------------------------------
+                'на основе шейпа из:
+                '------------------------------------------------------------------------------------------------------------
+                ' Module    : speka2003 Спецификация
+                ' Author    : Surrogate
+                ' Date      : 07.11.2012
+                ' Purpose   : Спецификация: перенос данных из Excel из Visio и обратно
+                '           : Мастер для переноса данных из экселя в визио, для формирования спецификации
+                ' Links     : https://visio.getbb.ru/viewtopic.php?f=15&t=234, https://visio.getbb.ru/download/file.php?id=106
+                '------------------------------------------------------------------------------------------------------------
+
 Sub FillBP4(shpBP4 As Visio.Shape)
     Dim colRamki As Collection
     Dim vsoPage As Visio.Page
@@ -11,7 +29,7 @@ Sub FillBP4(shpBP4 As Visio.Shape)
         Next
     End If
 
-    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+    For Each vsoPage In ActiveDocument.Pages
         On Error GoTo err
         Set shpRamka = vsoPage.Shapes("Рамка")
         If shpRamka.Cells("prop.type").ResultStr(0) <> "" And _
@@ -27,8 +45,8 @@ err:
         NazvanieRazdela = colRamki(i).Cells("prop.type").ResultStr(0)
         NachaloRazdela = colRamki(i).Cells("User.NomerLista").Result(0)
         If colRamki.Count >= (i + 1) Then
-            KonecRazdela = colRamki(i + 1).Cells("User.NomerLista").Result(0)
-            If KonecRazdela - NachaloRazdela <= 1 Then KonecRazdela = 0
+            KonecRazdela = colRamki(i + 1).Cells("User.NomerLista").Result(0) - 1
+            If KonecRazdela - NachaloRazdela <= 0 Then KonecRazdela = 0
         Else
             KonecRazdela = colRamki(i).Cells("User.ChisloListov").Result(0)
         End If
@@ -113,7 +131,7 @@ End Sub
 
 
 Sub eee()
-'Записывает потеряные формулы в строки шейпа спецификации который станет ВРЧ
+'Записывает потерянные формулы в строки шейпа спецификации который станет ВРЧ
     Dim shRow As Shape
     Dim shCell As Shape
     Dim strSource() As String

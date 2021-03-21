@@ -444,7 +444,7 @@ Public Sub AddPagesSVP()
     
     ShinaNumber = False
     
-    PastePoint = "25 mm - TheDoc!User.OffsetFrame"
+    PastePoint = "25 mm - TheDoc!User.SA_FR_OffsetFrame"
     
     Set ThePage = ActivePage.PageSheet
     
@@ -522,7 +522,7 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
                 Set vsoPage = AddSAPage("СВП")
                 'Положение новой страницы сразу за текущей
                 vsoPage.Index = Index + 1
-                PastePoint = "25 mm - TheDoc!User.OffsetFrame"
+                PastePoint = "25 mm - TheDoc!User.SA_FR_OffsetFrame"
                 'Вставляем этот же датчик только на следующем листе
                 AddSensorOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
             End If

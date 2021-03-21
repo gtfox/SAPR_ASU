@@ -1,3 +1,4 @@
+
 #If VBA7 Then
     Private Declare PtrSafe Function SendMessage Lib "user32" Alias "SendMessageA" (ByVal hWnd&, ByVal wMsg&, ByVal wParam&, lParam As Any) As Long
 #Else
