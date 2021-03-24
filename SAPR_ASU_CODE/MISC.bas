@@ -11,26 +11,27 @@ Dim i As Integer
 
 
  
-Function SAPageExist(PageName As String) As Visio.Page
+Function GetSAPageExist(PageName As String) As Visio.Page
 '------------------------------------------------------------------------------------------------------------
-' Function        : SAPageExist - Проверяет существование страницы и возвращает ее
+' Function        : GetSAPageExist - Проверяет существование страницы и возвращает ее
 '------------------------------------------------------------------------------------------------------------
-    Dim vsoPage As Visio.Page
-    
-'    For Each vsoPage In ActiveDocument.Pages
-'        If vsoPage.Name Like PageName Then
-'            Set SAPageExist = vsoPage
-'            Exit Function
-'        End If
-'    Next
     On Error GoTo ER
-    Set SAPageExist = ActiveDocument.Pages.Item(PageName)
+    Set GetSAPageExist = ActiveDocument.Pages.Item(PageName)
     Exit Function
 ER:
-    Set SAPageExist = Nothing
-    
+    Set GetSAPageExist = Nothing
 End Function
 
+Function GetSAShapeExist(Container As Object, ShapeName As String) As Visio.Shape
+'------------------------------------------------------------------------------------------------------------
+' Function        : GetSAShapeExist - Проверяет существование шейпа и возвращает его
+'------------------------------------------------------------------------------------------------------------
+    On Error GoTo ER
+    Set GetSAShapeExist = Container.Shapes(ShapeName)
+    Exit Function
+ER:
+    Set GetSAShapeExist = Nothing
+End Function
 
 Function ShapeSAType(vsoShape As Visio.Shape) As Integer
 '------------------------------------------------------------------------------------------------------------

@@ -39,14 +39,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
     Dim sPath, sFile As String
     Dim objFSO As Object, objFile As Object
     Dim MastOD As Master
-    Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("ОД")
+    Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item(cListNameOD)
 
     
     
     
     If Not Application.ActiveWindow.Selection.Count = 0 Then
     
-        If InStr(1, Application.ActiveWindow.Selection.Item(1).Name, "ОД") > 0 Then
+        If InStr(1, Application.ActiveWindow.Selection.Item(1).Name, cListNameOD) > 0 Then
             
             Set vsoCharacters1 = Application.ActiveWindow.Selection.Item(1).Characters
             
@@ -188,14 +188,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
     
             'верх сраницы 1
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="1"
+            wa.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="1"
             wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
             
             nStartPageNum = 1
-            Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+            Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
             nEndPageNum = 1
             'Конец последней страницы для выделения
-            Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + nEndPageNum)  '.GoToNext(wdGoToPage)
+            Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + nEndPageNum)  '.GoToNext(wdGoToPage)
             'Выделяем указанный диапазон документа
             wad.Range(oStartPage.Start, oEndPage.End).Select ' wad.Range(oStartPage.Start, IIf(nStartPageNum + nEndPageNum = nPagesCount + 1, wad.Range.End, oEndPage.End)).Select
             'копируем в буфер в ворде
@@ -206,7 +206,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             ActivePage.Shapes.Item("ОД").Cells("Geometry1.NoLine").Formula = 1
             
             'переходим в начало 2-го листа ворда
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="2"
+            wa.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="2"
             wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
             wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
             
@@ -220,7 +220,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             For CurPage = 2 To nPagesCount
                 'переходим на верх текущего листа
-                wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:=CurPage
+                wa.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, Name:=CurPage
     
                 If nPagesOst = 1 Or A4 Then 'последний лист или выбрано "все листы А4"
                 
@@ -228,7 +228,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     niznee_pole = ramka15
                     wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                     'вставляем лист А4
-                    Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
+                    Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                     aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
                     pNumberVisio = pNumberVisio + 1
                     ActivePage.PageSheet.Cells("PageWidth").Formula = "210 MM"
@@ -242,10 +242,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     'shpOD.Paste '.Select 'либо если есть метод paste сразу
                     'выбрали диапазон текущего листа
                     nStartPageNum = CurPage
-                    Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                    Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                     nEndPageNum = CurPage
                     'Конец последней страницы для выделения
-                    Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                    Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                     'Выделяем указанный диапазон документа
                     wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                     'копируем в буфер в ворде
@@ -272,7 +272,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         niznee_pole = ramka5
                         wa.Selection.PageSetup.BottomMargin = CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                         'вставляем лист А3
-                        Set aPage = AddNamedPageOD("ОД." & pNumberVisio + 1)
+                        Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                         aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
                         ActivePage.PageSheet.Cells("PageWidth").Formula = "420 MM"
                         ActivePage.PageSheet.Cells("PageHeight").Formula = "297 MM"
@@ -290,10 +290,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
 
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
-                        Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                        Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
                         'Конец последней страницы для выделения
-                        Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                        Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                         'Выделяем указанный диапазон документа
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде
@@ -319,10 +319,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         ActiveWindow.Selection.Item(1).Cells("Geometry1.NoLine").Formula = 1
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
-                        Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                        Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
                         'Конец последней страницы для выделения
-                        Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                        Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                         'Выделяем указанный диапазон документа
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде
@@ -355,7 +355,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             wa.Quit
             Set wa = Nothing
             
-            Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("ОД")
+            Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameOD)
 
             MsgBox "Текстовая часть ОД добавлена", vbInformation
             Exit Sub
@@ -406,7 +406,7 @@ Public Sub odDELL()
     Set colPage = New Collection
     'проходим все страницы и добавляем в коллекцию тока нужные (если удалять сразу тут же, то 3-я страница становится 2-й, а 2-ю for each уже пролистал :) сучара )
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, "ОД.") > 0 Then
+        If InStr(1, dp.Name, cListNameOD & ".") > 0 Then
             colPage.Add dp
         End If
     Next
@@ -415,7 +415,7 @@ Public Sub odDELL()
         dp.Delete (1)
     Next
     Set colPage = Nothing
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("ОД")
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameOD)
     MsgBox "Листы ОД удалены", vbInformation
 End Sub
 

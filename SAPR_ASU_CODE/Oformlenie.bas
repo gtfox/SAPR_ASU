@@ -129,39 +129,37 @@ Public Sub LockTitleBlock()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : LockTitleBlock - Блокировка слоя рамки
 '------------------------------------------------------------------------------------------------------------
-
     Dim vsoLayer1 As Visio.Layer
     Set vsoLayer1 = Application.ActiveWindow.Page.Layers("SA_Рамка")
     
     If vsoLayer1.CellsC(visLayerLock).FormulaU = 0 Then
-        
         'Блокруем слой
         vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
         vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
         vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
         vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
-      
         Application.CommandBars("САПР АСУ").Controls("БлокРамки").State = msoButtonDown
-
     Else
-        
         'Разблокруем слой
         vsoLayer1.CellsC(visLayerLock).FormulaU = "0"
         vsoLayer1.CellsC(visLayerColor).FormulaU = "255"
         vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
         vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
-        
         Application.CommandBars("САПР АСУ").Controls("БлокРамки").State = msoButtonUp
     End If
-
 End Sub
 
 
-Sub DrawingPageColor()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : DrawingPageColor - Цвет листа как Splan 7 (15924991-кремовый)
-'------------------------------------------------------------------------------------------------------------
+Sub SetSAStyle()
+    SetVisioProp
+    SetGridSnap
+    SetDefStyleISOCPEUR11
+End Sub
 
+Sub SetVisioProp()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetVisioProp - Настройки Visio, Цвет листа как Splan 7 (15924991-кремовый)
+'------------------------------------------------------------------------------------------------------------
     Application.Settings.DeveloperMode = True
     Application.Settings.FreeformDrawingPrecision = 5
     Application.Settings.FreeformDrawingSmoothing = 5
@@ -178,16 +176,14 @@ Sub DrawingPageColor()
 
 End Sub
 
-Private Sub SetStyleGost()
+Private Sub SetGridSnap()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : SetStyleGost - Изменение стилей под Гост
+' Macros        : SetGridSnap - Изменение сетки и силы привязки
 '------------------------------------------------------------------------------------------------------------
-
-    ПеределкаСтандартныхСтилей
-    
-    'сетка 2,5 мм
     Dim vsoShape As Shape
     Dim vsoPage As Visio.Page
+    
+    'сетка 2,5 мм
     For Each vsoPage In Application.ActiveDocument.Pages
         Set vsoShape = vsoPage.PageSheet
         vsoShape.CellsSRC(visSectionObject, visRowRulerGrid, visXGridDensity).FormulaU = "0"
@@ -195,17 +191,18 @@ Private Sub SetStyleGost()
         vsoShape.CellsSRC(visSectionObject, visRowRulerGrid, visYGridDensity).FormulaU = "0"
         vsoShape.CellsSRC(visSectionObject, visRowRulerGrid, visYGridSpacing).FormulaU = "2.5 mm"
     Next
-    
+
     'Сила привязки к сетке в пикселях
     'Сервис -> Привязать и приклеить -> Дополнительно -> Сетка = 100
     Application.Settings.SnapStrengthGridX = 100
     Application.Settings.SnapStrengthGridY = 100
     
-    Application.Settings.EnableAutoConnect = False
-    
 End Sub
 
-Sub ПеределкаСтандартныхСтилей()
+Sub SetDefStyleISOCPEUR11()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetDefStyleISOCPEUR11 - Изменение стандартные стили на ISOCPEUR 11pt
+'------------------------------------------------------------------------------------------------------------
     Dim vsoStyle As Visio.style
 
     For i = 1 To Application.ActiveDocument.Styles.Count
@@ -248,6 +245,7 @@ Function AddSAPage(PageName As String) As Visio.Page
     Dim shpRamka As Visio.Shape
     Dim Npage As Integer
     Dim MaxNumber As Integer
+    Dim MaxNpage As Integer
     
     Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
     Set colPages = New Collection
@@ -268,15 +266,19 @@ Function AddSAPage(PageName As String) As Visio.Page
 
     Else
         'Ищем номер последней страницы
-        MaxNumber = MaxPageNumber(colPages)
+        MaxNumber = MaxMinPageNumber(colPages)
 
-        If MaxNumber = 0 Then
-            'Создаем вторую страницу
+        If MaxNumber = 1 Then 'Создаем вторую страницу
             Set vsoPage = ActiveDocument.Pages.Add
             vsoPage.Name = PageName & ".2"
-        Else
-            'Создаем последующие страницы
+            
+        Else 'Создаем последующие страницы
+            'Находим максимальный номер страницы в NameU и Name
+            MaxNpage = MaxMinPageNumber(colPages, , , True)
+            'Создаем страницу раздела с максимальным номером
             Set vsoPage = ActiveDocument.Pages.Add
+            vsoPage.Name = PageName & "." & CStr(MaxNpage + 1)
+            'Переименовываем вставленный лист в нумерацию Name после текущего
             vsoPage.Name = PageName & "." & CStr(MaxNumber + 1)
         End If
         
@@ -284,7 +286,6 @@ Function AddSAPage(PageName As String) As Visio.Page
         ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
 
-        
     End If
     shpRamka.Cells("Prop.CNUM") = 0
     shpRamka.Cells("Prop.TNUM") = 0
@@ -299,12 +300,9 @@ Function AddSAPage(PageName As String) As Visio.Page
     
 End Function
 
-
-Sub fff()
-Dim eee As Page
-Set eee = AddSAPage("PageName")
+Sub ShowSAPageRazdel()
+    frmPageAddRazdel.Show
 End Sub
-
 
 Sub AddSAPageNext()
 '------------------------------------------------------------------------------------------------------------
@@ -313,26 +311,31 @@ Sub AddSAPageNext()
 '------------------------------------------------------------------------------------------------------------
     Dim vsoPage As Visio.Page
     Dim vsoPageNew As Visio.Page
+    Dim vsoPageSource As Visio.Page
     Dim colPagesAll As Collection
     Dim colPagesAfter As Collection
     Dim Ramka As Visio.Master
+    Dim Setka As Visio.Master
     Dim shpRamka As Visio.Shape
-    Dim MaxNpageU As Integer
+    Dim shpRamkaSource As Visio.Shape
     Dim MaxNpage As Integer
-    Dim NameActivePage As String
     Dim PageName As String
     Dim PageNumber As Integer
     Dim Index As Integer
     Dim ItemCol As Integer
+    Dim SA_NomerShemy As String
+    Dim SA_NomerFSA As String
     
     Set colPagesAfter = New Collection
     Set colPagesAll = New Collection
     Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
-    NameActivePage = ActivePage.Name
-    Index = ActivePage.Index
-    PageName = GetPageName(NameActivePage)
-    PageNumber = GetPageNumber(NameActivePage)
-    
+    Set Setka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("SETKA KOORD")
+    Set vsoPageSource = ActivePage
+    Index = vsoPageSource.Index
+    PageName = GetPageName(vsoPageSource.Name)
+    PageNumber = GetPageNumber(vsoPageSource.Name)
+    Set shpRamkaSource = vsoPageSource.Shapes("Рамка")
+
     'Ищем страницы раздела больше текущей
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.Name Like PageName & "*" Then
@@ -344,22 +347,19 @@ Sub AddSAPageNext()
     Next
     
     'Если вставляем страницу в середину раздела
-    If colPagesAfter.Count > 0 Then
-        'Сдвигаем = Переименовываем все листы ниже текущего : к номеру последнего прибавляем + 1
-        While colPagesAfter.Count > 0
-            ItemCol = FindPageMaxNumber(colPagesAfter)
-            Set vsoPage = colPagesAfter.Item(ItemCol)
-            colPagesAfter.Remove ItemCol
-            vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1)
-        Wend
-    End If
+    'Сдвигаем = Переименовываем все листы ниже текущего : к номеру последнего прибавляем + 1
+    While colPagesAfter.Count > 0
+        ItemCol = FindPageMaxMinNumber(colPagesAfter)
+        Set vsoPage = colPagesAfter.Item(ItemCol)
+        colPagesAfter.Remove ItemCol
+        vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+    Wend
     
     'Находим максимальный номер страницы в NameU и Name
-    MaxNpage = MaxPageNumber(colPagesAll)
-    MaxNpageU = MaxPageNumberU(colPagesAll)
+    MaxNpage = MaxMinPageNumber(colPagesAll, , , True)
     'Создаем страницу раздела с максимальным номером
     Set vsoPageNew = ActiveDocument.Pages.Add
-    vsoPageNew.Name = PageName & "." & CStr(IIf(MaxNpage > MaxNpageU, MaxNpage, MaxNpageU) + 1)
+    vsoPageNew.Name = PageName & "." & CStr(MaxNpage + 1)
     'Переименовываем вставленный лист в нумерацию Name после текущего
     vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
     'Положение новой страницы сразу за текущей
@@ -367,15 +367,78 @@ Sub AddSAPageNext()
     Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
     ActiveDocument.Masters.Item("Рамка").Delete
     shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
-    shpRamka.Cells("Prop.CNUM") = 0
-    shpRamka.Cells("Prop.TNUM") = 0
-    vsoPageNew.PageSheet.Cells("PageWidth").Formula = "420 MM"
-    vsoPageNew.PageSheet.Cells("PageHeight").Formula = "297 MM"
-    vsoPageNew.PageSheet.Cells("Paperkind").Formula = 8
-    vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = 2
+    shpRamka.Cells("Prop.Type").Formula = shpRamkaSource.Cells("Prop.Type").Formula
+    shpRamka.Cells("Prop.CNUM").Formula = shpRamkaSource.Cells("Prop.CNUM").Formula
+    shpRamka.Cells("Prop.TNUM").Formula = shpRamkaSource.Cells("Prop.TNUM").Formula
+    vsoPageNew.PageSheet.Cells("PageWidth").Formula = vsoPageSource.PageSheet.Cells("PageWidth").Formula
+    vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
+    vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
+    vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NomerShemy", 0) Then
+        SetSA_NomerShemy vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NomerShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerShemy.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NomerShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerShemy").Formula
+        vsoPageNew.Drop Setka, 0, 0
+    End If
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NomerFSA", 0) Then
+        SetSA_NomerFSA vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NomerFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerFSA.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NomerFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerFSA").Formula
+    End If
     
     LockTitleBlock
 
+End Sub
+
+Sub DelSAPage()
+'------------------------------------------------------------------------------------------------------------
+' Sub           : DelSAPage - Удаляет текущую страницу САПР-АСУ
+                'Переименовывает страницы раздела идущие после удаленной страницы
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim colPagesAfter As Collection
+    Dim NameActivePage As String
+    Dim PageName As String
+    Dim PageNumber As Integer
+    Dim ItemCol As Integer
+    
+    If MsgBox("Удалить лист: " & ActivePage.Name, vbYesNo + vbCritical, "Удаление листа") = vbYes Then
+    
+        Set colPagesAfter = New Collection
+        NameActivePage = ActivePage.Name
+        PageName = GetPageName(NameActivePage)
+        PageNumber = GetPageNumber(NameActivePage)
+
+        ActiveWindow.DeselectAll
+        On Error GoTo err
+        ActiveWindow.SelectAll
+        ActiveWindow.Selection.Delete
+        
+        DoEvents
+err:
+        ActivePage.Delete 0
+        
+        If PageNumber = 1 Then Exit Sub
+        
+        'Ищем страницы раздела больше текущей
+        For Each vsoPage In ActiveDocument.Pages
+            If vsoPage.Name Like PageName & "*" Then
+                If GetPageNumber(vsoPage.Name) > PageNumber Then
+                    colPagesAfter.Add vsoPage
+                End If
+            End If
+        Next
+        
+        'Если удаляем страницу из середины раздела
+        'Сдвигаем = Переименовываем все листы ниже текущего : у номера первого - 1
+        While colPagesAfter.Count > 0
+            ItemCol = FindPageMaxMinNumber(colPagesAfter, True)
+            Set vsoPage = colPagesAfter.Item(ItemCol)
+            colPagesAfter.Remove ItemCol
+            vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) - 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+        Wend
+        
+    End If
 End Sub
 
 Function GetPageName(NamePage As String) As String
@@ -390,38 +453,86 @@ Function GetPageNumber(NamePage As String) As Integer
     If UBound(mstrName) > 0 Then GetPageNumber = CInt(mstrName(1)) Else GetPageNumber = 1
 End Function
 
-Function FindPageMaxNumber(colPages As Collection) As Integer
+Function GetPageDesc(NamePage As String) As String
+    Dim mstrName() As String
+    mstrName = Split(NamePage, ".")
+    If UBound(mstrName) > 1 Then GetPageDesc = mstrName(2) Else GetPageDesc = ""
+End Function
+
+Function FindPageMaxMinNumber(colPages As Collection, Optional Min As Boolean) As Integer
     Dim vsoPage As Visio.Page
     Dim vsoPageMax As Visio.Page
     Dim MaxNumber As Integer
+    Dim MinNumber As Integer
     Dim Npage As Integer
     Dim i As Integer
     Dim ItemCol As Integer
+    MinNumber = 32767
     For i = 1 To colPages.Count
         Npage = GetPageNumber(colPages.Item(i).Name)
-        If Npage > MaxNumber Then MaxNumber = Npage: ItemCol = i
+        If Min Then
+            If Npage < MinNumber Then MinNumber = Npage: ItemCol = i
+        Else
+            If Npage > MaxNumber Then MaxNumber = Npage: ItemCol = i
+        End If
     Next
-    FindPageMaxNumber = ItemCol
+    FindPageMaxMinNumber = ItemCol
 End Function
 
-Function MaxPageNumber(colPages As Collection) As Integer
+Function MaxMinPageNumber(colPages As Collection, Optional Min As Boolean, Optional NameU As Boolean, Optional AllName As Boolean) As Integer
     Dim vsoPage As Visio.Page
     Dim MaxNumber As Integer
+    Dim MinNumber As Integer
+    Dim MaxNumberTemp As Integer
+    Dim MinNumberTemp As Integer
     Dim Npage As Integer
+    
+    GoSub SubFind
+    MaxMinPageNumber = IIf(Min, MinNumber, MaxNumber)
+
+    If AllName Then
+        NameU = Not NameU
+        MaxNumberTemp = MaxNumber
+        MinNumberTemp = MinNumber
+        GoSub SubFind
+        If Min Then
+            MaxMinPageNumber = IIf(MinNumber < MinNumberTemp, MinNumber, MinNumberTemp)
+        Else
+            MaxMinPageNumber = IIf(MaxNumber > MaxNumberTemp, MaxNumber, MaxNumberTemp)
+        End If
+    End If
+    Exit Function
+    
+SubFind:
+    MinNumber = 32767
     For Each vsoPage In colPages
-        Npage = GetPageNumber(vsoPage.Name)
+        Npage = GetPageNumber(IIf(NameU, vsoPage.NameU, vsoPage.Name))
+        If Npage < MinNumber Then MinNumber = Npage
         If Npage > MaxNumber Then MaxNumber = Npage
     Next
-    MaxPageNumber = MaxNumber
+    Return
 End Function
 
-Function MaxPageNumberU(colPages As Collection) As Integer
-    Dim vsoPage As Visio.Page
-    Dim MaxNumber As Integer
-    Dim Npage As Integer
-    For Each vsoPage In colPages
-        Npage = GetPageNumber(vsoPage.NameU)
-        If Npage > MaxNumber Then MaxNumber = Npage
-    Next
-    MaxPageNumberU = MaxNumber
-End Function
+Sub SetSA_NomerShemy(vsoObject As Object) 'SetValueToSelSections
+    Dim arrValue()
+    Dim arrRowName()
+    Dim SectionNumber As Long
+    SectionNumber = visSectionProp 'Prop 243
+    arrRowName = Array("SA_NomerShemy")
+    arrValue = Array("""Название Схемы"":""Нумерация элементов идет в пределах одной схемы"":1:""Схема шкафа АСУ"":INDEX(0,Prop.SA_NomerShemy.Format):"""":FALSE:FALSE:1049:0")
+    SetValueToOneSection vsoObject, arrValue, arrRowName, SectionNumber
+End Sub
+
+Sub SetSA_NomerFSA(vsoObject As Object) 'SetValueToSelSections
+    Dim arrValue()
+    Dim arrRowName()
+    Dim SectionNumber As Long
+    SectionNumber = visSectionProp 'Prop 243
+    arrRowName = Array("SA_NomerFSA")
+    arrValue = Array("""Название ФСА"":""Нумерация элементов идет в пределах одной ФСА"":1:""ФСА"":INDEX(0,Prop.SA_NomerFSA.Format):"""":FALSE:FALSE:1049:0")
+    SetValueToOneSection vsoObject, arrValue, arrRowName, SectionNumber
+End Sub
+
+Sub nnn()
+    SetSA_NomerFSA ActivePage.PageSheet
+End Sub

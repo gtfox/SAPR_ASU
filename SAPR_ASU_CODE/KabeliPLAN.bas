@@ -399,7 +399,7 @@ Public Sub AddSensorsFSAOnPlan()
     Set colSensorToPLAN = New Collection
     Set vsoSelection = ActiveWindow.Selection
     Set vsoPagePlan = ActiveDocument.Pages("План.2")
-    Set vsoPageFSA = ActiveDocument.Pages("ФСА")
+    Set vsoPageFSA = ActiveDocument.Pages(cListNameFSA)
     
     'Находим что есть на плане
     For Each shpSensorOnPLAN In vsoPagePlan.Shapes

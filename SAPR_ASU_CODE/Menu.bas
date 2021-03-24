@@ -3,7 +3,7 @@ Sub AddToolBar()
     
     'Меню существует?
     For Each Bar In Application.CommandBars
-        If Bar.Name = "САПР АСУ" Then Exit Sub
+        If Bar.Name = "САПР АСУ" Then Bar.Delete 'Exit Sub
     Next
     
     Set Bar = Application.CommandBars.Add(Position:=msoBarTop, Temporary:=True) 'msoBarTop msoBarFloating
@@ -70,7 +70,40 @@ Private Sub AddButtons()
         .TooltipText = "Экспорт кода для GitHub"
         .FaceID = 3
     End With
+
+        '---Кнопка Добавить лист
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=5)
+    With Button
+        .Caption = "ДобавитьЛист"
+        .Tag = "AddPage"
+        .style = msoButtonAutomatic
+        .OnAction = "AddSAPageNext"
+        .TooltipText = "Добавить лист"
+        .FaceID = 535 '18
+        .BeginGroup = True
+    End With
     
+        '---Кнопка Удалить лист
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=6)
+    With Button
+        .Caption = "УдалитьЛист"
+        .Tag = "DelPage"
+        .style = msoButtonAutomatic
+        .OnAction = "DelSAPage"
+        .TooltipText = "Удалить лист"
+        .FaceID = 536 '305
+    End With
+    
+        '---Кнопка Создать раздел
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=7)
+    With Button
+        .Caption = "СоздатьРаздел"
+        .Tag = "AddRazdel"
+        .style = msoButtonAutomatic
+        .OnAction = "ShowSAPageRazdel"
+        .TooltipText = "Создать раздел"
+        .FaceID = 533 '786
+    End With
     
     Set Button = Nothing
            

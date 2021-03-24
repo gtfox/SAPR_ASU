@@ -52,14 +52,14 @@ End Sub
 'Public Sub spADD_Excel_Razbienie()
 '    xls_query "SP_2_Visio"
 '    fill_table False
-'    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("С")
+'    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
 '    MsgBox "Спецификация добавлена", vbInformation
 'End Sub
 
 Public Sub spADD_Visio_Perenos()
     xls_query "SP"
     fill_table
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item("С")
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
     MsgBox "Спецификация добавлена", vbInformation
 End Sub
 
@@ -159,8 +159,8 @@ Private Sub fill_table()  ' заполнение спецификации
     TheDocListovSpecifikac.FormulaU = 1
     pNumber = 1
     NRow = 1
-    pName = "С."
-    AddPageSpecifikac "С"
+    pName = cListNameSpec & "."
+    AddPageSpecifikac cListNameSpec
     Set mastSpecifikacia = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Спецификация")
     ActivePage.Drop mastSpecifikacia, 0, 0
     Set shpSpecifikacia = ActivePage.Shapes.Item("Спецификация")
@@ -250,7 +250,7 @@ Private Sub del_sp()
     Set colPage = New Collection
     'Спецификацию в колекцию
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, "С.") > 0 Then
+        If InStr(1, dp.Name, cListNameSpec & ".") > 0 Then
             colPage.Add dp
         End If
     Next
@@ -259,7 +259,7 @@ Private Sub del_sp()
         dp.Delete (1)
     Next
     On Error Resume Next
-    ActiveDocument.Pages.Item("С").Delete (1)
+    ActiveDocument.Pages.Item(cListNameSpec).Delete (1)
     ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
 End Sub
 
@@ -270,13 +270,13 @@ Public Sub spEXP_2_XLS()
     Dim np As Page
     Dim pg As Page
     Dim N As Integer
-    pName = "С"
+    pName = cListNameSpec
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
-    Application.ActiveWindow.Page = ActiveDocument.Pages.Item("С")
+    Application.ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameSpec)
     get_data
     For N = 2 To ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac")
-        pName = "С." & N
+        pName = cListNameSpec & "." & N
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data
     Next

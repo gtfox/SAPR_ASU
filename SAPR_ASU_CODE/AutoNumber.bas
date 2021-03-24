@@ -52,7 +52,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
 
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = "Схема"  'Имена листов где возможна нумерация
+    PageName = cListNameCxema  'Имена листов где возможна нумерация
     If ThePage.CellExists("User.NomerShemy", 0) Then NomerShemy = ThePage.Cells("User.NomerShemy").Result(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
     
     'Узнаем тип и буквенное обозначение элемента, который вставили на схему
@@ -253,7 +253,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
 
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = "ФСА"  'Имена листов где возможна нумерация
+    PageName = cListNameFSA  'Имена листов где возможна нумерация
     If ThePage.CellExists("User.NomerFSA", 0) Then NomerFSA = ThePage.Cells("User.NomerFSA").Result(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер. По умолчанию = 1
     
     'Узнаем тип и буквенное обозначение элемента, который вставили на схему
@@ -326,7 +326,7 @@ End Sub
 Sub HideWireNumChildInDoc()
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = "Схема"  'Имена листов
+    PageName = cListNameCxema  'Имена листов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
             HideWireNumChild vsoPage
@@ -347,7 +347,7 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
     Dim ThePage As Visio.Shape
     Set ThePage = vsoPage.PageSheet
     
-    PageName = "Схема"  'Имена листов где возможна нумерация
+    PageName = cListNameCxema  'Имена листов где возможна нумерация
     'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер. По умолчанию = 1
     If ThePage.CellExists("User.NomerShemy", 0) Then NomerShemy = ThePage.Cells("User.NomerShemy").Result(0)
     
@@ -373,7 +373,7 @@ Sub NomerShemyAdd()
     Dim ThePage As Visio.Shape
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = "Схема"
+    PageName = cListNameCxema
     
 '    For Each vsoPage In ActiveDocument.Pages
 '        If InStr(1, vsoPage.Name, PageName) > 0 Then
@@ -412,7 +412,7 @@ Sub NomerFSA_Add()
     Dim ThePage As Visio.Shape
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = "ФСА"
+    PageName = cListNameFSA
     
 '    For Each vsoPage In ActiveDocument.Pages
 '        If InStr(1, vsoPage.Name, PageName) > 0 Then

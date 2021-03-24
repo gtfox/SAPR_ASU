@@ -349,8 +349,8 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     For Each vsoPage In ActiveDocument.Pages
         Select Case FindType
             Case typeSensor, typeActuator
-                If (InStr(1, vsoPage.Name, "ФСА") > 0) Or (InStr(1, vsoPage.Name, "План") > 0) Then
-                '(InStr(1, vsoPage.Name, "ВИД") > 0) Or (InStr(1, vsoPage.Name, "СВП") > 0)
+                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Or (InStr(1, vsoPage.Name, cListNamePlan) > 0) Then
+                '(InStr(1, vsoPage.Name, cListNameVID) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0)
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
                 End If
             Case typeFSASensor
@@ -358,8 +358,8 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
                 End If
             Case typeFSAPodval
-                If (InStr(1, vsoPage.Name, "ФСА") > 0) Then
-                '(InStr(1, vsoPage.Name, "ВИД") > 0) Or (InStr(1, vsoPage.Name, "СВП") > 0)
+                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Then
+                '(InStr(1, vsoPage.Name, cListNameVID) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0)
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
                 End If
         End Select

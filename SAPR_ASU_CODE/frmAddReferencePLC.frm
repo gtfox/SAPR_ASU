@@ -312,12 +312,12 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     For Each vsoPage In ActiveDocument.Pages
         Select Case FindType
             Case typePLCChild, typePLCParent
-                If (InStr(1, vsoPage.Name, "Схема") > 0) Then
+                If (InStr(1, vsoPage.Name, cListNameCxema) > 0) Then
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
                 End If
 '            Case typeSensor, typeActuator
-'                If (InStr(1, vsoPage.Name, "ФСА") > 0) Or (InStr(1, vsoPage.Name, "ВИД") > 0) Or _
-'                   (InStr(1, vsoPage.Name, "План") > 0) Or (InStr(1, vsoPage.Name, "СВП") > 0) Then
+'                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Or (InStr(1, vsoPage.Name, cListNameVID) > 0) Or _
+'                   (InStr(1, vsoPage.Name, cListNamePlan) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0) Then
 '                    Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
 '                End If
         End Select

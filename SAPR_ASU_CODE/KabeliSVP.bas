@@ -289,7 +289,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 
     ActiveWindow.Page = ActiveDocument.Pages(vsoPageSVP.Name)
     ActivePage.Paste
-    'Application.ActiveDocument.Pages("СВП").Paste
+    'Application.ActiveDocument.Pages(cListNameSVP).Paste
 
     Set vsoGroup = ActiveWindow.Selection.Group
     
@@ -450,7 +450,7 @@ Public Sub AddPagesSVP()
     
     Set colShpDoc = New Collection
     
-    PageName = "Схема"  'Имена листов где возможна нумерация
+    PageName = cListNameCxema  'Имена листов где возможна нумерация
     'If ThePage.CellExists("User.NomerShemy", 0) Then NomerShemy = ThePage.Cells("User.NomerShemy").Result(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
     NomerShemy = 4
 
@@ -508,8 +508,8 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
 
     If colShpDoc.Count > 0 Then
         'Берем первую страницу СВП
-        Set vsoPage = SAPageExist("СВП") 'ActiveDocument.Pages("СВП")
-        If vsoPage Is Nothing Then Set vsoPage = AddSAPage("СВП")
+        Set vsoPage = GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
+        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
         
         'Вставляем на лист СВП найденные и отсортированные датчики/приводы
         For i = 1 To colShpDoc.Count
@@ -519,7 +519,7 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
                 'Положение текущей страницы
                 Index = vsoPage.Index
                 'Создаем новую страницу СВП
-                Set vsoPage = AddSAPage("СВП")
+                Set vsoPage = AddSAPage(cListNameSVP)
                 'Положение новой страницы сразу за текущей
                 vsoPage.Index = Index + 1
                 PastePoint = "25 mm - TheDoc!User.SA_FR_OffsetFrame"
