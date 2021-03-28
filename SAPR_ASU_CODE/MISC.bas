@@ -39,6 +39,8 @@ Function ShapeSAType(vsoShape As Visio.Shape) As Integer
 '------------------------------------------------------------------------------------------------------------
     If vsoShape.CellExists("User.SAType", 0) Then   'Если в шейпе есть тип, то -
         ShapeSAType = vsoShape.Cells("User.SAType").Result(0) 'возвращаем его значение
+    Else
+        ShapeSAType = 0
     End If
 End Function
 
@@ -155,9 +157,9 @@ dl = CableLength(snap1)
 MsgBox ("длина линии " & dl & " м")
 End Sub
 
-'    ReDim arrValue(10, 1)
-'    arrValue = [{"1", "2";"11", "22";"111", "222"}]
-'    UBarrCellName = UBound(arrValue)
+'    ReDim arrRowValue(10, 1)
+'    arrRowValue = [{"1", "2";"11", "22";"111", "222"}]
+'    UBarrCellName = UBound(arrRowValue)
 
 'Sub ЦБР()
 '    Dim str As String

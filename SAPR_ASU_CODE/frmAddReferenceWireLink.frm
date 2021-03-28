@@ -1,4 +1,6 @@
 
+
+
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmAddWireLink - Форма создания связи (перекрестной ссылки) для разрывов проводов
 ' Author        : gtfox на основе Shishok::Form_Find
@@ -32,13 +34,13 @@ Dim shpChild As Visio.Shape 'шейп из модуля CrossReference
 Dim shpParent As Visio.Shape 'шейп выбанный в форме lstvParent. нужен для создания связи
 Dim colShapes As Collection
 Dim colPages As Collection
-Dim FindType As Integer 'Кто запустил создание связи (родитль/дочерний)
+Dim FindType As Integer 'Кто запустил создание связи (родитель/дочерний)
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReference
     Set shpChild = vsoShape 'И определили его в форме frmAddReference
     
-    FindType = shpChild.Cells("User.SAType").Result(0)
+    FindType = ShapeSAType(shpChild)
 
     Fill_lstvPages
     Fill_ShapeCollection ActivePage
@@ -54,7 +56,6 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
 End Sub
 
 Sub Fill_ShapeCollection(vsoPage As Visio.Page) 'Заполняем список с родительскими элементами
-    'Dim vsoPage As Visio.Page
     Dim vsoShape As Visio.Shape
     
     If chkAllPages Then
@@ -76,12 +77,12 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
     If vsoShape.CellExistsU("User.SAType", 0) Then 'отсеиваем посторонние шейпы не имеющие поле ТИП
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
             Case typeWireLinkR 'Если макрос активировался дочерним - значит искали родителей
-                If vsoShape.Cells("User.SAType").Result(0) = typeWireLinkS Then
+                If ShapeSATypeIs(vsoShape, typeWireLinkS) Then
 
                     SelectText vsoShape, vsoPage
                 End If
             Case typeWireLinkS 'Если макрос активировался родителем - значит искали дочерних
-                If vsoShape.Cells("User.SAType").Result(0) = typeWireLinkR Then
+                If ShapeSATypeIs(vsoShape, typeWireLinkR) Then
 
                     SelectText vsoShape, vsoPage
                 End If
@@ -222,7 +223,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     lstvPages.ListItems.Clear
     
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.PageSheet.CellExistsU("Prop.NomerShemy", 0) Then
+        If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
             Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
         End If
     Next

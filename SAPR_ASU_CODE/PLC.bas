@@ -144,7 +144,7 @@ Sub GlueIO(shpPLCIO As Visio.Shape)
     
     'Выбираем к кому приклеиться
     For Each vsoShape In vsoSelection
-        If (vsoShape.Name <> shpPLCIO.Name) And (vsoShape.Name <> shpPLCIO.Parent.Name) And (vsoShape.Cells("User.SAType").Result(0) = typePLCIOParent) Then
+        If (vsoShape.Name <> shpPLCIO.Name) And (vsoShape.Name <> shpPLCIO.Parent.Name) And (ShapeSATypeIs(vsoShape, typePLCIOParent)) Then
             Set shpToWhichGlue = vsoShape
         End If
     Next
@@ -171,7 +171,7 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
     Dim vsoDouble As Visio.Shape
     Set vsoDouble = vsoShape.Duplicate    'дублируем фигуру
 
-    Select Case vsoDouble.Cells("User.SAType").Result(0)
+    Select Case ShapeSAType(vsoDouble)
 
         Case typePLCIOChild, typePLCModParent
             If vsoDouble.Parent.Type = visTypeGroup Then
@@ -196,7 +196,7 @@ Public Sub DuplicateInSensor(vsoShape As Visio.Shape)
     Dim vsoDouble As Visio.Shape
     Set vsoDouble = vsoShape.Duplicate    'дублируем фигуру
 
-    Select Case vsoDouble.Cells("User.SAType").Result(0)
+    Select Case ShapeSAType(vsoDouble)
 
         Case typePLCIOChild
             If vsoDouble.Parent.Type = visTypeGroup Then
@@ -241,7 +241,7 @@ Sub GlueFSAPodval(shpFSAPodval As Visio.Shape)
     
     'Выбираем к кому приклеиться
     For Each vsoShape In vsoSelection
-        If (vsoShape.Name <> shpFSAPodval.Name) And (vsoShape.Name <> shpFSAPodval.Parent.Name) And ((vsoShape.Cells("User.SAType").Result(0) = typeFSAPodval) Or (vsoShape.Name Like "FSAPodvalTab*")) Then
+        If (vsoShape.Name <> shpFSAPodval.Name) And (vsoShape.Name <> shpFSAPodval.Parent.Name) And ((ShapeSATypeIs(vsoShape, typeFSAPodval)) Or (vsoShape.Name Like "FSAPodvalTab*")) Then
             Set shpToWhichGlue = vsoShape
         End If
     Next

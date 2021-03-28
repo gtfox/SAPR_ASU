@@ -1,4 +1,6 @@
 
+
+
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmAddReferenceRelay - Форма создания связей (перекрестных ссылок) элементов схемы
 ' Author        : gtfox на основе Shishok::Form_Find
@@ -38,7 +40,7 @@ Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Dou
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReference
     Set shpChild = vsoShape 'И определили его в форме frmAddReference
     
-    FindType = shpChild.Cells("User.SAType").Result(0)
+    FindType = ShapeSAType(shpChild)
     
     Fill_lstvPages
     
@@ -94,13 +96,13 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
     If vsoShape.CellExistsU("User.SAType", 0) Then 'отсеиваем посторонние шейпы не имеющие поле ТИП
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
             Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
-                Select Case vsoShape.Cells("User.SAType").Result(0)
+                Select Case ShapeSAType(vsoShape)
                     Case typeCoil, typeParent
 
                         SelectText vsoShape, vsoPage
                 End Select
             Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
-                Select Case vsoShape.Cells("User.SAType").Result(0)
+                Select Case ShapeSAType(vsoShape)
                     Case typeNO, typeNC
 
                         SelectText vsoShape, vsoPage
@@ -266,7 +268,7 @@ Sub Fill_lstvChild(vsoShape As Visio.Shape) ' заполнение списка 
                 mstrAdrChild = Split(vsoShape.CellsU("Scratch.A" & i).ResultStr(0), "/")
                 Set shpInfoChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
                 Set itmx = lstvChild.ListItems.Add(, shpInfoChild.ContainingPage.ID & "/" & shpInfoChild.ID, _
-                shpInfoChild.Characters.Text + " " + IIf(shpInfoChild.CellsU("User.SAType").Result(0) = typeNO, "NO", "NC") _
+                shpInfoChild.Characters.Text + " " + IIf(ShapeSATypeIs(shpInfoChild, typeNO), "NO", "NC") _
                 + " " + shpInfoChild.CellsU("User.Location").ResultStr(0)) '
             End If
         Next
@@ -308,7 +310,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     lstvPages.ListItems.Clear
     
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.PageSheet.CellExistsU("Prop.NomerShemy", 0) Then
+        If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
             Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
         End If
     Next

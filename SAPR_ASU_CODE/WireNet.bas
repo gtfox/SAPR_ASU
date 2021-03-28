@@ -29,7 +29,7 @@ Sub ConnectWire(Connects As IVConnects)
     AdrSource = Connects.ToSheet.ContainingPage.NameU & "/" & Connects.ToSheet.NameID
     AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
     
-    ShapeType = Connects.ToSheet.Cells("User.SAType").Result(0) 'Тип шейпа, к которому подсоединили провод
+    ShapeType = ShapeSAType(Connects.ToSheet) 'Тип шейпа, к которому подсоединили провод
     
     Select Case shpProvod.Connects.Count 'кол-во соединенных концов у провода
     
@@ -71,9 +71,7 @@ Sub ConnectWire(Connects As IVConnects)
             'Находим тип шейпа, на друм конце нашего провода
             For i = 1 To shpProvod.Connects.Count 'смотрим все соединения (их 2 :) )
                 If shpProvod.Connects(i).FromPart <> Connects(1).FromPart Then 'Отбрасывам то, которое только что произошло (берем другой конец)
-                    If shpProvod.Connects(i).ToSheet.CellExistsU("User.SAType", 0) Then
-                        ShapeTypeNaDrugomKonce = shpProvod.Connects(i).ToSheet.Cells("User.SAType").Result(0) 'Тип шейпа, на друм конце нашего провода
-                    End If
+                    ShapeTypeNaDrugomKonce = ShapeSAType(shpProvod.Connects(i).ToSheet) 'Тип шейпа, на друм конце нашего провода
                 End If
             Next
             
@@ -195,7 +193,7 @@ Sub DisconnectWire(Connects As IVConnects)
     AdrSource = Connects.ToSheet.ContainingPage.NameU & "/" & Connects.ToSheet.NameID
     AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
     
-    ShapeType = Connects.ToSheet.Cells("User.SAType").Result(0) 'Тип шейпа, от которого отсоединили провод
+    ShapeType = ShapeSAType(Connects.ToSheet) 'Тип шейпа, от которого отсоединили провод
     
     Select Case shpProvod.Connects.Count 'кол-во соединенных концов у провода
     
@@ -331,7 +329,7 @@ Sub DeleteWire(DeletedShape As IVShape)
         Set DeletedConnect = DeletedShape.Connects(i)
         Set ConnectedShape = DeletedConnect.ToSheet
         
-        ShapeType = ConnectedShape.Cells("User.SAType").Result(0)
+        ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
             If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
@@ -370,7 +368,7 @@ Sub DeleteWire(DeletedShape As IVShape)
         Set DeletedConnect = DeletedShape.FromConnects(i)
         Set ConnectedShape = DeletedConnect.FromSheet
         
-        ShapeType = ConnectedShape.Cells("User.SAType").Result(0)
+        ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
             If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
@@ -470,7 +468,7 @@ Sub FindZombie(shpProvod As Visio.Shape)
         Set DeletedConnect = shpProvod.FromConnects(i)
         Set ConnectedShape = DeletedConnect.FromSheet
         
-        ShapeType = ConnectedShape.Cells("User.SAType").Result(0)
+        ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
             If ConnectedShape.Cells("User.AdrSource").ResultStr(0) <> AdrNashegoProvoda Then 'Дочерний - но ссылается не нас - отцепляем

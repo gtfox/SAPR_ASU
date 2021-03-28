@@ -98,7 +98,7 @@ Sub www()
 'Сохраняем потеряные формулы из работающей спецификации
     Dim vsoShape As Visio.Shape
     Dim sRowName As String
-    Dim arrValue(29)
+    Dim arrRowValue(29)
     Dim arrRowNameValue()
     Dim i As Integer
     Dim j As Integer
@@ -117,12 +117,12 @@ Sub www()
     strFile = ThisDocument.path & "tempValue.vb"
     
     For i = 0 To 29
-        arrValue(i) = shRow.Shapes.Item("row" & i + 1).Cells("height").FormulaU
+        arrRowValue(i) = shRow.Shapes.Item("row" & i + 1).Cells("height").FormulaU
     Next
     
-    UBarrValue = UBound(arrValue)
+    UBarrValue = UBound(arrRowValue)
     For i = 0 To UBarrValue
-        strToFile = strToFile & """" & arrValue(i) & """" & IIf(i = UBarrValue, ")", ", _" & vbNewLine)
+        strToFile = strToFile & """" & arrRowValue(i) & """" & IIf(i = UBarrValue, ")", ", _" & vbNewLine)
     Next
 
     AddIntoTXTfile strFile, strToFile

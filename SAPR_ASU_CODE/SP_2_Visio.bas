@@ -195,11 +195,11 @@ Private Sub fill_table()  ' заполнение спецификации
                 HTable = shpSpecifikacia.Cells("User.V").Result("mm")
             Wend
             'Добавляем лист
-            GoSub SubAddPageSpecifikac
+            GoSub SubAddPage
 
         ElseIf HTable = HMax And NStrokiXls <> RowCountXls Then 'Высота таблицы равна 232мм/198мм и это не полследняя строка
             'Добавляем лист
-            GoSub SubAddPageSpecifikac
+            GoSub SubAddPage
         End If
         
         NRow = NRow + 1
@@ -210,7 +210,7 @@ Private Sub fill_table()  ' заполнение спецификации
     RowCountXls = 0
     Exit Sub
     
-SubAddPageSpecifikac:
+SubAddPage:
     'Добавляем лист
     NRow = 0
     pNumber = pNumber + 1

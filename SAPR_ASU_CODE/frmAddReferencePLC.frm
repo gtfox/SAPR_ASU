@@ -1,4 +1,6 @@
 
+
+
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmAddReferencePLC - Форма создания связей (перекрестных ссылок) PLC
@@ -35,7 +37,7 @@ Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Dou
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReferencePLC
     Set shpChild = vsoShape 'И определили его в форме frmAddReferencePLC
     
-    FindType = shpChild.Cells("User.SAType").Result(0)
+    FindType = ShapeSAType(shpChild)
     
     Fill_lstvPages
     
@@ -91,13 +93,13 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
     If vsoShape.CellExistsU("User.SAType", 0) Then 'отсеиваем посторонние шейпы не имеющие поле ТИП
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
             Case typePLCChild 'Если макрос активировался дочерним - значит искали родителей
-                Select Case vsoShape.Cells("User.SAType").Result(0)
+                Select Case ShapeSAType(vsoShape)
                     Case typePLCParent
 
                         SelectText vsoShape, vsoPage
                 End Select
             Case typePLCParent 'Если макрос активировался родителем - значит искали дочерних
-                Select Case vsoShape.Cells("User.SAType").Result(0)
+                Select Case ShapeSAType(vsoShape)
                     Case typePLCChild
 
                         Call AddToCol(vsoShape, vsoPage)

@@ -154,6 +154,7 @@ Sub SetSAStyle()
     SetVisioProp
     SetGridSnap
     SetDefStyleISOCPEUR11
+    SetPanel
 End Sub
 
 Sub SetVisioProp()
@@ -194,8 +195,8 @@ Private Sub SetGridSnap()
 
     'Сила привязки к сетке в пикселях
     'Сервис -> Привязать и приклеить -> Дополнительно -> Сетка = 100
-    Application.Settings.SnapStrengthGridX = 100
-    Application.Settings.SnapStrengthGridY = 100
+    Application.Settings.SnapStrengthGridX = 30
+    Application.Settings.SnapStrengthGridY = 30
     
 End Sub
 
@@ -207,12 +208,7 @@ Sub SetDefStyleISOCPEUR11()
 
     For i = 1 To Application.ActiveDocument.Styles.Count
         Set vsoStyle = Application.ActiveDocument.Styles.ItemFromID(i)
-        If vsoStyle.NameU = "No Style" Or _
-            vsoStyle.NameU = "Text Only" Or _
-            vsoStyle.NameU = "None" Or _
-            vsoStyle.NameU = "Normal" Or _
-            vsoStyle.NameU = "Guide" _
-        Then
+        If vsoStyle.NameU = "Normal" Then
             With vsoStyle
                 .CellsSRC(visSectionCharacter, 0, visCharacterFont).FormulaU = 112
                 .CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = 2
@@ -231,6 +227,26 @@ Sub SetDefStyleISOCPEUR11()
             End With
         End If
     Next
+End Sub
+
+Sub SetPanel()
+    Application.CommandBars("Standard").Visible = True
+    Application.CommandBars("Formatting").Visible = True
+    Application.CommandBars("View").Visible = True
+    Application.CommandBars("Action").Visible = True
+    Application.CommandBars("Stop Recording").Visible = True
+    Application.CommandBars("Snap & Glue").Visible = True
+    Application.CommandBars("Developer").Visible = True
+    Application.CommandBars("Drawing").Visible = True
+    Application.CommandBars("Format Text").Visible = True
+    Application.CommandBars("Format Shape").Visible = True
+    Application.CommandBars("Reviewing").Visible = False
+    Application.CommandBars("Web").Visible = False
+    Application.CommandBars("Ink").Visible = False
+    Application.CommandBars("Stencil").Visible = False
+    Application.CommandBars("Picture").Visible = False
+    Application.CommandBars("Layout & Routing").Visible = False
+    Application.CommandBars("Data").Visible = False
 End Sub
 
 
@@ -323,8 +339,8 @@ Sub AddSAPageNext()
     Dim PageNumber As Integer
     Dim Index As Integer
     Dim ItemCol As Integer
-    Dim SA_NomerShemy As String
-    Dim SA_NomerFSA As String
+    Dim NazvanieShemy As String
+    Dim NazvanieFSA As String
     
     Set colPagesAfter = New Collection
     Set colPagesAll = New Collection
@@ -374,20 +390,22 @@ Sub AddSAPageNext()
     vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
     vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
     vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
-    If vsoPageSource.PageSheet.CellExists("Prop.SA_NomerShemy", 0) Then
-        SetSA_NomerShemy vsoPageNew.PageSheet
-        vsoPageNew.PageSheet.Cells("Prop.SA_NomerShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerShemy.Format").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NomerShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerShemy").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
+        SetNazvanieShemy vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula
         vsoPageNew.Drop Setka, 0, 0
     End If
-    If vsoPageSource.PageSheet.CellExists("Prop.SA_NomerFSA", 0) Then
-        SetSA_NomerFSA vsoPageNew.PageSheet
-        vsoPageNew.PageSheet.Cells("Prop.SA_NomerFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerFSA.Format").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NomerFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NomerFSA").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
+        SetNazvanieFSA vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
     End If
     
     LockTitleBlock
 
+    ActiveWindow.DeselectAll
+    
 End Sub
 
 Sub DelSAPage()
@@ -513,26 +531,22 @@ SubFind:
     Return
 End Function
 
-Sub SetSA_NomerShemy(vsoObject As Object) 'SetValueToSelSections
-    Dim arrValue()
+Sub SetNazvanieShemy(vsoObject As Object) 'SetValueToSelSections
+    Dim arrRowValue()
     Dim arrRowName()
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
-    arrRowName = Array("SA_NomerShemy")
-    arrValue = Array("""Название Схемы"":""Нумерация элементов идет в пределах одной схемы"":1:""Схема шкафа АСУ"":INDEX(0,Prop.SA_NomerShemy.Format):"""":FALSE:FALSE:1049:0")
-    SetValueToOneSection vsoObject, arrValue, arrRowName, SectionNumber
+    arrRowName = Array("SA_NazvanieShemy")
+    arrRowValue = Array("""Название Схемы"":""Нумерация элементов идет в пределах одной схемы"":1:"""":INDEX(0,Prop.SA_NazvanieShemy.Format):"""":FALSE:FALSE:1049:0")
+    SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub
 
-Sub SetSA_NomerFSA(vsoObject As Object) 'SetValueToSelSections
-    Dim arrValue()
+Sub SetNazvanieFSA(vsoObject As Object) 'SetValueToSelSections
+    Dim arrRowValue()
     Dim arrRowName()
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
-    arrRowName = Array("SA_NomerFSA")
-    arrValue = Array("""Название ФСА"":""Нумерация элементов идет в пределах одной ФСА"":1:""ФСА"":INDEX(0,Prop.SA_NomerFSA.Format):"""":FALSE:FALSE:1049:0")
-    SetValueToOneSection vsoObject, arrValue, arrRowName, SectionNumber
-End Sub
-
-Sub nnn()
-    SetSA_NomerFSA ActivePage.PageSheet
+    arrRowName = Array("SA_NazvanieFSA")
+    arrRowValue = Array("""Название ФСА"":""Нумерация элементов идет в пределах одной ФСА"":1:"""":INDEX(0,Prop.SA_NazvanieFSA.Format):"""":FALSE:FALSE:1049:0")
+    SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub

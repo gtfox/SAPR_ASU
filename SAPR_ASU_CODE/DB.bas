@@ -11,7 +11,7 @@
 Public Const frmMinWdth As Integer = 417 'Минимальна ширина формы
 Public Const DBNameIzbrannoe As String = "SAPR_ASU_Izbrannoe.accdb" 'Имя файла избронного
 
-Public Const NaboryColor   As Long = &HBD0429
+Public Const NaboryColor   As Long = &HBD0429 'синий
 
 Public Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 
@@ -105,12 +105,21 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
     'TableType=1 - Избранное
     'TableType=2 - Набор
     Dim i As Double
+    Dim iold As Double
     Dim j As Double
     Dim itmx As ListItem
     Dim rst As DAO.Recordset
+    Dim RecordCount As Double
+
     Set rst = GetRecordSet(DBName, SQLQuery, QueryDefName)
+    rst.MoveLast
+    RecordCount = rst.RecordCount
+'    frmDBPrice.lblResult.Caption = "Найдено записей: " & RecordCount
+'    frmDBPrice.ProgressBar.Visible = True
+'    frmDBPrice.ProgressBar.Max = RecordCount
     lstvTable.ListItems.Clear
     i = 0
+    iold = 1000
     With rst
         If .EOF Then Exit Function
         .MoveFirst
@@ -139,12 +148,18 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
                     Next
                 End If
             End If
-            i = i + 1
+'            i = i + 1
+'            If iold < i Then
+'                iold = iold + 1000
+'                frmDBPrice.ProgressBar.Value = i
+'            End If
             .MoveNext
         Loop
     End With
-    Fill_lstvTable = i
+    Fill_lstvTable = RecordCount 'i
+'    frmDBPrice.ProgressBar.Visible = False
     Set rst = Nothing
+
 End Function
 
 'Заполняет lstvTableNabor запросами из БД

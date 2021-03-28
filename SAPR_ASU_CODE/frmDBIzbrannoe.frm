@@ -1,4 +1,6 @@
 
+
+
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmDBIzbrannoe - Форма поиска и задания данных для элемента схемы из БД Избранное. В одном файле разные производители.
@@ -189,7 +191,9 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 
     Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
 
-    Find_ItemsByText
+    ReSize
+
+    'Find_ItemsByText
     
 End Sub
 
@@ -395,7 +399,7 @@ Private Sub lstvTableIzbrannoe_DblClick()
     
     If ActiveWindow.Selection.Count > 1 Then
         For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPrice.glShape And ShapeSAType(vsoShape) = ShapeSAType(frmDBPrice.glShape) Then
+            If vsoShape <> frmDBPrice.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPrice.glShape)) Then
                 With vsoShape
                     .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
                     .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
@@ -444,7 +448,7 @@ Private Sub lstvTableNabor_DblClick()
     
     If ActiveWindow.Selection.Count > 1 Then
         For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPrice.glShape And ShapeSAType(vsoShape) = ShapeSAType(frmDBPrice.glShape) Then
+            If vsoShape <> frmDBPrice.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPrice.glShape)) Then
                 With vsoShape
                     .Cells("User.KodProizvoditelyaDB").Formula = mstrVybPozVNabore(0)
                     .Cells("User.KodPoziciiDB").Formula = Replace(mstrVybPozVNabore(1), """", "")

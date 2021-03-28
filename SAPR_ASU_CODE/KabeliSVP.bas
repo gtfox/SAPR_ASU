@@ -25,14 +25,14 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     Dim colWiresIO As Collection
     Dim vsoMaster As Visio.Master
     Dim MultiCable As Boolean '1 вход = 1 кабель
-    Dim NomerShemy As Integer
+    Dim NazvanieShemy As String
     Dim PinX As Double
     Dim PinY As Double
     
     PinX = shpSensor.Cells("PinX").Result(0)
     PinY = shpSensor.Cells("PinY").Result(0)
     
-    NomerShemy = shpSensor.ContainingPage.PageSheet.Cells("User.NomerShemy").Result(0)
+    NazvanieShemy = shpSensor.ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
     
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     Set colWires = New Collection
@@ -54,11 +54,11 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                     'Число проводов в кабеле
                     shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
                     'Сохраняем к какому шкафу подключен кабель
-                    If NomerShemy = 0 Then 'если на листе несколько шкафов то...
+                    If NazvanieShemy = "" Then 'если на листе несколько шкафов то...
                         'Определяем к какому шкафу/коробке принадлежит клеммник
                         '-------------Пока не реализовано----------------------
                     Else
-                        shpKabel.Cells("User.LinkToBox").Formula = NomerShemy
+                        shpKabel.Cells("User.LinkToBox").Formula = """" & NazvanieShemy & """"
                     End If
 '                    'Кабели ссылаются не на датчик, а на конкретные входы в датчике
 '                    shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
@@ -91,11 +91,11 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
             'Число проводов в кабеле
             shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
             'Сохраняем к какому шкафу подключен кабель
-            If NomerShemy = 0 Then 'если на листе несколько шкафов то...
+            If NazvanieShemy = "" Then 'если на листе несколько шкафов то...
                 'Определяем к какому шкафу/коробке принадлежит клеммник
                 '-------------Пока не реализовано----------------------
             Else
-                shpKabel.Cells("User.LinkToBox").Formula = NomerShemy
+                shpKabel.Cells("User.LinkToBox").Formula = """" & NazvanieShemy & """"
             End If
 '            'Кабель ссылается не на датчик, а на конкретный вход в датчике
 '            shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
@@ -299,7 +299,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
-         Select Case vsoShape.Cells("User.SAType").Result(0)
+         Select Case ShapeSAType(vsoShape)
             Case typeSensor, typeActuator
                 Set shpSensorSVP = vsoShape
             Case typeCableSH
@@ -426,7 +426,7 @@ Public Sub AddPagesSVP()
 ' Macros        : AddPagesSVP - Создает листы СВП
                 'Заполняет листы СВП датчиками, отсортированными по возрастанию их координаты Х на эл. схеме
 '------------------------------------------------------------------------------------------------------------
-    Dim NomerShemy As Integer
+    Dim NazvanieShemy As String
     Dim ThePage As Visio.Shape
     Dim vsoShapeOnPage As Visio.Shape
     Dim vsoPage As Visio.Page
@@ -451,22 +451,21 @@ Public Sub AddPagesSVP()
     Set colShpDoc = New Collection
     
     PageName = cListNameCxema  'Имена листов где возможна нумерация
-    'If ThePage.CellExists("User.NomerShemy", 0) Then NomerShemy = ThePage.Cells("User.NomerShemy").Result(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
-    NomerShemy = 4
+    'If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
+    NazvanieShemy = 4
 
     'Цикл поиска датчиков и приводов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("User.NomerShemy").Result(0) = NomerShemy Then    'Берем все схемы с номером той, на которую вставляем элемент
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с номером той, на которую вставляем элемент
                 Set colShpPage = New Collection
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
-                    If vsoShapeOnPage.CellExists("User.SAType", 0) Then   'Если в шейпе есть тип, то -
-                        Select Case vsoShapeOnPage.Cells("User.SAType").Result(0)
-                            Case typeSensor, typeActuator
-                                'Собираем в коллекцию нужные для сортировки шейпы
-                                colShpPage.Add vsoShapeOnPage
-                        End Select
-                    End If
+                    Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
+                        Case typeSensor, typeActuator
+                            'Собираем в коллекцию нужные для сортировки шейпы
+                            colShpPage.Add vsoShapeOnPage
+                        Case Else
+                    End Select
                 Next
                 
                 'Сортируем то что нашли на листе

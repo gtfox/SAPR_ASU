@@ -1,4 +1,6 @@
 
+
+
 'Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmDBPrice - Форма поиска и задания данных для элемента схемы из Баз Данных оборудования расположенных в отдельных файлах. Каждый файл - отдельный производитель
@@ -59,7 +61,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel, True
 
     Load frmDBIzbrannoe
-    frmDBIzbrannoe.Find_ItemsByText
+    'frmDBIzbrannoe.Find_ItemsByText
 
 End Sub
 
@@ -193,12 +195,16 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
     
     NameQueryDef = "FilterSQLQuery"
-    
+
+'lstvTablePrice.Visible = False
     lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+'lstvTablePrice.Visible = True
 
     Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
 
-    Find_ItemsByText
+    ReSize
+
+    'Find_ItemsByText
     
 End Sub
 
@@ -277,13 +283,17 @@ Sub Find_ItemsByText()
         NameQueryDef = "FilterSQLQuery"
         SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод, Прайс.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & findWHERE & ";"
+'lstvTablePrice.Visible = False
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+'lstvTablePrice.Visible = True
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
         NameQueryDef = ""
         SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, FilterSQLQuery.ЕдиницыКод, FilterSQLQuery.Единица " & _
                    "FROM Единицы INNER JOIN FilterSQLQuery ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
+'lstvTablePrice.Visible = False
         lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+'lstvTablePrice.Visible = True
     End If
 
     ReSize
@@ -362,7 +372,7 @@ Private Sub lstvTablePrice_DblClick()
     
     If ActiveWindow.Selection.Count > 1 Then
         For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> glShape And ShapeSAType(vsoShape) = ShapeSAType(glShape) Then
+            If vsoShape <> glShape And ShapeSATypeIs(vsoShape, ShapeSAType(glShape)) Then
                 With vsoShape
                     .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
                     .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
@@ -489,6 +499,7 @@ Private Sub tbtnFav_Click()
         tbtnFav = False
         bBlock = False
         Me.Hide
+        frmDBIzbrannoe.Find_ItemsByText
         frmDBIzbrannoe.Show
     End If
 End Sub

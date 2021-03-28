@@ -1,6 +1,8 @@
 
 
 
+
+
 Option Explicit
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmAddReferencePLCMod - Форма создания связей (перекрестных ссылок) модулей внутри PLC
@@ -46,7 +48,7 @@ Dim bError As Boolean
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля CrossReferencePLCMod
     Set shpChild = vsoShape 'И определили его в форме frmAddReferencePLCMod
     
-    FindType = shpChild.Cells("User.SAType").Result(0)
+    FindType = ShapeSAType(shpChild)
 
     FillCollection shpChild
     
