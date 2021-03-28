@@ -5,7 +5,7 @@
 ' Description   : Соединение/отсоединение проводов, нумерация, удаление, стрелки/точки на концах, взаимодействие с элементами
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
-
+Option Explicit
 Public bUnGlue As Boolean 'Запрет обработки события ConnectionsDeleted
 
 
@@ -456,6 +456,8 @@ Sub FindZombie(shpProvod As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : FindZombie - Ищем Дочерних которые ссылаются не нас - отцепляем
 '------------------------------------------------------------------------------------------------------------
+    Dim DeletedConnect As Visio.connect
+    Dim ConnectedShape As Visio.Shape
     Dim AdrNashegoProvoda As String
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer

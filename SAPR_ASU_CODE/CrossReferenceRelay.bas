@@ -269,44 +269,46 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     'Удаляем миниатюры контактов, если они были
     ThumbDelete vsoShape
     
-    'Выясняем кому надо вставить миниатюры
-    Select Case ShapeSAType(vsoShape)
-    
-        Case typeNO, typeNC 'Контакты
+    If vsoShape.CellExistsU("User.SAType", 0) Then
+        'Выясняем кому надо вставить миниатюры
+        Select Case ShapeSAType(vsoShape)
         
-            If vsoShape.Cells("Hyperlink.Coil.SubAddress").ResultStr(0) <> "" Then
-                'Вставляем миниатюру контакта Thumbnail
-                Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
-                'Заполняем поля
-                shpThumb.Cells("User.LocType").FormulaU = typeCoil
-                shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!User.LocationParent"
-                shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
-                shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
-                shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & DeltaY & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
-                shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
-                shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
-            End If
+            Case typeNO, typeNC 'Контакты
             
-        Case typeCoil, typeParent 'Катушка реле
-        
-            N = 0
-            'Перебираем активные ссылки на контакты
-            For i = 1 To vsoShape.Section(visSectionScratch).Count 'Ищем строку в Scratch
-                If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'не пустая строка
+                If vsoShape.Cells("Hyperlink.Coil.SubAddress").ResultStr(0) <> "" Then
                     'Вставляем миниатюру контакта Thumbnail
                     Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
                     'Заполняем поля
-                    shpThumb.Cells("User.LocType").FormulaU = vsoShape.NameU & "!Scratch.D" & i
-                    shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!Scratch.C" & i
+                    shpThumb.Cells("User.LocType").FormulaU = typeCoil
+                    shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!User.LocationParent"
                     shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
                     shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
-                    shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + N * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
+                    shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & DeltaY & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
                     shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
                     shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
-                    N = N + 1
                 End If
-            Next
-    End Select
+                
+            Case typeCoil, typeParent 'Катушка реле
+            
+                N = 0
+                'Перебираем активные ссылки на контакты
+                For i = 1 To vsoShape.Section(visSectionScratch).Count 'Ищем строку в Scratch
+                    If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'не пустая строка
+                        'Вставляем миниатюру контакта Thumbnail
+                        Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
+                        'Заполняем поля
+                        shpThumb.Cells("User.LocType").FormulaU = vsoShape.NameU & "!Scratch.D" & i
+                        shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!Scratch.C" & i
+                        shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
+                        shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
+                        shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + N * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
+                        shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
+                        shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
+                        N = N + 1
+                    End If
+                Next
+        End Select
+    End If
     ActiveWindow.DeselectAll
 End Sub
 
