@@ -9,7 +9,7 @@ Public Const typeNC As Integer = 1 'Контакт NC (Дочерний)(Не н
 
 Public Const typeCoil As Integer = 2 'Катушка реле (Родительский) KL, KM, KT, KV, KK
 Public Const typeParent As Integer = 3 'Нумеруемый элемент схемы без катушки (Родительский) SA, SB, QF, SF, QS, QA, FU, RU, DD (ТРМ, ПЛК-моноблок)
-Public Const typeElement As Integer = 4 'Нумеруемый элемент схемы без контактов (НЕ Родительский) HL, XS, HA
+Public Const typeElement As Integer = 4 'Нумеруемый элемент схемы без контактов (НЕ Родительский) HL, XS, HA, UG, TV, UZ
 
 'ПЛК - разнесенное отображение
 Public Const typePLCTerm As Integer = 10 'Клемма внутри ПЛК. (НЕ Родительский) (Не нумеруется)
@@ -35,8 +35,8 @@ Public Const typeCablePL As Integer = 90 'Кабель вне шкафа на П
 
 Public Const typeVynoskaPL As Integer = 95 'Выноска на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
-Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor
-Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский)
+Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor M, YA
+Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский) RK, BP, SP,BL, SQ, SK
 Public Const typeSensorIO As Integer = 111 'Вход/Выход внутри датчика вне шкафа. Содержит несколько клемм (Не нумеруется)
 Public Const typeSensorTerm As Integer = 112 'Клемма внутри typeSensorIO внутри датчика вне шкафа.
 

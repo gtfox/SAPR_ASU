@@ -134,7 +134,6 @@ Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
                 '(Для контроля вброса из набора применяется переменная Dropped в каждой фигуре)
                 'В EventDrop должна быть формула =CALLTHIS("ThisDocument.EventDropAutoNum")
 '------------------------------------------------------------------------------------------------------------
-    'If ThisDocument.BlockMacros Then Exit Sub
     
     InitEvent 'Активация событий
 

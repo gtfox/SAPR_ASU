@@ -22,7 +22,7 @@ Public MaxNumberFSA As Integer   'Максимальное значение ну
 '                '(после вставки на лист в щейпе ставится бит User.Dropped, и он начинает привязываться)
 '                'В EventDrop должна быть формула =CALLTHIS("ThisDocument.EventDropAutoNum")
 ''------------------------------------------------------------------------------------------------------------
-'    ..............
+'    Макрос в ThisDocument ..............
 'End Sub
 
 Public Sub AutoNum(vsoShape As Visio.Shape)
@@ -35,26 +35,18 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
                 'Когда происходит массовая вставка не применяется привязка к курсору
                 'В EventMultiDrop должна быть формула = CALLTHIS("AutoNumber.AutoNum", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
-    'If ThisDocument.BlockMacros Then Exit Sub
     
     Dim SymName As String       'Буквенная часть нумерации
     Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
-'    Dim MaxNumber As Integer   'Максимальное значение нумерации существующих элементов. Это не общее число элементов, а макс цифра в обозначении.
-
-'    Dim TheDoc As Visio.Shape
-'    Set TheDoc = Application.ActiveDocument.DocumentSheet
-    
     Dim ThePage As Visio.Shape
-    Set ThePage = ActivePage.PageSheet
-    
     Dim vsoShapeOnPage As Visio.Shape
-
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    PageName = cListNameCxema  'Имена листов где возможна нумерация
-    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
     
+    Set ThePage = ActivePage.PageSheet
+    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
+    PageName = cListNameCxema  'Имена листов где возможна нумерация
     'Узнаем тип и буквенное обозначение элемента, который вставили на схему
     UserType = ShapeSAType(vsoShape)
     If vsoShape.CellExists("Prop.SymName", 0) Then SymName = vsoShape.Cells("Prop.SymName").ResultStr(0)
@@ -67,8 +59,8 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
 
     'Цикл поиска максимального номера существующих элементов схемы
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с номером той, на которую вставляем элемент
+        If Left(vsoPage.Name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с именем той, на которую вставляем элемент
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
                         If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
@@ -84,7 +76,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
                                         If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
                                             FindMAX vsoShapeOnPage
                                         End If
-                                    Case typeCoil, typeParent, typeElement, typeTerm, typeSensor, typeActuator, typeFSASensor, typeFSAPodval, typePLCParent, typeElectroPlan, typeElectroOneWire, typeOPSPlan 'Остальные элементы
+                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                                         FindMAX vsoShapeOnPage
                                 End Select
                             End If
@@ -111,37 +103,33 @@ Sub FindMAX(vsoShapeOnPage As Visio.Shape)
     End If
 End Sub
 
-Public Sub ReNumber(SAType As Integer)
+Sub ShowReNumber()
+    frmReNumber.Show
+End Sub
+
+Sub ReNumber(colShp As Variant)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ReNumber - Перенумерация элементов
-
-                'Перенумерация происходит слева направо, сверху вниз
-                'независимо от порядка появления элементов на схеме
-                'и независимо от их номеров до перенумерации.
-                'Если в элементе Prop.AutoNum=0 то он не участвует в перенумерации
-                'Перенумерация элементов идет в пределах одной схемы (одного названия схемы)
+                'Сортировка массивов координат и перенумерация
 '------------------------------------------------------------------------------------------------------------
     Dim shpElement As Shape
     Dim Prev As Shape
-    Dim colShp As Collection
     Dim masShape() As Shape
     Dim shpTemp As Shape
     Dim XPred As Double
     Dim XTekush As Double
+    Dim mstrNames() As String
+    Dim NListaSxemy As Integer
+    Dim ggg
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, N As Integer
-    
-    Set colShp = New Collection
-    
-'    SAType = typeWire 'typeCoil
-    
-    'Собираем в коллекцию нужные для сортировки шейпы
-    For Each shpElement In ActivePage.Shapes
-        If ShapeSATypeIs(shpElement, SAType) Then
-            colShp.Add shpElement
-        End If
-    Next
-    
+    i = 1
+                            
+                          ggg = colShp.Keys
+                            
+                            mstrNames = Split(colShp.Keys, ";")
+                        NListaSxemy = CInt(mstrNames(0))
+
     'из коллекции передаем их в массив для сортировки
     ReDim masShape(colShp.Count - 1)
     i = 0
@@ -173,15 +161,8 @@ Public Sub ReNumber(SAType As Integer)
 ExitWhileX:  Set masShape(i) = shpTemp
     Next
     '--Х--Сортировка по возрастанию коордонаты Х
-    
-    
-'    Debug.Print "---"
-'    For i = 0 To UbMas
-'        Debug.Print masShape(i).Cells("PinX").Result("mm") & " - " & masShape(i).Cells("PinY").Result("mm")
-'    Next
-    
+
     'Находим шейпы с одинаковой координатой Х и сортируем Y-ки
-    'Debug.Print "---"
     Group = False
     Set colShp = New Collection
     For ii = 1 To UbMas
@@ -231,9 +212,6 @@ ExitWhileY:     Set masShape(i) = shpTemp
     For i = 0 To UbMas
         masShape(i).Cells("Prop.Number").FormulaU = i + 1
     Next
-
-'    'Активация событий. Они чета сомодезактивируются xD
-'    Set vsoPagesEvent = ActiveDocument.Pages
     
 End Sub
 
@@ -252,6 +230,60 @@ Function WireY(vsoShape As Visio.Shape) As Double
     EndY = vsoShape.Cells("EndY").Result("mm")
     WireY = IIf(BeginY > EndY, BeginY, EndY) ' Начало провода по Y = Сверху
 End Function
+
+Public Sub ReNuberCxByShape(vsoShape As Visio.Shape, Optional bAll As Boolean)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ReNuberCxByShape - Перенумерация на основе переданного шейпа
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim ThePage As Visio.Shape
+    Dim vsoShapeOnPage As Visio.Shape
+    Dim colShp As Collection
+    Dim SymName As String       'Буквенная часть нумерации
+    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
+    Dim PageName As String
+
+    Set colShp = New Collection
+    Set ThePage = ActivePage.PageSheet
+    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
+    PageName = cListNameCxema  'Имена листов где возможна нумерация
+    'Узнаем тип и буквенное обозначение элемента, который по которому будет переименование
+    UserType = ShapeSAType(vsoShape)
+    If vsoShape.CellExists("Prop.SymName", 0) Then SymName = vsoShape.Cells("Prop.SymName").ResultStr(0)
+
+
+    'Цикл поиска максимального номера существующих элементов схемы
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If Left(vsoPage.Name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Or bAll Then    'Берем все схемы с именем той, на которую вставляем элемент
+                For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
+                    If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
+                        If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                            Select Case UserType
+                                Case typeWire 'Провода
+                                    colShp.Add vsoShapeOnPage
+                                Case typeCableSH 'Кабели на схеме электрической
+                                    colShp.Add vsoShapeOnPage
+                            End Select
+                            If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                                Select Case UserType
+                                    Case typeTerm 'Клеммы
+                                        If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
+                                            colShp.Add vsoShapeOnPage
+                                        End If
+                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator  ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                        colShp.Add vsoShapeOnPage
+                                End Select
+                            End If
+                        End If
+                    End If
+                Next
+            End If
+        End If
+    Next
+    ReNumber colShp
+End Sub
 
 Sub AutoNumFSA(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
@@ -382,7 +414,7 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
     
     'Цикл поиска проводов и скрытия номера
     For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
-        If ShapeSAType(vsoShapeOnPage, typeWire) Then     'Если в шейпе есть тип, то проверяем чтобы был провод
+        If ShapeSATypeIs(vsoShapeOnPage, typeWire) Then     'Если в шейпе есть тип, то проверяем чтобы был провод
             If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 0 Then    'Отсеиваем шейпы нумеруемые в автомате
                 If vsoShapeOnPage.Cells("Prop.Number").FormulaU Like "*!*" Then 'Находим дочерние
                     'Прячем номер/название

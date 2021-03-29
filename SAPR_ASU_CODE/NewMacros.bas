@@ -1,6 +1,14 @@
 '
 Sub Macro1()
-    Application.CommandBars("Stencil").Visible = True
+Dim col As Collection
+Dim vsoPage As Visio.Page
+Dim i As Integer
+Set col = New Collection
+For Each vsoPage In ActiveDocument.Pages
+col.Add vsoPage, CStr(i + 1)
+Debug.Print vsoPage.Name
+Debug.Print col(i + 1).Key
+Next
 
 End Sub
 Sub Macro2()

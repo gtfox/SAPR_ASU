@@ -104,6 +104,18 @@ Private Sub AddButtons()
         .TooltipText = "Создать раздел"
         .FaceID = 533 '786
     End With
+
+        '---Кнопка Перенумерация
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=8)
+    With Button
+        .Caption = "ПеренумерацияЭлементов"
+        .Tag = "ReNumber"
+        .style = msoButtonAutomatic
+        .OnAction = "ShowReNumber"
+        .TooltipText = "Перенумерация элементов"
+        .FaceID = 2476 '786
+        .BeginGroup = True
+    End With
     
     Set Button = Nothing
            
