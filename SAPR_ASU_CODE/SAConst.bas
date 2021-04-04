@@ -41,7 +41,7 @@ Public Const typeSensorIO As Integer = 111 'Вход/Выход внутри д�
 Public Const typeSensorTerm As Integer = 112 'Клемма внутри typeSensorIO внутри датчика вне шкафа.
 
 Public Const typeFSASensor As Integer = 120 'Датчик на ФСА
-Public Const typeFSAPodval As Integer = 130 'Датчик на ФСА в подвале
+Public Const typeFSAPodval As Integer = 130 'Подвал на ФСА
 
 Public Const typeBox As Integer = 140 'Шкафы, распределительные коробки (Не нумеруется)
 

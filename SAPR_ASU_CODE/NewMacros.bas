@@ -1,15 +1,14 @@
 '
 Sub Macro1()
 Dim col As Collection
+Dim col2 As Collection
 Dim vsoPage As Visio.Page
 Dim i As Integer
 Set col = New Collection
 For Each vsoPage In ActiveDocument.Pages
-col.Add vsoPage, CStr(i + 1)
-Debug.Print vsoPage.Name
-Debug.Print col(i + 1).Key
+col.Add vsoPage
 Next
-
+Set col2 = col
 End Sub
 Sub Macro2()
     Application.CommandBars("Standard").Visible = False

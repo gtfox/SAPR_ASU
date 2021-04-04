@@ -128,6 +128,8 @@ Sub AddToGroupCable(shpKabel As Visio.Shape, vsoPage As Visio.Page, colWires As 
             shpWire.Cells("Prop.AutoNum").FormulaU = False
             shpWire.Cells("Prop.HideNumber").FormulaU = True
             shpWire.Cells("Prop.HideName").FormulaU = True
+            shpWire.CellsU("EventDrop").FormulaU = """"""
+            shpWire.CellsU("EventMultiDrop").FormulaU = """"""
             .Select shpWire, visSelect
         Next
         .AddToGroup

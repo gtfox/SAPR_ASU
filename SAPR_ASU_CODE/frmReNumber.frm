@@ -1,10 +1,13 @@
 Dim NazvanieFSA As String
 Dim NazvanieShemy As String
 
-
-
 Private Sub brnRenumberCx_Click()
     ReNumberShemy
+    Unload Me
+End Sub
+
+Private Sub brnRenumberFSA_Click()
+    ReNumberFSA
     Unload Me
 End Sub
 
@@ -65,149 +68,394 @@ Public Sub ReNumberShemy()
     Dim ThePage As Visio.Shape
     Dim vsoShapeOnPage As Visio.Shape
     Dim vsoShape As Visio.Shape
-    Dim colShp 'As Dictionary
-    Dim colWires As Collection
-    Dim colCableSHs As Collection
-    Dim colTerms As Collection
-    Dim colTermNames As Collection
-    Dim colElements As Collection
-    Dim colElementNames As Collection
+    Dim colItems As Collection
+    Dim colTermSelectNames As Collection
+    Dim colElementSelectNames As Collection
     Dim ItemCol As Variant
     Dim mstrNames() As String
     Dim NumberKlemmnik As Integer
     Dim SymNameKlemmnik As String
     Dim SAType As Integer
-    Dim ColKey As String
     Dim SymName As String       'Буквенная часть нумерации
     Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
-    Dim NListaSxemy As Integer
+    Dim colCxem As Collection
+    Dim Cxema As classCxema
+    Dim List As classListCxemy
+    Dim NazvanieShemyOld As String
+    Dim NextWire As Integer
+    Dim NextCableSH As Integer
+    Dim NextTerm As Integer
+    Dim NextElement As Integer
+    Dim bWireSelect As Boolean, bCableSHSelect As Boolean, bTermSelect As Boolean, bElementSelect As Boolean
     Dim i As Integer
     
-    
-    Set colWires = New Collection
-    Set colCableSHs = New Collection
-    Set colTerms = New Collection
-    Set colTermNames = New Collection
-    Set colElements = New Collection
-    Set colElementNames = New Collection
-    
-    Set ThePage = ActivePage.PageSheet
-    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
-    NazvanieShemy = cmbxNazvanieShemy.Text
     PageName = cListNameCxema  'Имена листов где возможна нумерация
-
+    
+    'Заполняем фильтры на основе выделенных шейпов
     If obVydNaListeCx Then 'Выделенные на листе
+        Set ThePage = ActivePage.PageSheet
+        If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+        Set colTermSelectNames = New Collection
+        Set colElementSelectNames = New Collection
         If ActiveWindow.Selection.Count > 0 Then
-            Set colShp = CreateObject("Scripting.Dictionary")
             'Заполняем коллекцию уникальными типами элементов
             For Each vsoShape In ActiveWindow.Selection
-                ColKey = ShapeSAType(vsoShape)
-                If vsoShape.CellExists("Prop.SymName", 0) Then ColKey = ColKey & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
-                If vsoShape.CellExists("Prop.NumberKlemmnik", 0) Then ColKey = ColKey & ";" & vsoShape.Cells("Prop.NumberKlemmnik").Result(0)
-                If ColKey <> "" Then
-                    On Error Resume Next
-                    colShp.Add vsoShape, ColKey
+                If ShapeSAType(vsoShape) > 1 Then   'Берем только шейпы САПР АСУ
+                    UserType = ShapeSAType(vsoShape)
+                    If vsoShape.CellExists("Prop.AutoNum", 0) Then
+                        If vsoShape.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                            Select Case UserType
+                                Case typeWire 'Провода
+                                    bWireSelect = True
+                                Case typeCableSH 'Кабели на схеме электрической
+                                    bCableSHSelect = True
+                                Case typeTerm 'Клеммы
+                                    bTermSelect = True
+                                    On Error Resume Next
+                                    colTermSelectNames.Add vsoShape.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
+                                Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    bElementSelect = True
+                                    On Error Resume Next
+                                    colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
+                            End Select
+                        End If
+                    End If
                 End If
             Next
-            'Перенумеровываем коллекцию
-            For Each vsoShape In colShp
-                ReNuberCxByShape vsoShape, obVseCx
-            Next
         End If
-    Else 'Выбранные на форме
-        'Перебор всех схем
-        For i = 0 To cmbxNazvanieShemy.ListCount - 1
-            NListaSxemy = 0
-            For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-                If Left(vsoPage.Name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
-                    If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с именем
-                        NListaSxemy = NListaSxemy + 1
-                        For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
-                            If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
-                                UserType = ShapeSAType(vsoShapeOnPage)
-                                If vsoShapeOnPage.CellExists("Prop.AutoNum", 0) Then
-                                    If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
-                                        Select Case UserType
-                                            Case typeWire 'Провода
-                                                If cbProvCx Then
-                                                    colWires.Add vsoShapeOnPage, NListaSxemy & ";" & vsoShapeOnPage.NameU
-                                                End If
-                                            Case typeCableSH 'Кабели на схеме электрической
-                                                If cbKabCx Then
-                                                    colCableSHs.Add vsoShapeOnPage, NListaSxemy & ";" & vsoShapeOnPage.NameU
-                                                End If
-                                            Case typeTerm 'Клеммы
-                                                If cbKlemCx Then
-                                                    colTerms.Add vsoShapeOnPage, NListaSxemy & ";" & vsoShapeOnPage.NameU
-                                                    On Error Resume Next
-                                                    colTermNames.Add vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
-                                                End If
-                                            Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
-                                                If cbElCx Or cbDatCx Then
-                                                    colElements.Add vsoShapeOnPage, NListaSxemy & ";" & vsoShapeOnPage.NameU
-                                                    On Error Resume Next
-                                                    colElementNames.Add vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
-                                                End If
-                                        End Select
+    End If
+    
+    'Заполнение коллекции схем со всеми листами шейпами и фильтрами
+    Set colCxem = New Collection
+    Set List = New classListCxemy
+    NLista = 0
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName & "*" Then
+            NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+            If NazvanieShemy <> NazvanieShemyOld Then
+                Set Cxema = New classCxema
+                Set Cxema.colListov = New Collection
+                Cxema.NameCxema = NazvanieShemy
+                NazvanieShemyOld = NazvanieShemy
+                If cbKlemCx Then Set Cxema.colTermNames = New Collection
+                If cbElCx Or cbDatCx Then Set Cxema.colElementNames = New Collection
+            End If
+            On Error Resume Next
+            colCxem.Add Cxema, Cxema.NameCxema
+
+            'Собираем шейпы и коллекции фильтов
+            If cbProvCx Or bWireSelect Then Set List.colWires = New Collection
+            If cbKabCx Or bCableSHSelect Then Set List.colCableSHs = New Collection
+            If cbKlemCx Or bTermSelect Then Set List.colTerms = New Collection
+            If cbElCx Or cbDatCx Or bElementSelect Then Set List.colElements = New Collection
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+                If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
+                    UserType = ShapeSAType(vsoShapeOnPage)
+                    If vsoShapeOnPage.CellExists("Prop.AutoNum", 0) Then
+                        If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                            Select Case UserType
+                                Case typeWire 'Провода
+                                    If cbProvCx Or (obVydNaListeCx And bWireSelect) Then
+                                        List.colWires.Add vsoShapeOnPage
                                     End If
-                                End If
-                            End If
-                        Next
+                                Case typeCableSH 'Кабели на схеме электрической
+                                    If cbKabCx Or (obVydNaListeCx And bCableSHSelect) Then
+                                        List.colCableSHs.Add vsoShapeOnPage
+                                    End If
+                                Case typeTerm 'Клеммы
+                                    If cbKlemCx Or (obVydNaListeCx And bTermSelect) Then
+                                        List.colTerms.Add vsoShapeOnPage
+                                        If Not (obVydNaListeCx And bTermSelect) Then
+                                            On Error Resume Next
+                                            colCxem(Cxema.NameCxema).colTermNames.Add vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                                        End If
+                                    End If
+                                Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    If cbElCx Or cbDatCx Or (obVydNaListeCx And bElementSelect) Then
+                                        List.colElements.Add vsoShapeOnPage
+                                        If Not (obVydNaListeCx And bElementSelect) Then
+                                            On Error Resume Next
+                                            colCxem(Cxema.NameCxema).colElementNames.Add vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                                        End If
+                                    End If
+                            End Select
+                        End If
                     End If
                 End If
             Next
             
-            'Перенумеровываем коллекции
-            If cbProvCx Then
-                ReNumber colWires
-            End If
-            If cbKabCx Then
-                ReNumber colCableSHs
-            End If
-            If cbKlemCx Then
-                If colTermNames.Count > 0 Then
-                    For Each ItemCol In colTermNames
-                        mstrNames = Split(ItemCol, ";")
-                        NumberKlemmnik = CInt(mstrNames(0))
-                        SymNameKlemmnik = mstrNames(1)
-                        Set colShp = CreateObject("Scripting.Dictionary")
-                        'По уникальным типам заполняем коллецию для перенумерации
-                        For Each vsoShape In colTerms
-                            If vsoShape.Cells("Prop.NumberKlemmnik").Result(0) = NumberKlemmnik And vsoShape.Cells("Prop.SymName").ResultStr(0) = SymNameKlemmnik Then
-                                colShp.Add vsoShape
-                            End If
-                        Next
-                        ReNumber colShp
-                    Next
+            'Для перенумерации на основе выделенных присваиваем коллекции фильтров выделенных
+            If obVydNaListeCx Then
+                If bTermSelect Then
+                    Set colCxem(Cxema.NameCxema).colTermNames = colTermSelectNames
+                End If
+                If bElementSelect Then
+                    Set colCxem(Cxema.NameCxema).colElementNames = colElementSelectNames
                 End If
             End If
-            If cbElCx Or cbDatCx Then
-                If colElementNames.Count > 0 Then
-                    For Each ItemCol In colElementNames
-                        mstrNames = Split(ItemCol, ";")
-                        SAType = CInt(mstrNames(0))
-                        SymName = mstrNames(1)
-                        Set colShp = CreateObject("Scripting.Dictionary")
-                        'По уникальным типам заполняем коллецию для перенумерации
-                        For Each vsoShape In colElements
-                            If vsoShape.Cells("User.SAType").Result(0) = SAType And vsoShape.Cells("Prop.SymName").ResultStr(0) = SymName Then
-                                colShp.Add vsoShape
-                            End If
-                        Next
-                        ReNumber colShp
-                    Next
-                End If
-            End If
-            If obVseCx Then
-                NazvanieShemy = cmbxNazvanieShemy.List(i)
+
+            colCxem(Cxema.NameCxema).colListov.Add List, CStr(colCxem(Cxema.NameCxema).colListov.Count + 1)
+            Set List = New classListCxemy
+        End If
+    Next
+
+    'Перенумеровываем коллекции
+    For i = 1 To colCxem.Count
+        If obVseCx And Not obVydNaListeCx Then
+            NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
+            GoSub RenWireKab
+            GoSub RenTerm
+            GoSub RenElement
+        Else
+            If obVydNaListeCx Then
+                NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
             Else
-                Exit For
+                NazvanieShemy = cmbxNazvanieShemy.Text
             End If
-        Next
+            GoSub RenWireKab
+            GoSub RenTerm
+            GoSub RenElement
+            Exit For
+        End If
+    Next
+
+Exit Sub
+
+RenWireKab:
+    NextWire = 0
+    NextCableSH = 0
+    For Each List In colCxem(NazvanieShemy).colListov
+        If cbProvCx Or bWireSelect Then
+            NextWire = ReNumber(List.colWires, NextWire)
+        End If
+        If cbKabCx Or bCableSHSelect Then
+            NextCableSH = ReNumber(List.colCableSHs, NextCableSH)
+        End If
+    Next
+Return
+
+RenTerm:
+    If cbKlemCx Or bTermSelect Then
+        If colCxem(NazvanieShemy).colTermNames.Count > 0 Then
+            For Each ItemCol In colCxem(NazvanieShemy).colTermNames
+                mstrNames = Split(ItemCol, ";")
+                NumberKlemmnik = CInt(mstrNames(0))
+                SymNameKlemmnik = mstrNames(1)
+                NextTerm = 0
+                For Each List In colCxem(NazvanieShemy).colListov
+                    'По фильтрам заполняем коллецию для перенумерации
+                    Set colItems = New Collection
+                    For Each vsoShapeOnPage In List.colTerms
+                        If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = NumberKlemmnik And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymNameKlemmnik Then
+                            colItems.Add vsoShapeOnPage
+                        End If
+                    Next
+                    NextTerm = ReNumber(colItems, NextTerm)
+                Next
+            Next
+        End If
     End If
+Return
+
+RenElement:
+    If cbElCx Or cbDatCx Or bElementSelect Then
+        If colCxem(NazvanieShemy).colElementNames.Count > 0 Then
+            For Each ItemCol In colCxem(NazvanieShemy).colElementNames
+                mstrNames = Split(ItemCol, ";")
+                SAType = CInt(mstrNames(0))
+                SymName = mstrNames(1)
+                NextElement = 0
+                For Each List In colCxem(NazvanieShemy).colListov
+                    'По фильтрам заполняем коллецию для перенумерации
+                    Set colItems = New Collection
+                    For Each vsoShapeOnPage In List.colElements
+                        If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName Then
+                            colItems.Add vsoShapeOnPage
+                        End If
+                    Next
+                    NextElement = ReNumber(colItems, NextElement)
+                Next
+            Next
+        End If
+    End If
+Return
+
 End Sub
+
+Public Sub ReNumberFSA()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ReNumberFSA - Перенумерация элементов ФСА
+
+                'Перенумерация происходит слева направо, сверху вниз
+                'независимо от порядка появления элементов на схеме
+                'и независимо от их номеров до перенумерации.
+                'Если в элементе Prop.AutoNum=0 то он не участвует в перенумерации
+                'Перенумерация элементов идет в пределах одной ФСА или всех ФСА
+                'Параметры перенумерации задаются в форме frmReNumber
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim ThePage As Visio.Shape
+    Dim vsoShapeOnPage As Visio.Shape
+    Dim vsoShape As Visio.Shape
+    Dim colItems As Collection
+    Dim colElementSelectNames As Collection
+    Dim ItemCol As Variant
+    Dim mstrNames() As String
+    Dim SAType As Integer
+    Dim SymName As String       'Буквенная часть нумерации
+    Dim NazvanieFSA As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
+    Dim PageName As String      'Имена листов где возможна нумерация
+    Dim colFSA As Collection
+    Dim FSA As classFSA
+    Dim List As classListFSA
+    Dim NazvanieFSAOld As String
+    Dim NextPodval As Integer
+    Dim NextElement As Integer
+    Dim bPodvalSelect As Boolean, bElementSelect As Boolean
+    Dim i As Integer
+    
+    PageName = cListNameFSA  'Имена листов где возможна нумерация
+    
+    'Заполняем фильтры на основе выделенных шейпов
+    If obVydNaListeFSA Then 'Выделенные на листе
+        Set ThePage = ActivePage.PageSheet
+        If ThePage.CellExists("Prop.SA_NazvanieFSA", 0) Then NazvanieFSA = ThePage.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
+        Set colElementSelectNames = New Collection
+        If ActiveWindow.Selection.Count > 0 Then
+            'Заполняем коллекцию уникальными типами элементов
+            For Each vsoShape In ActiveWindow.Selection
+                If ShapeSAType(vsoShape) > 1 Then   'Берем только шейпы САПР АСУ
+                    UserType = ShapeSAType(vsoShape)
+                    If vsoShape.CellExists("Prop.AutoNum", 0) Then
+                        If vsoShape.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                            Select Case UserType
+                                Case typeFSAPodval 'Подвал на ФСА
+                                    bPodvalSelect = True
+                                Case typeFSASensor 'Датчик на ФСА
+                                    bElementSelect = True
+                                    On Error Resume Next
+                                    colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
+                            End Select
+                        End If
+                    End If
+                End If
+            Next
+        End If
+    End If
+    
+    'Заполнение коллекции схем со всеми листами шейпами и фильтрами
+    Set colFSA = New Collection
+    Set List = New classListFSA
+    NLista = 0
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName & "*" Then
+            NazvanieFSA = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
+            If NazvanieFSA <> NazvanieFSAOld Then
+                Set FSA = New classFSA
+                Set FSA.colListov = New Collection
+                FSA.NameFSA = NazvanieFSA
+                NazvanieFSAOld = NazvanieFSA
+                If cbDatFSA Then Set FSA.colElementNames = New Collection
+            End If
+            On Error Resume Next
+            colFSA.Add FSA, FSA.NameFSA
+
+            'Собираем шейпы и коллекции фильтов
+            If cbPodFSA Or bPodvalSelect Then Set List.colPodvals = New Collection
+            If cbDatFSA Or bElementSelect Then Set List.colElements = New Collection
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+                If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
+                    UserType = ShapeSAType(vsoShapeOnPage)
+                    If vsoShapeOnPage.CellExists("Prop.AutoNum", 0) Then
+                        If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                            Select Case UserType
+                                Case typeFSAPodval 'Подвал на ФСА
+                                    If cbPodFSA Or (obVydNaListeFSA And bPodvalSelect) Then
+                                        List.colPodvals.Add vsoShapeOnPage
+                                    End If
+                                Case typeFSASensor 'Датчик на ФСА
+                                    If cbDatFSA Or (obVydNaListeFSA And bElementSelect) Then
+                                        List.colElements.Add vsoShapeOnPage
+                                        If Not (obVydNaListeFSA And bElementSelect) Then
+                                            On Error Resume Next
+                                            colFSA(FSA.NameFSA).colElementNames.Add vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                                        End If
+                                    End If
+                            End Select
+                        End If
+                    End If
+                End If
+            Next
+            
+            'Для перенумерации на основе выделенных присваиваем коллекции фильтров выделенных
+            If obVydNaListeFSA Then
+                If bElementSelect Then
+                    Set colFSA(FSA.NameFSA).colElementNames = colElementSelectNames
+                End If
+            End If
+
+            colFSA(FSA.NameFSA).colListov.Add List, CStr(colFSA(FSA.NameFSA).colListov.Count + 1)
+            Set List = New classListFSA
+        End If
+    Next
+
+    'Перенумеровываем коллекции
+    For i = 1 To colFSA.Count
+        If obVseFSA And Not obVydNaListeFSA Then
+            NazvanieFSA = cmbxNazvanieFSA.List(i - 1)
+            GoSub RenPodval
+            GoSub RenElement
+        Else
+            If obVydNaListeFSA Then
+                NazvanieFSA = ThePage.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
+            Else
+                NazvanieFSA = cmbxNazvanieFSA.Text
+            End If
+            GoSub RenPodval
+            GoSub RenElement
+            Exit For
+        End If
+    Next
+
+Exit Sub
+
+RenPodval:
+    NextPodval = 0
+    For Each List In colFSA(NazvanieFSA).colListov
+        If cbPodFSA Or bPodvalSelect Then
+            NextPodval = ReNumber(List.colPodvals, NextPodval)
+        End If
+    Next
+Return
+
+RenElement:
+    If cbDatFSA Or bElementSelect Then
+        If colFSA(NazvanieFSA).colElementNames.Count > 0 Then
+            For Each ItemCol In colFSA(NazvanieFSA).colElementNames
+                mstrNames = Split(ItemCol, ";")
+                SAType = CInt(mstrNames(0))
+                SymName = mstrNames(1)
+                NextElement = 0
+                For Each List In colFSA(NazvanieFSA).colListov
+                    'По фильтрам заполняем коллецию для перенумерации
+                    Set colItems = New Collection
+                    For Each vsoShapeOnPage In List.colElements
+                        If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName Then
+                            colItems.Add vsoShapeOnPage
+                        End If
+                    Next
+                    NextElement = ReNumber(colItems, NextElement)
+                Next
+            Next
+        End If
+    End If
+Return
+
+End Sub
+
 
 Sub Fill_cmbxNazvanieShemy()
     Dim vsoPage As Visio.Page
@@ -281,31 +529,31 @@ Private Sub obVydNaListeFSA_Change()
     cbPodFSA.Value = False
 End Sub
 
-Private Sub cbDatFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbDatFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObFSA.Value = True
 End Sub
 
-Private Sub cbPodFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbPodFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObFSA.Value = True
 End Sub
 
-Private Sub cbElCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbElCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbProvCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbProvCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbKlemCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbKlemCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbKabCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbKabCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbDatCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
+Private Sub cbDatCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
