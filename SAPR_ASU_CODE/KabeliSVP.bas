@@ -8,6 +8,7 @@
 
 Public PastePoint As Variant 'Точка вставки следующего датчика
 Const KonecLista As Double = 10 / 25.4 'Расстояние от правого края листа, за которое не дожны заходить фигуры
+Const DyKlemma As Double = 12.5 / 25.4 'Высота расположения клеммы шкафа относительно датчика на Схеме
 
 
 Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integer = 0)
@@ -144,7 +145,7 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddKlemmyIProvoda - Вставляем клеммы шкафа и подключаем провода к датчику
 '------------------------------------------------------------------------------------------------------------
-    Const DyKlemma As Double = 22.5 / 25.4 'Высота расположения клеммы шкафа относительно датчика на Схеме
+'    Const DyKlemma As Double = 22.5 / 25.4 'Высота расположения клеммы шкафа относительно датчика на Схеме
     Dim vsoPage As Visio.Page
     Dim vsoMasterKlemma As Visio.Master
     Dim vsoMasterProvod As Visio.Master
