@@ -93,7 +93,7 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
 DoSub:
     Application.ActiveWindow.DeselectAll
     'Вставили размер
-    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
+    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer"), 0#, 0#
     Set shpRazmer = Application.ActiveWindow.Selection(1)
     'Сдвигаем текст вправо
     shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.Y12"
@@ -192,7 +192,7 @@ Sub VertRazmery() '(selElemets As Visio.Section)
 DoSub:
     Application.ActiveWindow.DeselectAll
     'Вставили размер
-    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer.37"), 0#, 0#
+    Application.ActiveWindow.Page.Drop Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Razmer"), 0#, 0#
     Set shpRazmer = Application.ActiveWindow.Selection(1)
     'Сдвигаем текст влево
     shpRazmer.Cells("Controls.X2").FormulaU = "=Scratch.X12"

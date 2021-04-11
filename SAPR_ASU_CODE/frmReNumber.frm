@@ -288,6 +288,7 @@ Public Sub ReNumberFSA()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ReNumberFSA - Перенумерация элементов ФСА
 
+                'Нумерация ведется с учетом имени контура
                 'Перенумерация происходит слева направо, сверху вниз
                 'независимо от порядка появления элементов на схеме
                 'и независимо от их номеров до перенумерации.
@@ -304,6 +305,7 @@ Public Sub ReNumberFSA()
     Dim ItemCol As Variant
     Dim mstrNames() As String
     Dim SAType As Integer
+    Dim NameKontur As String
     Dim SymName As String       'Буквенная часть нумерации
     Dim NazvanieFSA As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
@@ -337,7 +339,7 @@ Public Sub ReNumberFSA()
                                 Case typeFSASensor 'Датчик на ФСА
                                     bElementSelect = True
                                     On Error Resume Next
-                                    colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
+                                    colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShape.Cells("Prop.NameKontur").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShape.Cells("Prop.NameKontur").ResultStr(0)
                             End Select
                         End If
                     End If
@@ -381,7 +383,7 @@ Public Sub ReNumberFSA()
                                         List.colElements.Add vsoShapeOnPage
                                         If Not (obVydNaListeFSA And bElementSelect) Then
                                             On Error Resume Next
-                                            colFSA(FSA.NameFSA).colElementNames.Add vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                                            colFSA(FSA.NameFSA).colElementNames.Add vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("Prop.NameKontur").ResultStr(0), vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("Prop.NameKontur").ResultStr(0)
                                         End If
                                     End If
                             End Select
@@ -438,12 +440,13 @@ RenElement:
                 mstrNames = Split(ItemCol, ";")
                 SAType = CInt(mstrNames(0))
                 SymName = mstrNames(1)
+                NameKontur = mstrNames(2)
                 NextElement = 0
                 For Each List In colFSA(NazvanieFSA).colListov
                     'По фильтрам заполняем коллецию для перенумерации
                     Set colItems = New Collection
                     For Each vsoShapeOnPage In List.colElements
-                        If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName Then
+                        If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName And vsoShapeOnPage.Cells("Prop.NameKontur").ResultStr(0) = NameKontur Then
                             colItems.Add vsoShapeOnPage
                         End If
                     Next
