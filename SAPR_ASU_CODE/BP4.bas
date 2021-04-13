@@ -54,7 +54,7 @@ err:
         shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").Text = NachaloRazdela & IIf(KonecRazdela = 0 Or KonecRazdela = NachaloRazdela, "", "-" & KonecRazdela)
         shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").Text = NazvanieRazdela
     Next
-   
+    MsgBox "ВРЧ обновлена", vbInformation
 End Sub
 
 Sub fff()

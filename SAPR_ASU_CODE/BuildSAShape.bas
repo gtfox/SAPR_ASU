@@ -133,7 +133,7 @@ Sub GetAllSSValueSplit()
     
 '    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
     
-    Set vsoObject = ActivePage.Shapes.ItemFromID(219)
+    Set vsoObject = ActivePage.Shapes.ItemFromID(62)
     
     strFile = ThisDocument.path & "tempValue.vb"
     
@@ -265,16 +265,35 @@ End Sub
 Sub SetElement() 'SetValueToSelSections
     Dim vsoObject As Object
     Dim mastshp As Visio.Shape
+    
     Dim arrRowValue()
     Dim arrRowName()
     Dim arrMast()
     Dim SectionNumber As Long
     Dim RowNumber As Long
     
+Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("xt").Shapes.Item("xt")
+'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
     
-    
-    
-    
+ SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("SymName", "Number", "NumberKlemmnik", "Nachalo", "FullName")
+            arrRowValue = Array("""Букв. обозначение""|""Букв. обозначение""|1|""X""|INDEX(0,Prop.SymName.Format)|""10""|||0|", _
+                            """Номер клеммы""|""Номер клеммы""|2||222|""30""|||0|", _
+                            """Номер клеммника""|""Номер клеммника""|2||1|""20""|||0|", _
+                            """Начало клеммника""|""Начало клеммника""|3|""""|FALSE|""92""|FALSE|FALSE|1033|0", _
+                            """Имя клеммника""|""Показать имя клеммника""|3|""""|FALSE|""91""|FALSE|FALSE|1033|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionControls 'Controls 9
+            arrRowName = Array("TextPos")
+            arrRowValue = Array("Width*1.1407|Height*0.375|Controls.TextPos|Controls.TextPos.Y|IF(Prop.Nachalo,0,5)|0|TRUE|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionObject
+RowNumber = visRowTextXForm 'Text Transform
+            arrRowName = Array("")
+                    arrRowValue = Array("TEXTWIDTH(TheText)|TEXTHEIGHT(TheText,Height)|90 deg|SETATREF(Controls.TextPos)|SETATREF(Controls.TextPos.Y)|TxtWidth*0|TxtHeight*0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 End Sub
 
