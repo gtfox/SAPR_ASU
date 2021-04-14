@@ -7,9 +7,9 @@
 Public Const typeNO As Integer = 0 'Контакт NO (Дочерний)(Не нумеруется)
 Public Const typeNC As Integer = 1 'Контакт NC (Дочерний)(Не нумеруется)
 
-Public Const typeCoil As Integer = 2 'Катушка реле (Родительский) KL, KM, KT, KV, KK
-Public Const typeParent As Integer = 3 'Нумеруемый элемент схемы без катушки (Родительский) SA, SB, QF, SF, QS, QA, FU, RU, DD (ТРМ, ПЛК-моноблок)
-Public Const typeElement As Integer = 4 'Нумеруемый элемент схемы без контактов (НЕ Родительский) HL, XS, HA, UG, TV, UZ
+Public Const typeCoil As Integer = 2 'Катушка реле (Родительский) KL (Реле промежуточное), KM (Контактор электромагнитный), KT (Реле времени), KV (Реле напряжения), KK (Реле тепловое)
+Public Const typeParent As Integer = 3 'Нумеруемый элемент схемы без катушки (Родительский) SA (Переключатель), SB (Кнопка), QF (Автомат 3ф), SF (Автомат 1ф), QSD (УЗО), QFD (Дифавтомат), QS (Выключатель нагрузки), QA (Автомат защиты двигателя), FU (Предохранитель), RU (Варистор), DD (ТРМ, ПЛК-моноблок)
+Public Const typeElement As Integer = 4 'Нумеруемый элемент схемы без контактов (НЕ Родительский) HL (Лампа), XS (Розетка), HA (Звонок), UG (Блок питания), TV (Трансфпрматор), UZ (Частотник, Твердотельное реле)
 
 'ПЛК - разнесенное отображение
 Public Const typePLCTerm As Integer = 10 'Клемма внутри ПЛК. (НЕ Родительский) (Не нумеруется)
@@ -35,8 +35,8 @@ Public Const typeCablePL As Integer = 90 'Кабель вне шкафа на П
 
 Public Const typeVynoskaPL As Integer = 95 'Выноска на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
-Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor M, YA
-Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский) RK, BP, SP,BL, SQ, SK
+Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor M (Электродвигатель), YA (Клапан электромагнитный)
+Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский) RK (Датчик температуры TE), BP (Датчик давления PT), SP (Реле давления PS), BL (Датчик пламени BE), SQ (Концевик GS), SK (Термостат TS), UZ (Частотник UZ), BN (Сигнализатор загазованности QN)
 Public Const typeSensorIO As Integer = 111 'Вход/Выход внутри датчика вне шкафа. Содержит несколько клемм (Не нумеруется)
 Public Const typeSensorTerm As Integer = 112 'Клемма внутри typeSensorIO внутри датчика вне шкафа.
 

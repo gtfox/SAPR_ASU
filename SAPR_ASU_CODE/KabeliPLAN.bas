@@ -401,7 +401,7 @@ Public Sub AddSensorsFSAOnPlan()
     Set vsoPagePlan = ActiveDocument.Pages("План.2")
     Set vsoPageFSA = ActiveDocument.Pages(cListNameFSA)
     
-    'Находим что есть на плане
+    'Находим что уже есть на плане
     For Each shpSensorOnPLAN In vsoPagePlan.Shapes
         If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Then
             colSensorOnPLAN.Add shpSensorOnPLAN, shpSensorOnPLAN.Cells("User.Name").ResultStr(0) & ";" & shpSensorOnPLAN.Cells("User.NameParent").ResultStr(0)

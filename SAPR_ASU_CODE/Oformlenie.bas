@@ -537,7 +537,7 @@ Sub SetNazvanieShemy(vsoObject As Object) 'SetValueToSelSections
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
     arrRowName = Array("SA_NazvanieShemy")
-    arrRowValue = Array("""Название Схемы"":""Нумерация элементов идет в пределах одной схемы"":1:"""":INDEX(0,Prop.SA_NazvanieShemy.Format):"""":FALSE:FALSE:1049:0")
+    arrRowValue = Array("""Название Схемы""|""Нумерация элементов идет в пределах одной схемы""|1|""""|INDEX(0,Prop.SA_NazvanieShemy.Format)|""""|FALSE|FALSE|1049|0")
     SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub
 
@@ -547,6 +547,6 @@ Sub SetNazvanieFSA(vsoObject As Object) 'SetValueToSelSections
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
     arrRowName = Array("SA_NazvanieFSA")
-    arrRowValue = Array("""Название ФСА"":""Нумерация элементов идет в пределах одной ФСА"":1:"""":INDEX(0,Prop.SA_NazvanieFSA.Format):"""":FALSE:FALSE:1049:0")
+    arrRowValue = Array("""Название ФСА""|""Нумерация элементов идет в пределах одной ФСА""|1|""""|INDEX(0,Prop.SA_NazvanieFSA.Format)|""""|FALSE|FALSE|1049|0")
     SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub
