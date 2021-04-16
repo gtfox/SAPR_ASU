@@ -157,6 +157,28 @@ dl = CableLength(snap1)
 MsgBox ("длина линии " & dl & " м")
 End Sub
 
+Sub UngroupThis(shpObj As Visio.Shape)
+'Автоматическая разгруппировка фигур при вбросе
+'http://visguy.com/vgforum/index.php?topic=26.0
+'CALLTHIS("UngroupThis")
+'DOCMD(1052) разгруппирует фигуру
+On Error GoTo A
+'Respond OK to all messages
+Application.AlertResponse = 1
+'Ungroup the shape
+shpObj.Ungroup
+A:
+'Stop auto responding to messages
+'When macro fails settings will be restored to Visio default
+Application.AlertResponse = 0
+End Sub
+
+
+
+
+
+
+
 '    ReDim arrRowValue(10, 1)
 '    arrRowValue = [{"1", "2";"11", "22";"111", "222"}]
 '    UBarrCellName = UBound(arrRowValue)
