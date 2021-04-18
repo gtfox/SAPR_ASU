@@ -405,20 +405,23 @@ Sub ClearWire(vsoShape As Visio.Shape)
                 'В EventMultiDrop должна быть формула = CALLTHIS("WireNet.ClearWire", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     'If ThisDocument.BlockMacros Then Exit Sub
-    'Чистим шейп
-    vsoShape.CellsU("Prop.Number").FormulaU = ""
-    vsoShape.CellsU("Prop.SymName").FormulaU = ""
-    vsoShape.Cells("User.AdrSource").FormulaU = ""
-    vsoShape.Cells("Prop.AutoNum").FormulaU = False
-    vsoShape.Cells("Prop.HideNumber").FormulaU = False
-    vsoShape.Cells("Prop.HideName").FormulaU = True
-    'Если подключен 2-мя концами - нумеруем
-    If vsoShape.Connects.Count = 2 Then
-        vsoShape.Cells("Prop.AutoNum").FormulaU = True
-        'Присваиваем номер проводу
-        AutoNum vsoShape
+    'Если подключен 1-м концом и адрес дочерний - ничего не делаем
+    If vsoShape.Connects.Count = 1 And vsoShape.Cells("User.AdrSource").ResultStr(0) <> "0,0000" Then
+    Else
+        'Чистим шейп
+        vsoShape.CellsU("Prop.Number").FormulaU = ""
+        vsoShape.CellsU("Prop.SymName").FormulaU = ""
+        vsoShape.Cells("User.AdrSource").FormulaU = ""
+        vsoShape.Cells("Prop.AutoNum").FormulaU = False
+        vsoShape.Cells("Prop.HideNumber").FormulaU = False
+        vsoShape.Cells("Prop.HideName").FormulaU = True
+        'Если подключен 2-мя концами - нумеруем
+        If vsoShape.Connects.Count = 2 Then
+            vsoShape.Cells("Prop.AutoNum").FormulaU = True
+            'Присваиваем номер проводу
+            AutoNum vsoShape
+        End If
     End If
-
 End Sub
 
 

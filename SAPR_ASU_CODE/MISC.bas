@@ -173,8 +173,29 @@ A:
 Application.AlertResponse = 0
 End Sub
 
+Sub test_vss()
+Dim vsoShape As Visio.Master
+For Each vsoShape In Application.Documents.Item("SAPR_ASU_vid.vss").Masters
+q = vsoShape.Name
+w = vsoShape.NameU
+'ActivePage.Drop vsoShape, 0, 0
+'vsoShape.Delete
+'vsoShape.Shapes("DIN").CellsU("FillPattern").Formula = "USE(""Dinrejka"")"
+Next
+End Sub
 
 
+Sub edit_vss()
+Dim vsoShape As Visio.Shape
+For Each vsoShape In Application.Documents.Item("SAPR_ASU_vid.vss").Masters("Panel").Shapes("Panel").Shapes
+q = vsoShape.Name
+w = vsoShape.NameU
+'ActivePage.Drop vsoShape, 0, 0
+If vsoShape.Name Like "DIN*" Then
+vsoShape.CellsU("FillPattern").Formula = "USE(""Dinrejka"")"
+End If
+Next
+End Sub
 
 
 

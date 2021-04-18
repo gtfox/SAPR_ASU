@@ -169,6 +169,7 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
         Case typeWire 'Провода
         
             'Не нумеруем, т.к. нумеруется в процессе соединения
+            ClearWire vsoShapePaste
             
         Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
         
