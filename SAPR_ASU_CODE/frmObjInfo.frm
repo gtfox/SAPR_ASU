@@ -1,7 +1,8 @@
 
-
+Dim vsoObject As Object
 
 Sub run(vsoShape As Object)
+    Set vsoObject = vsoShape
     lblName.Caption = vsoShape.Name
     lblNameU.Caption = vsoShape.NameU
     lblID.Caption = vsoShape.ID
@@ -11,3 +12,8 @@ Sub run(vsoShape As Object)
     frmObjInfo.Show
 End Sub
 
+
+Private Sub CommandButton1_Click()
+    vsoObject.NameU = vsoObject.Name
+    lblNameU.Caption = vsoObject.NameU
+End Sub

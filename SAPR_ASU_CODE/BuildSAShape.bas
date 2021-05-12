@@ -272,27 +272,29 @@ Sub SetElement() 'SetValueToSelSections
     Dim SectionNumber As Long
     Dim RowNumber As Long
     
-Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("xt").Shapes.Item("xt")
+Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
+
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
     
- SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("SymName", "Number", "NumberKlemmnik", "Nachalo", "FullName")
-            arrRowValue = Array("""Букв. обозначение""|""Букв. обозначение""|1|""X""|INDEX(0,Prop.SymName.Format)|""10""|||0|", _
-                            """Номер клеммы""|""Номер клеммы""|2||222|""30""|||0|", _
-                            """Номер клеммника""|""Номер клеммника""|2||1|""20""|||0|", _
-                            """Начало клеммника""|""Начало клеммника""|3|""""|FALSE|""92""|FALSE|FALSE|1033|0", _
-                            """Имя клеммника""|""Показать имя клеммника""|3|""""|FALSE|""91""|FALSE|FALSE|1033|0")
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("KodProizvoditelyaDB", "KodPoziciiDB")
+            arrRowValue = Array("0|""""", _
+                            "0|""Код позиции/Код производителя/Код единицы""")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-SectionNumber = visSectionControls 'Controls 9
-            arrRowName = Array("TextPos")
-            arrRowValue = Array("Width*1.1407|Height*0.375|Controls.TextPos|Controls.TextPos.Y|IF(Prop.Nachalo,0,5)|0|TRUE|0")
+SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+            arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1049|0", _
+                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1049|0", _
+                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1049|0", _
+                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1049|0", _
+                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1049|0")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-SectionNumber = visSectionObject
-RowNumber = visRowTextXForm 'Text Transform
-            arrRowName = Array("")
-                    arrRowValue = Array("TEXTWIDTH(TheText)|TEXTHEIGHT(TheText,Height)|90 deg|SETATREF(Controls.TextPos)|SETATREF(Controls.TextPos.Y)|TxtWidth*0|TxtHeight*0")
+SectionNumber = visSectionAction 'Action 240
+            arrRowName = Array("AddDB")
+            arrRowValue = Array("CALLTHIS(""DB.AddDBFrm"")|""База данных...""|""""|264|""""|0|0|FALSE|FALSE|FALSE")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 End Sub

@@ -283,6 +283,8 @@ Public Sub AddElementyCxemyOnVID()
     Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set VIDvss = Application.Documents.Item("SAPR_ASU_VID.vss")
     
+    DropX = 0
+    
     NazvanieShemy = "Схема1"
     
     'Берем все листы одной схемы
@@ -351,7 +353,10 @@ Public Sub AddElementyCxemyOnVID()
                         shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
                         If shpElementOnCxema.Cells("Prop.Alarm").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipKnopki").Formula = "INDEX(2,Prop.TipKnopki.Format)"
                     Case "SF" 'SF (Автомат 1ф)
-                    
+                        Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName), DropX, 0)
+                        shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                        shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = shpElementOnCxema.Cells("Prop.TokAvtomata").Result(0)
                     Case "QF" 'QF (Автомат 3ф)
 
                     Case "QSD" 'QSD (УЗО)
@@ -380,7 +385,7 @@ Public Sub AddElementyCxemyOnVID()
                     
                     Case "UG" 'UG (Блок питания)
                     
-                    Case "TV" 'TV (Трансфпрматор)
+                    Case "TV" 'TV (Трансформатор)
                     
                     Case "UZ" 'UZ (Частотник, Твердотельное реле)
 

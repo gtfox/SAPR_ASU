@@ -1,4 +1,4 @@
-Sub Macro2()
+Sub Macro21111()
     Application.CommandBars("Standard").Visible = False
     Application.CommandBars("Formatting").Visible = False
     Application.CommandBars("View").Visible = False
@@ -33,7 +33,7 @@ Sub Macro2()
     Application.CommandBars("САПР АСУ").Visible = True
 
 End Sub
-Sub Macro3()
+Sub Macro3111()
     Application.CommandBars("Reviewing").Visible = False
     Application.CommandBars("Web").Visible = False
     Application.CommandBars("Ink").Visible = False
@@ -43,8 +43,31 @@ Sub Macro3()
     Application.CommandBars("Data").Visible = False
 
 End Sub
-Sub Macro1()
 
-    Application.Documents.Item("SAPR_ASU_OFORM.vss").Save
+Sub Macro3()
+
+
+    Dim UndoScopeID1 As Long
+    UndoScopeID1 = Application.BeginUndoScope("Линейка и сетка")
+    Dim vsoShape1 As Shape
+    Set vsoShape1 = Application.ActiveWindow.Page.PageSheet
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visXRulerOrigin).FormulaU = "95 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visYRulerOrigin).FormulaU = "170 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visXGridOrigin).FormulaU = "95 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visYGridOrigin).FormulaU = "170 mm"
+    Application.EndUndoScope UndoScopeID1, True
+
+End Sub
+Sub Macro4()
+
+    Dim UndoScopeID1 As Long
+    UndoScopeID1 = Application.BeginUndoScope("Линейка и сетка")
+    Dim vsoShape1 As Shape
+    Set vsoShape1 = Application.ActiveWindow.Page.PageSheet
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visXRulerOrigin).FormulaU = "0 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visYRulerOrigin).FormulaU = "0 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visXGridOrigin).FormulaU = "0 mm"
+    vsoShape1.CellsSRC(visSectionObject, visRowRulerGrid, visYGridOrigin).FormulaU = "0 mm"
+    Application.EndUndoScope UndoScopeID1, True
 
 End Sub

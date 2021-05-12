@@ -175,7 +175,11 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
 
         Case typePLCIOChild, typePLCModParent
             If vsoDouble.Parent.Type = visTypeGroup Then
-                vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*0)"
+                If ShapeSATypeIs(vsoDouble.Parent, typeSensor) Or ShapeSATypeIs(vsoDouble.Parent, typeActuator) Then
+                    vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*1)"
+                Else
+                    vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*0)"
+                End If
             Else
                 vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
             End If
@@ -185,28 +189,12 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
             Else
                 vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
             End If
+        Case typePLCTerm
+            vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
     End Select
 
 End Sub
 
-Public Sub DuplicateInSensor(vsoShape As Visio.Shape)
-'------------------------------------------------------------------------------------------------------------
-' Macros        : DuplicateInSensor - Дублирует модуль находящийся внутри Sensor (Когда копируеш модуль формула в PinY портится)
-'------------------------------------------------------------------------------------------------------------
-    Dim vsoDouble As Visio.Shape
-    Set vsoDouble = vsoShape.Duplicate    'дублируем фигуру
-
-    Select Case ShapeSAType(vsoDouble)
-
-        Case typePLCIOChild
-            If vsoDouble.Parent.Type = visTypeGroup Then
-                vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*1)"
-            Else
-                vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
-            End If
-    End Select
-
-End Sub
 
 
 

@@ -186,14 +186,28 @@ End Sub
 
 
 Sub edit_vss()
+Dim vsoMaster As Visio.Master
 Dim vsoShape As Visio.Shape
-For Each vsoShape In Application.Documents.Item("SAPR_ASU_vid.vss").Masters("Panel").Shapes("Panel").Shapes
-q = vsoShape.Name
-w = vsoShape.NameU
+Dim nameShape As String
+nameShape = "PanelMAX"
+'nameShape = "Panel"
+'For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters(nameShape).Shapes(nameShape).Shapes
+For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters
+On Error GoTo err1
+Set vsoShape = vsoMaster.Shapes(vsoMaster.Name)
+'q = vsoShape.Name
+'w = vsoShape.NameU
 'ActivePage.Drop vsoShape, 0, 0
-If vsoShape.Name Like "DIN*" Then
-vsoShape.CellsU("FillPattern").Formula = "USE(""Dinrejka"")"
-End If
+'If (vsoShape.Name Like "DIN*") Or (vsoShape.Name Like "KabKan*") Then
+'vsoShape.CellsU("Prop.Dlina").FormulaU = "FORMAT(Width,""0u"")"
+N = 3
+q = vsoShape.CellsSRC(visSectionAction, N, visActionMenu).ResultStr(0)
+vsoShape.CellsSRC(visSectionAction, N, visActionMenu).RowNameU = "AddDB"
+'End If
+err1:
+Set vsoMaster = Nothing
+Set vsoShape = Nothing
+q = ""
 Next
 End Sub
 
