@@ -217,7 +217,7 @@ End Sub
 
 Sub VpisatVList()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : VpisatVList - "Вписывает чертеж в лист" :) Увеличивает масштаб докумета под размер чертежа
+' Macros        : VpisatVList - "Вписывает чертеж в лист" - Увеличивает масштаб докумета под размер чертежа
 
                 'Рисуем прямоугольник больше размера чертежа. Размер прямоугольника - это будущий размер листа. Запускаем макрос.
                 'Масштаб и размер докумета меняются, прямоугольник удаляется.
@@ -262,8 +262,13 @@ Public Sub AddElementyCxemyOnVID()
     Dim shpElementOnVID As Visio.Shape
     Dim colElementOnVID As Collection
     Dim colElementToVID As Collection
+    Dim shpTermOnCxema As Visio.Shape
+    Dim shpTermOnVID As Visio.Shape
+    Dim colTermToVID As Collection
     Dim vsoSelection As Visio.Selection
     Dim VIDvss As Document
+    Dim cellKlemmnik As Visio.Cell
+    Dim cellKlemma As Visio.Cell
     Dim PageParent As String
     Dim NameIdParent As String
     Dim AdrParent As String
@@ -273,24 +278,29 @@ Public Sub AddElementyCxemyOnVID()
     Dim nCount As Double
     Dim DropX  As Double
     Dim DropY As Double
+    Dim dX As Double
+    Dim dY As Double
+    Dim N As Integer
+    Dim ElementovVStroke As Integer 'Количество элементов в одной "строке" при вставке на ВИД
     
     
     Set colElementOnVID = New Collection
     Set colElementToVID = New Collection
+    Set colTermToVID = New Collection
     Set colPagesCxema = New Collection
     Set vsoSelection = ActiveWindow.Selection
     Set vsoPageVID = ActiveDocument.Pages("ВИД")
     Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set VIDvss = Application.Documents.Item("SAPR_ASU_VID.vss")
     
-    DropX = 0
+    ElementovVStroke = 10
     
     NazvanieShemy = "Схема1"
     
     'Берем все листы одной схемы
     For Each vsoPageCxema In ActiveDocument.Pages
         If vsoPageCxema.Name Like cListNameCxema & "*" Then
-            If vsoPageCxema.CellExists("Prop.SA_NazvanieShemy", 0) Then
+            If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
                 If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
                     colPagesCxema.Add vsoPageCxema
                 End If
@@ -301,7 +311,7 @@ Public Sub AddElementyCxemyOnVID()
     'Находим что уже есть на ВИДе
     For Each shpElementOnVID In vsoPageVID.Shapes
         If ShapeSATypeIs(shpElementOnVID, typeVidShkafaDIN) Or ShapeSATypeIs(shpElementOnVID, typeVidShkafaDver) Then
-            colElementOnVID.Add shpElementOnVID, shpElementOnVID.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnVID.Cells("User.NameParent").ResultStr(0)
+            colElementOnVID.Add shpElementOnVID, shpElementOnVID.Cells("User.NameParent").ResultStr(0) '& ";" & shpElementOnVID.Cells("User.NameParent").ResultStr(0)
         End If
     Next
     
@@ -310,10 +320,18 @@ Public Sub AddElementyCxemyOnVID()
         For Each shpElementOnCxema In vsoPageCxema.Shapes
             SAType = ShapeSAType(shpElementOnCxema)
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typeTerm ', typePLCParent
+                Case typeCoil, typeParent, typeElement, typePLCParent
                     nCount = colElementOnVID.Count
                     On Error Resume Next
                     colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                    If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                        colElementToVID.Add shpElementOnCxema
+                        nCount = colElementOnVID.Count
+                    End If
+                Case typeTerm
+                    nCount = colElementOnVID.Count
+                    On Error Resume Next
+                    colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
                     If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
                         colElementToVID.Add shpElementOnCxema
                         nCount = colElementOnVID.Count
@@ -322,7 +340,70 @@ Public Sub AddElementyCxemyOnVID()
             End Select
         Next
     Next
+'-------------------------------------------------------------------------------Клеммы---------------------------------------------------------------------------------------------
+    'Клеммы шкафа собираем в отдельную коллекцию
+    For Each shpElementOnCxema In colElementToVID
+        If ShapeSATypeIs(shpElementOnCxema, typeTerm) Then
+            colTermToVID.Add shpElementOnCxema
+        End If
+    Next
     
+    'Вставляем на ВИД недостающие клеммы группируя по клеммникам
+    If colTermToVID.Count > 0 Then
+        KlemmnikName = colTermToVID.Item(colTermToVID.Count).Cells("User.KlemmnikName").ResultStr(0)
+    End If
+    KlemmnikNameOld = ""
+    While colTermToVID.Count > 0
+        'Находим и вставляем все клеммы текущего клеммника
+        For Each shpTermOnCxema In colTermToVID
+            If shpTermOnCxema.Cells("User.KlemmnikName").ResultStr(0) = KlemmnikName Then
+            
+                Set shpTermOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("XT"), 0, DropY)
+                
+                If KlemmnikName <> KlemmnikNameOld Then 'Первая клемма нового клеммника
+                    shpTermOnVID.Cells("Prop.Nachalo").Formula = 1
+                    Set cellKlemmnik = shpTermOnVID.CellsSRC(visSectionConnectionPts, visRowConnectionPts + 1, 0)
+                    KlemmnikNameOld = KlemmnikName
+                End If
+                
+                'Заполняем данные
+                PageParent = shpTermOnCxema.ContainingPage.NameU
+                NameIdParent = shpTermOnCxema.NameID
+                AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+                shpTermOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.FullName"
+                shpTermOnVID.Cells("User.Name").Formula = AdrParent + "!User.Name" '?
+                shpTermOnVID.Cells("Prop.Sechenie").Formula = AdrParent + "!Prop.Sechenie"
+                shpTermOnVID.Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
+                shpTermOnVID.Cells("Prop.Number").Formula = AdrParent + "!Prop.Number"
+                shpTermOnVID.Cells("Prop.NumberKlemmnik").Formula = AdrParent + "!Prop.NumberKlemmnik"
+                
+                'Клеим клемму к клеммнику
+                Set cellKlemma = shpTermOnVID.CellsSRC(visSectionConnectionPts, visRowConnectionPts, 0)
+                cellKlemma.GlueTo cellKlemmnik
+                    'Костыль из-за того, что visio не может таскать длинные цепочки склеенных фигур
+                    If cellKlemmnik.Shape <> cellKlemma.Shape Then
+                        cellKlemma.Shape.Cells("PinX").Formula = cellKlemmnik.Shape.NameID & "!PinX+" & cellKlemmnik.Shape.NameID & "!Width"
+                        cellKlemma.Shape.Cells("PinY").Formula = cellKlemmnik.Shape.NameID & "!PinY"
+                    End If
+                Set cellKlemmnik = shpTermOnVID.CellsSRC(visSectionConnectionPts, visRowConnectionPts + 1, 0)
+            End If
+        Next
+        
+        'Удаляем из коллекции вставленный клеммник
+        For i = colTermToVID.Count To 0 Step -1
+            If colTermToVID.Item(i).Cells("User.KlemmnikName").ResultStr(0) = KlemmnikName Then
+                colTermToVID.Remove i
+            End If
+        Next
+        
+        'Берем следующий клеммник
+        KlemmnikName = colTermToVID.Item(colTermToVID.Count).Cells("User.KlemmnikName").ResultStr(0)
+        'Смещаемся ниже
+        DropY = DropY - shpTermOnVID.Cells("Height").Result(0) * 2
+    Wend
+
+'-------------------------------------------------------------------------------Элементы---------------------------------------------------------------------------------------------
+
     'Вставляем на ВИД недостающие элементы
     For Each shpElementOnCxema In colElementToVID
         SAType = ShapeSAType(shpElementOnCxema)
@@ -330,105 +411,89 @@ Public Sub AddElementyCxemyOnVID()
         PageParent = shpElementOnCxema.ContainingPage.NameU
         NameIdParent = shpElementOnCxema.NameID
         AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
-        
-        
-        
+
         Select Case SAType
             Case typeCoil, typeParent, typeElement ', typePLCParent
-                SymName = shpElementOnVID.Cells("Prop.SymName").ResultStr(0)
+                SymName = shpElementOnCxema.Cells("Prop.SymName").ResultStr(0)
                 
+                Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
+                shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                shpElementOnVID.Shapes("Desc").Text = shpElementOnCxema.Shapes("Desc").Text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
+                shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
+                dX = shpElementOnVID.Cells("Width").Result(0)
+                dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
                 Select Case SymName
                     Case "HL" 'HL (Лампа)
-                        Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName), DropX, 0)
-                        shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                        shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                    
                     Case "SA" 'SA (Переключатель)
-                        Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName), DropX, 0)
-                        shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                        shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
                         If shpElementOnCxema.Cells("Prop.3P").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipPerkluchtelya").Formula = 3
                     Case "SB" 'SB (Кнопка)
-                        Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName), DropX, 0)
-                        shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                        shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                        If shpElementOnCxema.Cells("Prop.Alarm").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipKnopki").Formula = "INDEX(2,Prop.TipKnopki.Format)"
+                        If shpElementOnCxema.Cells("Prop.Alarm").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipKnopki").FormulaU = "INDEX(2,Prop.TipKnopki.Format)" ' """Аварийная"""
                     Case "SF" 'SF (Автомат 1ф)
-                        Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName), DropX, 0)
-                        shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                        shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = shpElementOnCxema.Cells("Prop.TokAvtomata").Result(0)
+                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
                     Case "QF" 'QF (Автомат 3ф)
-
+                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
                     Case "QSD" 'QSD (УЗО)
-                    
+                        shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
                     Case "QFD" 'QFD (Дифавтомат)
-                    
+                        shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
                     Case "QA" 'QA (Автомат защиты двигателя)
-                    
+                        shpElementOnVID.Cells("Prop.TipAvtomata").Formula = AdrParent + "!Prop.Harakteristika"
                     Case "QS" 'QS (Выключатель нагрузки)
                     
                     Case "FU" 'FU (Предохранитель)
-                    
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "RU" 'RU (Варистор)
-
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "KM" 'KM (Контактор электромагнитный)
-                    
+                        shpElementOnVID.Cells("Prop.TokKontaktora").Formula = AdrParent + "!Prop.Tok"
                     Case "KL" 'KL (Реле промежуточное)
-                    
+                        shpElementOnVID.Cells("Prop.Kontaktov").Formula = AdrParent + "!Prop.Kontaktov"
                     Case "KT" 'KT (Реле времени)
-                    
+
                     Case "KV" 'KV (Реле напряжения)
-                    
+
                     Case "KK" 'KK (Реле тепловое)
-                    
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "HA" 'HA (Звонок)
-                    
+
                     Case "UG" 'UG (Блок питания)
-                    
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "TV" 'TV (Трансформатор)
-                    
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "UZ" 'UZ (Частотник, Твердотельное реле)
-
+                        shpElementOnVID.Cells("Prop.Polusov").Formula = IIf(shpElementOnCxema.NameU Like SymName & "3P*", 3, 1)
                     Case "XS" 'XS (Розетка)
-
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "DD" 'DD (ТРМ, ПЛК-моноблок)
-                    
+                        shpElementOnVID.Cells("Prop.TPM").Formula = AdrParent + "!Prop.TPM"
                     Case Else
                 End Select
-            Case typeTerm
-                'Заполнить коллекцию
-                'Сгруппировать по клеммнику
-                'Клеить клеммы в один клеммник
-                Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("XT"), 0, 0)
-                shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name" '?
-                
-                shpElementOnVID.Cells("Prop.Sechenie").Formula = AdrParent + "!Prop.Sechenie"
-                shpElementOnVID.Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
-                shpElementOnVID.Cells("Prop.Number").Formula = AdrParent + "!Prop.Number"
-                shpElementOnVID.Cells("Prop.NumberKlemmnik").Formula = AdrParent + "!Prop.NumberKlemmnik"
-                
+            Case typePLCParent
+                Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("PLC"), DropX, DropY)
+                shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                shpElementOnVID.Shapes("Desc").Text = shpElementOnCxema.Shapes("Desc").Text
+                shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
+                dX = shpElementOnVID.Cells("Width").Result(0)
+                dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
+                Select Case SymName
+                    Case "DD" 'DD (ПЛК-модульный)
+                        shpElementOnVID.Cells("Prop.TPM").Formula = shpElementOnCxema.Cells("Prop.TPM").Result(0)
+                    Case Else
+                End Select
             Case Else
+                dX = 0
         End Select
-        DropX = DropX + shpElementOnVID.Cells("Width").Result(0)
-'        DropY = DropY + shpElementOnVID.Cells("Height").Result(0)
+        DropX = DropX + dX * 2
+        N = N + 1
+        If N = ElementovVStroke Then
+            DropY = DropY - dY * 2
+            DropX = 0
+            dY = 0
+            N = 0
+        End If
     Next
-    
-    
-    
-    
-    
-    
-    
-
-    With ActiveWindow.Selection
-        'Выравниваем по горизонтали
-        .Align visHorzAlignNone, visVertAlignMiddle, False
-        'Распределяем по горизонтали
-        .Distribute visDistHorzSpace, False
-        DoEvents
-        'Поднимаем вверх
-        .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
-
-    End With
 
 End Sub

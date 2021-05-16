@@ -594,17 +594,17 @@ Function CableLength(shpCable As Shape) As Double
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=15&t=209&st=0&sk=t&sd=a
 '------------------------------------------------------------------------------------------------------------
     Dim Summa As Double ' сумма длин
-    Dim dx As Double ' определяем разности координат между концами отрезка
-    Dim dy As Double ' определяем разности координат между концами отрезка
+    Dim dX As Double ' определяем разности координат между концами отрезка
+    Dim dY As Double ' определяем разности координат между концами отрезка
     Dim nRows As Integer  ' счетчик количества изломов линии
     Dim i As Integer
     
     nRows = shpCable.RowCount(visSectionFirstComponent) - 1
     Summa = 0
     For i = 1 To nRows - 1  ' пошагово перебираются узлы линии и вычисляются расстояния между узлами:
-        dx = (shpCable.CellsSRC(visSectionFirstComponent, i, 0) - shpCable.CellsSRC(visSectionFirstComponent, i + 1, 0)) * 25.4 ' по оси X
-        dy = (shpCable.CellsSRC(visSectionFirstComponent, i, 1) - shpCable.CellsSRC(visSectionFirstComponent, i + 1, 1)) * 25.4 ' по оси Y
-        Summa = Summa + Sqr(dx ^ 2 + dy ^ 2) ' Вычисляем длину текущего отрезка и прибавляем к сумме длин предыдущих отрезков
+        dX = (shpCable.CellsSRC(visSectionFirstComponent, i, 0) - shpCable.CellsSRC(visSectionFirstComponent, i + 1, 0)) * 25.4 ' по оси X
+        dY = (shpCable.CellsSRC(visSectionFirstComponent, i, 1) - shpCable.CellsSRC(visSectionFirstComponent, i + 1, 1)) * 25.4 ' по оси Y
+        Summa = Summa + Sqr(dX ^ 2 + dY ^ 2) ' Вычисляем длину текущего отрезка и прибавляем к сумме длин предыдущих отрезков
     Next
     CableLength = Round(Summa * 0.001, 1)
     
