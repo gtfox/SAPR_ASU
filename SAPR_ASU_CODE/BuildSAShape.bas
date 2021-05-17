@@ -107,6 +107,13 @@ SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumbe
 Next
 End Sub
 
+Sub SetFont()
+    Dim vsoMaster As Visio.Master
+    For Each vsoMaster In Application.Documents.Item("SAPR_ASU_VID.vss").Masters
+        vsoMaster.Shapes(1).CellsSRC(visSectionCharacter, visRowCharacter, visCharacterFont).Formula = 93
+    Next
+End Sub
+
 Sub GetAllSSValueSplit()
     Dim arrSectionNumber()
     Dim arrRowNumber()

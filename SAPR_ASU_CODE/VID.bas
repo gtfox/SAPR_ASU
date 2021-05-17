@@ -441,7 +441,7 @@ Public Sub AddElementyCxemyOnVID()
                     Case "QA" 'QA (Автомат защиты двигателя)
                         shpElementOnVID.Cells("Prop.TipAvtomata").Formula = AdrParent + "!Prop.Harakteristika"
                     Case "QS" 'QS (Выключатель нагрузки)
-                    
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "FU" 'FU (Предохранитель)
                         shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "RU" 'RU (Варистор)
@@ -462,8 +462,10 @@ Public Sub AddElementyCxemyOnVID()
                         shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "TV" 'TV (Трансформатор)
                         shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "UZ" 'UZ (Частотник, Твердотельное реле)
+                    Case "UZ" 'UZ (Твердотельное реле)
                         shpElementOnVID.Cells("Prop.Polusov").Formula = IIf(shpElementOnCxema.NameU Like SymName & "3P*", 3, 1)
+                    Case "UF" 'UF (Частотник)
+                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "XS" 'XS (Розетка)
                         shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                     Case "DD" 'DD (ТРМ, ПЛК-моноблок)
