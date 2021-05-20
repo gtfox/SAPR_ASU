@@ -264,5 +264,7 @@ Public Sub DuplicateFSAPodval(vsoShape As Visio.Shape)
 
         vsoDouble.Cells("PinX").FormulaForceU = "GUARD(" & vsoShape.NameID & "!PinX+" & vsoShape.NameID & "!Width)"
         vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoShape.NameID & "!PinY)"
+        vsoDouble.Cells("Actions.Glue.Invisible").FormulaForceU = 1
+        vsoDouble.Cells("Actions.UnGlue.Invisible").FormulaForceU = 0
 
 End Sub

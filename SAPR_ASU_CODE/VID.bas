@@ -248,7 +248,13 @@ Sub VpisatVList()
     vsoShape.Delete
 End Sub
 
-Public Sub AddElementyCxemyOnVID()
+Public Sub PageVIDAddElementsFrm()
+    Load frmPageVIDAddElements
+    frmPageVIDAddElements.Show
+End Sub
+
+
+Public Sub AddElementyCxemyOnVID(NazvanieShemy As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddElementyCxemyOnVID - Вставляет на лист ВИД элементы со СХЕМЫ
                 'В соответствии с типом элемента схемы выбирается шейп внешнего вида и добавляется на лист ВИД.
@@ -272,7 +278,7 @@ Public Sub AddElementyCxemyOnVID()
     Dim PageParent As String
     Dim NameIdParent As String
     Dim AdrParent As String
-    Dim NazvanieShemy As String
+'    Dim NazvanieShemy As String
     Dim SymName As String
     Dim SAType As Integer
     Dim nCount As Double
@@ -283,19 +289,23 @@ Public Sub AddElementyCxemyOnVID()
     Dim N As Integer
     Dim ElementovVStroke As Integer 'Количество элементов в одной "строке" при вставке на ВИД
     
+    If NazvanieShemy = "" Then
+        MsgBox "Нет схем для вставки", vbExclamation, "Название схемы пустое"
+        Exit Sub
+    End If
     
     Set colElementOnVID = New Collection
     Set colElementToVID = New Collection
     Set colTermToVID = New Collection
     Set colPagesCxema = New Collection
     Set vsoSelection = ActiveWindow.Selection
-    Set vsoPageVID = ActiveDocument.Pages("ВИД")
+    Set vsoPageVID = Application.ActivePage  'Pages("ВИД")
     Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set VIDvss = Application.Documents.Item("SAPR_ASU_VID.vss")
     
     ElementovVStroke = 10
     
-    NazvanieShemy = "Схема1"
+'    NazvanieShemy = "Схема1"
     
     'Берем все листы одной схемы
     For Each vsoPageCxema In ActiveDocument.Pages

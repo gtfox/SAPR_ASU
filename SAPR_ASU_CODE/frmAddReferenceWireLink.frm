@@ -253,7 +253,7 @@ Private Sub lstvParent_DblClick()
     End Select
     
     'Активация событий. Они чета сомодезактивируются xD
-    Set vsoPagesEvent = ActiveDocument.Pages
+'    Set vsoPagesEvent = ActiveDocument.Pages
     
     btnClose_Click
     

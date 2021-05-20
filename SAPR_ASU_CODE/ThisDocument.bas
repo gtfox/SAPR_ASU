@@ -47,8 +47,10 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
                 DeleteWire vsoShape
             Case typeCableSH   'Кабель на эл. схеме
                 DeleteCableSH vsoShape
-            Case typeFSASensor   'Датчик на ФСА
-                DeleteSensorChild vsoShape
+            Case typeFSASensor   'Датчик ФСА
+                If Not (vsoShape.ContainingPage.NameU Like cListNamePlan & "*") Then
+                    DeleteSensorChild vsoShape
+                End If
             Case typeFSAPodval 'Подвал на ФСА
                 DeleteFSAPodvalChild vsoShape
             Case typeSensor, typeActuator   'Датчик/Привод на эл. схеме
@@ -135,7 +137,7 @@ Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
                 'В EventDrop должна быть формула =CALLTHIS("ThisDocument.EventDropAutoNum")
 '------------------------------------------------------------------------------------------------------------
     
-    InitEvent 'Активация событий
+'    InitEvent 'Активация событий
 
     Set vsoShapePaste = vsoShapeEvent
     

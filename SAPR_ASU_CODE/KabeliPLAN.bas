@@ -380,61 +380,106 @@ Public Sub AddRouteCablesOnPlan()
     Next
 End Sub
 
+Public Sub PagePLANAddElementsFrm()
+    Load frmPagePLANAddElements
+    frmPagePLANAddElements.Show
+End Sub
 
-Public Sub AddSensorsFSAOnPlan()
+Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddSensorsFSAOnPlan - Копирует все датчики из ФСА на ПЛАН
                 'Копирует все датчики из ФСА на ПЛАН, если датчик уже есть то не копирут его.
 '------------------------------------------------------------------------------------------------------------
     Dim vsoPagePlan As Visio.Page
     Dim vsoPageFSA As Visio.Page
+    Dim colPagesFSA As Collection
     Dim shpSensorOnFSA As Visio.Shape
     Dim shpSensorOnPLAN As Visio.Shape
     Dim colSensorOnPLAN As Collection
     Dim colSensorToPLAN As Collection
     Dim vsoSelection As Visio.Selection
+    Dim vsoGroup As Visio.Shape
     Dim nCount As Double
+    
+    If NazvanieFSA = "" Then
+        MsgBox "Нет ФСА для вставки", vbExclamation, "Название ФСА пустое"
+        Exit Sub
+    End If
     
     Set colSensorOnPLAN = New Collection
     Set colSensorToPLAN = New Collection
+    Set colPagesFSA = New Collection
     Set vsoSelection = ActiveWindow.Selection
-    Set vsoPagePlan = ActiveDocument.Pages("План.2")
+    Set vsoPagePlan = Application.ActivePage  '.Pages("План")
     Set vsoPageFSA = ActiveDocument.Pages(cListNameFSA)
-    
+
+    'Берем все листы одной ФСА
+    For Each vsoPageFSA In ActiveDocument.Pages
+        If vsoPageFSA.Name Like cListNameFSA & "*" Then
+            If vsoPageFSA.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
+                If vsoPageFSA.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0) = NazvanieFSA Then
+                    colPagesFSA.Add vsoPageFSA
+                End If
+            End If
+        End If
+    Next
+
     'Находим что уже есть на плане
     For Each shpSensorOnPLAN In vsoPagePlan.Shapes
-        If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Then
-            colSensorOnPLAN.Add shpSensorOnPLAN, shpSensorOnPLAN.Cells("User.Name").ResultStr(0) & ";" & shpSensorOnPLAN.Cells("User.NameParent").ResultStr(0)
+        If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Or ShapeSATypeIs(shpSensorOnPLAN, typeActuator) Then
+            colSensorOnPLAN.Add shpSensorOnPLAN, shpSensorOnPLAN.Cells("User.Name").ResultStr(0) '& ";" & shpSensorOnPLAN.Cells("User.NameParent").ResultStr(0)
         End If
     Next
     
     'Суем туда же все из ФСА. Одинаковое не влезает => ошибка. Что не влезло: нам оно то и нужно
-    For Each shpSensorOnFSA In vsoPageFSA.Shapes
-        If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Then
-            nCount = colSensorOnPLAN.Count
-            On Error Resume Next
-            colSensorOnPLAN.Add shpSensorOnFSA, shpSensorOnFSA.Cells("User.Name").ResultStr(0) & ";" & shpSensorOnFSA.Cells("User.NameParent").ResultStr(0)
-            If colSensorOnPLAN.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                colSensorToPLAN.Add shpSensorOnFSA
+    For Each vsoPageFSA In colPagesFSA
+        For Each shpSensorOnFSA In vsoPageFSA.Shapes
+            If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Then
                 nCount = colSensorOnPLAN.Count
+                On Error Resume Next
+                colSensorOnPLAN.Add shpSensorOnFSA, shpSensorOnFSA.Cells("User.Name").ResultStr(0) '& ";" & shpSensorOnFSA.Cells("User.NameParent").ResultStr(0)
+                If colSensorOnPLAN.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                    colSensorToPLAN.Add shpSensorOnFSA
+                    nCount = colSensorOnPLAN.Count
+                End If
             End If
-        End If
+        Next
     Next
     
     'Выделяем недостающие датчики
     For Each shpSensorOnPLAN In colSensorToPLAN
         vsoSelection.Select shpSensorOnPLAN, visSelect
     Next
+    If vsoSelection.Count = 0 Then
+        Exit Sub
+    End If
+    Set vsoGroup = vsoSelection.Group
+    vsoSelection.DeselectAll
+    vsoSelection.Select vsoGroup, visSelect
+    For Each shpSensorOnPLAN In vsoSelection
+       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = """"""
+       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = """"""
+    Next
     'Копируем на план что насобирали
     vsoSelection.Copy
+    For Each shpSensorOnPLAN In vsoSelection
+       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
+       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
+    Next
+    vsoSelection.Ungroup
     'Отключаем события автоматизации (чтобы не перенумеровалось все)
+    DoEvents
     Application.EventsEnabled = 0
     'Вставляем на листе план
     ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
     ActivePage.Paste
+    ActiveWindow.Selection.Ungroup
     'Включаем пункт меню "Проложить кабель"
     For Each shpSensorOnPLAN In ActiveWindow.Selection
        shpSensorOnPLAN.Cells("Actions.Kabel.Invisible").Formula = 0
+       shpSensorOnPLAN.Cells("Actions.AddReference.Invisible").Formula = 1
+       shpSensorOnPLAN.Cells("Prop.KanalNumber").Formula = 0
+'       shpSensorOnPLAN.Cells("User.Dropped").Formula = 0
     Next
     With ActiveWindow.Selection
         'Выравниваем по горизонтали

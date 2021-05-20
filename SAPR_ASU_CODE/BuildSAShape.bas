@@ -114,6 +114,48 @@ Sub SetFont()
     Next
 End Sub
 
+Sub SetIcon()
+    Dim vsoMaster As Visio.Master
+    For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters
+        On Error Resume Next
+        With vsoMaster.Shapes(1)
+            .Cells("Actions.Rotate.ButtonFace").FormulaU = "IF(Actions.Rotate.Action,""199"",""198"")" '128 129
+            .Cells("Actions.AddReference.ButtonFace").FormulaU = "2651" '1623
+            .Cells("Actions.Thumb.ButtonFace").FormulaU = "2871" '256
+            .Cells("Actions.Tune.ButtonFace").FormulaU = "1894"
+            .Cells("Actions.KlemmyProvoda.ButtonFace").FormulaU = "2601"
+            .Cells("Actions.KabeliIzProvodov.ButtonFace").FormulaU = "2642"
+            .Cells("Actions.KabeliSrazu.ButtonFace").FormulaU = "1187"
+            .Cells("Actions.55.ButtonFace").FormulaU = "203"
+            .Cells("Actions.15.ButtonFace").FormulaU = "388"
+        End With
+    Next
+End Sub
+
+Sub SetIconPLC()
+    Dim vsoMaster As Visio.Master
+    Dim vsoShape As Visio.Shape
+    For Each vsoMaster In Application.Documents.Item("SAPR_ASU_PLC.vss").Masters
+        For i = 1 To 100
+            On Error Resume Next
+            With vsoMaster.Shapes(1).Shapes.ItemFromID(i)
+                .Cells("Actions.Rotate.ButtonFace").FormulaU = "IF(Actions.Rotate.Action,""199"",""198"")" '128 129
+                .Cells("Actions.AddReference.ButtonFace").FormulaU = "2651" '1623
+                .Cells("Actions.Thumb.ButtonFace").FormulaU = "2871" '256
+                .Cells("Actions.Tune.ButtonFace").FormulaU = "1894"
+                .Cells("Actions.KlemmyProvoda.ButtonFace").FormulaU = "2601"
+                .Cells("Actions.KabeliIzProvodov.ButtonFace").FormulaU = "2642"
+                .Cells("Actions.KabeliSrazu.ButtonFace").FormulaU = "1187"
+                .Cells("Actions.Duplicate.ButtonFace").FormulaU = "19"
+                .Cells("Actions.Glue.ButtonFace").FormulaU = "1649"
+                .Cells("Actions.HideName.ButtonFace").FormulaU = "529"
+                
+            End With
+        Next
+    Next
+End Sub
+
+
 Sub GetAllSSValueSplit()
     Dim arrSectionNumber()
     Dim arrRowNumber()

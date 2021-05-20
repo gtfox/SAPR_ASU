@@ -4,6 +4,7 @@ Option Explicit
 
 Dim NaimenovanieAdd2Ramka As String
 
+
 Private Sub UserForm_Initialize()
 
     cmbxPageName.AddItem cListNameOD '"ОД" 'Общие указания
@@ -120,6 +121,8 @@ Private Sub btnAddRazdel_Click()
         vsoPageNew.PageSheet.Cells("Paperkind").Formula = 8
         vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = 2
     End If
+        vsoPageNew.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = "1 mm"
+        vsoPageNew.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "0"
     
     If PageName = cListNameCxema Then
         SetNazvanieShemy vsoPageNew.PageSheet
@@ -148,6 +151,44 @@ Private Sub btnAddRazdel_Click()
             vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
         End If
     End If
+    
+    
+    Select Case PageName
+        Case cListNameOD ' "ОД" 'Общие указания
+        Case cListNameFSA ' "ФСА" 'Схема функциональная автоматизации
+        Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование из ФСА"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Проложить кабели для всего оборудования"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""AddRouteCablesOnPlan"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "2633" '2645
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
+            End With
+        Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
+        Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить элементы со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageVIDAddElementsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
+        Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
+        Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
+        Case Else
+    End Select
+    
+    
+    
+
+    
+    
     
     LockTitleBlock
     
@@ -215,7 +256,11 @@ End Sub
 
 Private Sub btnNazvanieShemyAdd_Click()
     If MsgBox("Добавить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbInformation, "Добавить название схемы") = vbYes Then
-        NazvanieShemyAdd
+        If cmbxNazvanieShemy.Text = "" Then
+            MsgBox "Название схемы пустое" & vbNewLine & "Введите название схемы... ", vbExclamation, "Название схемы пустое"
+        Else
+            NazvanieShemyAdd
+        End If
     End If
 End Sub
 
@@ -237,7 +282,11 @@ End Sub
 
 Private Sub btnNazvanieFSAAdd_Click()
     If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "Добавить название ФСА") = vbYes Then
-        NazvanieFSAAdd
+        If cmbxNazvanieFSA.Text = "" Then
+            MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "Название ФСА пустое"
+        Else
+            NazvanieFSAAdd
+        End If
     End If
 End Sub
 
