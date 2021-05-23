@@ -267,8 +267,8 @@ Sub AddReferencePLCIO(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim shpParentOld As Visio.Shape
     Dim shpChildOld As Visio.Shape
-    Dim PageParent, NameIdParent, AdrParent As String
-    Dim PageChild, NameIdChild, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String
     Dim HyperLinkToParentOld As String
     Dim mstrAdrParentOld() As String
     Dim HyperLinkToChildOld As String

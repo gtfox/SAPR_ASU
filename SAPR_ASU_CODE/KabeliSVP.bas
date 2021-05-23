@@ -199,7 +199,10 @@ Sub DeleteCableSH(shpKabel As Visio.Shape)
 End Sub
 
 Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber As Boolean)
-    
+'------------------------------------------------------------------------------------------------------------
+' Macros        : AddSensorOnSVP - Добавляет датчик, провод, клеммы на СВП
+                'После вставки провода и кабель эл. схемы заменяются шейпом кабеля СВП, жилы приклеиваются к клеммам
+'------------------------------------------------------------------------------------------------------------
     Dim shpSensorIO As Visio.Shape
     Dim shpTerm As Visio.Shape
     Dim shpCable As Visio.Shape
@@ -242,7 +245,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
     
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
-    
+
     If MultiCable Then
         'Перебираем все входы в датчике
         For Each shpSensorIO In shpSensor.Shapes
@@ -284,18 +287,71 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
         colCablesOnElSh.Add colWires.Item(1).Parent, CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0))
     End If
-
+    ActiveWindow.Selection = vsoSelection
+    Set vsoGroup = ActiveWindow.Selection.Group
+    
+    'Чистим события перед копированием
+    For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
+        With vsoShape
+            .Cells("Prop.AutoNum").Formula = 0
+            .Cells("EventMultiDrop").Formula = """"""
+            .Cells("EventDrop").Formula = """"""
+            .Cells("EventDblClick").Formula = """"""
+        End With
+    Next
+    
     'Копируем что насобирали
-    vsoSelection.Copy
-    'Отключаем события автоматизации (чтобы не перенумеровалось все)
-    Application.EventsEnabled = 0
+    ActiveWindow.Selection.Copy
+
+    'Восстанавливаем события после копирования
+    For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
+        With vsoShape
+            .Cells("Prop.AutoNum").Formula = 1
+            .Cells("EventMultiDrop").Formula = "CALLTHIS(""AutoNumber.AutoNum"")"
+            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
+                .Cells("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")+SETF(GetRef(PinY),""80 mm/ThePage!PageScale*ThePage!DrawingScale"")+SETF(GetRef(Prop.ShowDesc),""true"")"
+                .Cells("EventDblClick").Formula = "CALLTHIS(""CrossReferenceSensor.AddReferenceSensorFrm"")"
+            Else
+                .Cells("EventDrop").Formula = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
+                .Cells("EventDblClick").Formula = "DOCMD(1312)"
+            End If
+        End With
+    Next
+
+    ActiveWindow.Selection.Ungroup
 
     ActiveWindow.Page = ActiveDocument.Pages(vsoPageSVP.Name)
+    'Отключаем события автоматизации (чтобы не перенумеровалось все)
+    Application.EventsEnabled = 0
+    
     ActivePage.Paste
     'Application.ActiveDocument.Pages(cListNameSVP).Paste
 
-    Set vsoGroup = ActiveWindow.Selection.Group
-    
+    Set vsoGroup = ActiveWindow.Selection.PrimaryItem
+
+    'Отключаем меню
+    For Each vsoShape In vsoGroup.Shapes
+        With vsoShape
+'            .Cells("Prop.AutoNum").Formula = 0
+'            .Cells("EventMultiDrop").Formula = ""
+'            .Cells("EventDrop").Formula = ""
+'            .Cells("EventDblClick").Formula = ""
+            .Cells("Actions.AddDB.Invisible").Formula = 1
+            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
+                .Cells("Actions.Celyj.Invisible").Formula = 1
+                .Cells("Actions.Nachalo.Invisible").Formula = 1
+                .Cells("Actions.Seredina.Invisible").Formula = 1
+                .Cells("Actions.Konec.Invisible").Formula = 1
+                .Cells("Actions.Tune.Invisible").Formula = 1
+                .Cells("Actions.ShowDesc.Invisible").Formula = 1
+                .Cells("Actions.AddReference.Invisible").Formula = 1
+                .Cells("Actions.KlemmyProvoda.Invisible").Formula = 1
+                .Cells("Actions.KabeliIzProvodov.Invisible").Formula = 1
+                .Cells("Actions.KabeliSrazu.Invisible").Formula = 1
+            End If
+        End With
+    Next
+
     Set colCables = New Collection
     vsoGroup.Cells("PinX").Formula = "(" & PastePoint & "+" & Interval & "+" & vsoGroup.Cells("LocPinX").Result(0) & ")/ThePage!PageScale*ThePage!DrawingScale"
     vsoGroup.Cells("PinY").Formula = Klemma & "-" & vsoGroup.Cells("LocPinY").Result(0)
@@ -317,13 +373,13 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         vsoGroup.Delete
         Exit Sub
     End If
-    
+
     'Разгруппировываем
     vsoGroup.Ungroup
     
     'Ставим на место датчик
     shpSensorSVP.Cells("PinY").Formula = Datchik
-    DoEvents 'На-я тут этот DoEvents?
+    DoEvents 'На*уя тут этот DoEvents?
     
     For Each shpCable In colCables
         'В кабеле находим длину провода
@@ -374,8 +430,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     For Each shpCable In colCables
         shpCable.Delete
     Next
-    
-    
+
     'Включаем события автоматизации
     Application.EventsEnabled = -1
 
@@ -424,12 +479,17 @@ Function FillColTerms(colWires As Collection) As Collection
     Set FillColTerms = colTerms
 End Function
 
-Public Sub AddPagesSVP()
+Public Sub PageSVPAddKabeliFrm()
+    Load frmPageSVPAddKabeli
+    frmPageSVPAddKabeli.Show
+End Sub
+
+Public Sub AddPagesSVP(NazvanieShemy As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddPagesSVP - Создает листы СВП
                 'Заполняет листы СВП датчиками, отсортированными по возрастанию их координаты Х на эл. схеме
 '------------------------------------------------------------------------------------------------------------
-    Dim NazvanieShemy As String
+'    Dim NazvanieShemy As String
     Dim ThePage As Visio.Shape
     Dim vsoShapeOnPage As Visio.Shape
     Dim vsoPage As Visio.Page
@@ -441,11 +501,11 @@ Public Sub AddPagesSVP()
     Dim shpMas() As Shape
     Dim shpTemp As Shape
     Dim Index As Integer
-    Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому номеру
+    Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому номеру жилы в кабеле
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, N As Integer
     
-    ShinaNumber = False
+    ShinaNumber = 1
     
     PastePoint = "25 mm - TheDoc!User.SA_FR_OffsetFrame"
     
@@ -453,9 +513,9 @@ Public Sub AddPagesSVP()
     
     Set colShpDoc = New Collection
     
-    PageName = cListNameCxema  'Имена листов где возможна нумерация
+    PageName = cListNameCxema
     'If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
-    NazvanieShemy = 4
+'    NazvanieShemy = 4
 
     'Цикл поиска датчиков и приводов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
@@ -530,5 +590,6 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
             End If
         Next
     End If
+
     ActiveWindow.DeselectAll
 End Sub

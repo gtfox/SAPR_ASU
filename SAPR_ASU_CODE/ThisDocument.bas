@@ -54,7 +54,9 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
             Case typeFSAPodval 'Подвал на ФСА
                 DeleteFSAPodvalChild vsoShape
             Case typeSensor, typeActuator   'Датчик/Привод на эл. схеме
-                DeleteSensorParent vsoShape
+                If Not (vsoShape.ContainingPage.NameU Like cListNameSVP & "*") Then
+                    DeleteSensorParent vsoShape
+                End If
             Case typePLCParent   'ПЛК (родительский)
                 DeletePLCParent vsoShape
             Case typePLCChild   'ПЛК (дочерний)
@@ -162,16 +164,16 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
     
         Case typeNO, typeNC 'Контакты
         
-            ClearRelayChild vsoShapePaste 'Чистим ссылки в дочернем при его копировании.
+            ClearRelayChild vsoShapeEvent 'Чистим ссылки в дочернем при его копировании.
             
         Case typeWireLinkS, typeWireLinkR 'Разрывы проводов
         
-            ClearReferenceWireLink vsoShapePaste 'Чистим ссылки в при копировании разрыва провода.
+            ClearReferenceWireLink vsoShapeEvent 'Чистим ссылки в при копировании разрыва провода.
             
         Case typeWire 'Провода
         
             'Не нумеруем, т.к. нумеруется в процессе соединения
-            ClearWire vsoShapePaste
+            ClearWire vsoShapeEvent
             
         Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
         
@@ -180,36 +182,36 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
         Case typeFSASensor 'Датчик на ФСА
         
             'Отвязываем и нумеруем
-            ClearSensorChild vsoShapePaste 'Чистим ссылки
-            AutoNumFSA vsoShapePaste 'Автонумерация
+            ClearSensorChild vsoShapeEvent 'Чистим ссылки
+            AutoNumFSA vsoShapeEvent 'Автонумерация
             
         Case typeFSAPodval 'Канал в подвале ФСА
             
             'Отвязываем и нумеруем
-            ClearFSAPodvalChild vsoShapePaste 'Чистим ссылки
-            AutoNumFSA vsoShapePaste 'Автонумерация
+            ClearFSAPodvalChild vsoShapeEvent 'Чистим ссылки
+            AutoNumFSA vsoShapeEvent 'Автонумерация
         
         Case typeSensor, typeActuator 'датчики, двигатели, приводы вне шкафа
             
             'Отвязываем и нумеруем
-            ClearSensorParent vsoShapePaste 'Чистим ссылки
-            AutoNum vsoShapePaste 'Автонумерация
+            ClearSensorParent vsoShapeEvent 'Чистим ссылки
+            AutoNum vsoShapeEvent 'Автонумерация
             
         Case typePLCChild 'ПЛК дочерний
         
             'Отвязываем
-            ClearPLCChild vsoShapePaste 'Чистим ссылки
+            ClearPLCChild vsoShapeEvent 'Чистим ссылки
         
         Case typePLCParent 'ПЛК родительский
             
             'Отвязываем и нумеруем
-            ClearPLCParent vsoShapePaste 'Чистим ссылки
-            AutoNum vsoShapePaste 'Автонумерация
+            ClearPLCParent vsoShapeEvent 'Чистим ссылки
+            AutoNum vsoShapeEvent 'Автонумерация
             
         Case Else 'Катушки реле, кнопки, переключатели, контакоры, лампочки,  ...
             
-            ClearRelayParent vsoShapePaste 'Чистим старые ссылки в Scratch
-            AutoNum vsoShapePaste 'Автонумерация
+            ClearRelayParent vsoShapeEvent 'Чистим старые ссылки в Scratch
+            AutoNum vsoShapeEvent 'Автонумерация
             
     End Select
 End Sub
@@ -221,7 +223,7 @@ Private Sub Document_BeforeDocumentClose(ByVal doc As IVDocument)
 End Sub
 
 'Активация событий по кнопке в меню/на пенели
-Sub InitEvent()
+Public Sub InitEvent()
     Set vsoPagesEvent = ActiveDocument.Pages
 End Sub
 

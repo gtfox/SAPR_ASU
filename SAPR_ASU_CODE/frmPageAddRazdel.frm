@@ -124,38 +124,20 @@ Private Sub btnAddRazdel_Click()
         vsoPageNew.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = "1 mm"
         vsoPageNew.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "0"
     
-    If PageName = cListNameCxema Then
-        SetNazvanieShemy vsoPageNew.PageSheet
-        If cmbxNazvanieShemy.ListIndex = -1 Then NazvanieShemyAdd
-        For i = 0 To cmbxNazvanieShemy.ListCount - 1
-            PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShemy.List(i) = "", "", cmbxNazvanieShemy.List(i) & IIf(i = cmbxNazvanieShemy.ListCount - 1, "", ";"))
-        Next
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & """"
-        If cmbxNazvanieShemy.ListIndex <> -1 Then
-            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListIndex & ",Prop.SA_NazvanieShemy.Format)"
-        Else
-            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListCount - 1 & ",Prop.SA_NazvanieShemy.Format)"
-        End If
-        vsoPageNew.Drop Setka, 0, 0
-    End If
-    If PageName = cListNameFSA Then
-        SetNazvanieFSA vsoPageNew.PageSheet
-        If cmbxNazvanieFSA.ListIndex = -1 Then NazvanieFSAAdd
-        For i = 0 To cmbxNazvanieFSA.ListCount - 1
-            PropPageSheet = PropPageSheet & IIf(cmbxNazvanieFSA.List(i) = "", "", cmbxNazvanieFSA.List(i) & IIf(i = cmbxNazvanieFSA.ListCount - 1, "", ";"))
-        Next
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
-        If cmbxNazvanieFSA.ListIndex <> -1 Then
-            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListIndex & ",Prop.SA_NazvanieFSA.Format)"
-        Else
-            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
-        End If
-    End If
-    
-    
     Select Case PageName
         Case cListNameOD ' "ОД" 'Общие указания
         Case cListNameFSA ' "ФСА" 'Схема функциональная автоматизации
+            SetNazvanieFSA vsoPageNew.PageSheet
+            If cmbxNazvanieFSA.ListIndex = -1 Then NazvanieFSAAdd
+            For i = 0 To cmbxNazvanieFSA.ListCount - 1
+                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieFSA.List(i) = "", "", cmbxNazvanieFSA.List(i) & IIf(i = cmbxNazvanieFSA.ListCount - 1, "", ";"))
+            Next
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
+            If cmbxNazvanieFSA.ListIndex <> -1 Then
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListIndex & ",Prop.SA_NazvanieFSA.Format)"
+            Else
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
+            End If
         Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction
@@ -171,6 +153,18 @@ Private Sub btnAddRazdel_Click()
                 .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
             End With
         Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
+            SetNazvanieShemy vsoPageNew.PageSheet
+            If cmbxNazvanieShemy.ListIndex = -1 Then NazvanieShemyAdd
+            For i = 0 To cmbxNazvanieShemy.ListCount - 1
+                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShemy.List(i) = "", "", cmbxNazvanieShemy.List(i) & IIf(i = cmbxNazvanieShemy.ListCount - 1, "", ";"))
+            Next
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & """"
+            If cmbxNazvanieShemy.ListIndex <> -1 Then
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListIndex & ",Prop.SA_NazvanieShemy.Format)"
+            Else
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListCount - 1 & ",Prop.SA_NazvanieShemy.Format)"
+            End If
+            vsoPageNew.Drop Setka, 0, 0
         Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction
@@ -180,16 +174,17 @@ Private Sub btnAddRazdel_Click()
                 .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
             End With
         Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить провода со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageSVPAddKabeliFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
         Case Else
     End Select
-    
-    
-    
 
-    
-    
-    
     LockTitleBlock
     
     ActiveWindow.DeselectAll

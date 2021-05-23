@@ -136,3 +136,19 @@ ActiveWindow.Selection.Item(1).Cells("Actions.Rotate.ButtonFace").FormulaU = "IF
 ActiveWindow.Selection.Item(1).Cells("Actions.AddReference.ButtonFace").FormulaU = "2651" '1623
 ActiveWindow.Selection.Item(1).Cells("Actions.Thumb.ButtonFace").FormulaU = "2871" '256
 End Sub
+Sub Macro1()
+
+    ActiveWindow.DeselectAll
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(98), visSelect
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(287), visSelect
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(295), visSelect
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(291), visSelect
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(299), visSelect
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(283), visSelect
+    ActiveWindow.Selection.Group
+
+    ActiveWindow.DeselectAll
+    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(70), visSelect
+    ActiveWindow.Selection.Ungroup
+
+End Sub

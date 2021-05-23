@@ -9,6 +9,8 @@ Sub run(vsoShape As Object)
     lblIndex.Caption = vsoShape.Index
     On Error Resume Next
     lblNameID.Caption = vsoShape.NameID
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     frmObjInfo.Show
 End Sub
 

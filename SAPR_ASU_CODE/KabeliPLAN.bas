@@ -68,6 +68,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     Dim nCount As Double
     
     Dim BoxNumber As Integer 'Номер шкафа к которому подключен кабель/датчик
+    Dim NazvanieShemy As String 'Название схемы шкафа к которому подключен кабель/датчик
     Dim i As Integer
     Dim N As Integer
     Dim MultiCable As Boolean
@@ -100,7 +101,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     
     'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
     For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
-        If ShapeSATypeIs(vsoShape, typePLCIOChild) Then
+        If ShapeSATypeIs(vsoShape, typeSensorIO) Then
             'Находим подключенные провода
             Set vsoCollection = FillColWires(vsoShape)
             nCount = colCablesTemp.Count
@@ -112,8 +113,11 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
             End If
         End If
     Next
+    If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "Info": Exit Sub
     'Шкаф к которому подключен кабель (Предпологается что 1 датчик подключен к 1 шкафу (даже многокабельный)
-    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
+'    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
+'    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+    NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
     
     SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
     SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
@@ -135,10 +139,10 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     Set selLineRight = shpLineRight.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
     
     'Выбираем лотки и линии
-    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok, BoxNumber
-    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok, BoxNumber
-    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok, BoxNumber
-    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok, BoxNumber
+    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok, NazvanieShemy 'BoxNumber
+    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok, NazvanieShemy 'BoxNumber
+    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok, NazvanieShemy 'BoxNumber
+    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok, NazvanieShemy 'BoxNumber
     If colLotok.Count = 0 Then 'нет лотков - выходим
         'Чистим вспомогательную графику
         shpLineUp.Delete
@@ -213,7 +217,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     'Находим лоток идущий в наш шкаф и которого касается кратчайшая линия
     Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0, 0)
     For Each vsoShape In selSelection 'Шейпы в выделении
-        If (vsoShape.Name Like "Lotok*") And (LotokToBox(vsoShape, BoxNumber)) Then 'Нашли лоток
+        If (vsoShape.Name Like "Lotok*") And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
 '            'Находим координаты точки в которой лоток подключен к шкафу
 '            For i = 1 To vsoShape.Connects.Count 'Перебираем подключенные концы лотка
 '                If vsoShape.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
@@ -277,7 +281,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
         Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
         For Each vsoShapeTemp In selSelectionTemp
             If vsoShapeTemp.Name Like "Box*" Then
-                If vsoShapeTemp.Cells("Prop.BoxNumber").Result(0) = BoxNumber Then
+                If vsoShapeTemp.Cells("Prop.NazvanieShemy").ResultStr(0) = NazvanieShemy Then
                     Set shpLotokTemp = vsoShape
                 End If
             End If
@@ -377,6 +381,7 @@ Public Sub AddRouteCablesOnPlan()
     'Прокладываем кабели
     For Each shpSensorFSA In colSensorFSA
         RouteCable shpSensorFSA
+        DoEvents
     Next
 End Sub
 
@@ -388,8 +393,10 @@ End Sub
 Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddSensorsFSAOnPlan - Копирует все датчики из ФСА на ПЛАН
-                'Копирует все датчики из ФСА на ПЛАН, если датчик уже есть то не копирут его.
+                'Копирует все датчики из ФСА на ПЛАН, если датчик уже есть, то не копирут его.
 '------------------------------------------------------------------------------------------------------------
+    Dim PageParent As String, NameIdParent As String, AdrParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String
     Dim vsoPagePlan As Visio.Page
     Dim vsoPageFSA As Visio.Page
     Dim colPagesFSA As Collection
@@ -400,6 +407,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
     Dim vsoSelection As Visio.Selection
     Dim vsoGroup As Visio.Shape
     Dim nCount As Double
+    Dim DropX As Double
     
     If NazvanieFSA = "" Then
         MsgBox "Нет ФСА для вставки", vbExclamation, "Название ФСА пустое"
@@ -446,40 +454,75 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         Next
     Next
     
-    'Выделяем недостающие датчики
-    For Each shpSensorOnPLAN In colSensorToPLAN
-        vsoSelection.Select shpSensorOnPLAN, visSelect
+    'Очищаем коллекцию для вставляемых датчиков
+    Set colSensorOnPLAN = New Collection
+    
+    'Копируем недостающие датчики на план
+    For Each shpSensorOnFSA In colSensorToPLAN
+    
+        PageParent = shpSensorOnFSA.ContainingPage.NameU
+        NameIdParent = shpSensorOnFSA.NameID
+        AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+
+        shpSensorOnFSA.CellsU("EventDrop").FormulaU = """"""
+        shpSensorOnFSA.CellsU("EventMultiDrop").FormulaU = """"""
+        
+        vsoSelection.Select shpSensorOnFSA, visSelect
+        vsoSelection.Copy
+        
+        shpSensorOnFSA.CellsU("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
+        shpSensorOnFSA.CellsU("EventMultiDrop").FormulaU = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
+
+        'Активируем лист план
+        ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
+        'Отключаем события автоматизации (чтобы не перенумеровалось все)
+        Application.EventsEnabled = 0
+        DoEvents
+        'Вставляем на листе план
+        ActivePage.Paste
+        'Включаем события автоматизации
+        Application.EventsEnabled = -1
+        'Заполняем данные
+        With ActiveWindow.Selection(1)
+        
+            PageChild = .ContainingPage.NameU
+            NameIdChild = .NameID
+            AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
+            
+            shpSensorOnFSA.CellsU("Hyperlink.Plan.SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
+            shpSensorOnFSA.CellsU("Hyperlink.Plan.ExtraInfo").FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
+            
+            ActiveWindow.Selection.Move DropX + .Cells("Width").Result(0) * 2, 0
+            DropX = DropX + .Cells("Width").Result(0) * 2
+            
+            .Cells("Actions.Kabel.Invisible").Formula = 0
+            .Cells("Actions.AddReference.Invisible").Formula = 1
+            .Cells("Prop.KanalNumber").Formula = 0
+            .Cells("Prop.Kanal").Formula = 0
+            .Cells("EventDblClick").Formula = ""
+            .Cells("User.NameParent").Formula = AdrParent + "!User.NameParent"
+            .Cells("Hyperlink.Shema.ExtraInfo").Formula = AdrParent + "!Hyperlink.Shema.ExtraInfo"
+            .Cells("Hyperlink.FSA.ExtraInfo").Formula = AdrParent + "!Hyperlink.FSA.ExtraInfo"
+            .Cells("Hyperlink.Shema.SubAddress").Formula = AdrParent + "!Hyperlink.Shema.SubAddress"
+            .Cells("Hyperlink.FSA.SubAddress").Formula = AdrParent + "!Hyperlink.FSA.SubAddress"
+            .Cells("Prop.Place").Formula = AdrParent + "!Prop.Place"
+            .Cells("Prop.AutoNum").Formula = 0
+            .Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
+            .Cells("Prop.Number").Formula = AdrParent + "!Prop.Number"
+            .Cells("Prop.NameKontur").Formula = AdrParent + "!Prop.NameKontur"
+            .Cells("Prop.Forma").Formula = AdrParent + "!Prop.Forma"
+            .Cells("Prop.ResizeWithText").Formula = AdrParent + "!Prop.ResizeWithText"
+            .Cells("Prop.NameParent").Formula = AdrParent + "!Prop.NameParent"
+            
+        End With
+        'Собираем в коллецию вставленные датчики
+        colSensorOnPLAN.Add ActiveWindow.Selection(1)
+        vsoSelection.DeselectAll
     Next
-    If vsoSelection.Count = 0 Then
-        Exit Sub
-    End If
-    Set vsoGroup = vsoSelection.Group
-    vsoSelection.DeselectAll
-    vsoSelection.Select vsoGroup, visSelect
-    For Each shpSensorOnPLAN In vsoSelection
-       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = """"""
-       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = """"""
-    Next
-    'Копируем на план что насобирали
-    vsoSelection.Copy
-    For Each shpSensorOnPLAN In vsoSelection
-       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
-       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
-    Next
-    vsoSelection.Ungroup
-    'Отключаем события автоматизации (чтобы не перенумеровалось все)
-    DoEvents
-    Application.EventsEnabled = 0
-    'Вставляем на листе план
-    ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
-    ActivePage.Paste
-    ActiveWindow.Selection.Ungroup
-    'Включаем пункт меню "Проложить кабель"
-    For Each shpSensorOnPLAN In ActiveWindow.Selection
-       shpSensorOnPLAN.Cells("Actions.Kabel.Invisible").Formula = 0
-       shpSensorOnPLAN.Cells("Actions.AddReference.Invisible").Formula = 1
-       shpSensorOnPLAN.Cells("Prop.KanalNumber").Formula = 0
-'       shpSensorOnPLAN.Cells("User.Dropped").Formula = 0
+    'Выделяем вставленные датчики
+    ActiveWindow.DeselectAll
+    For Each shpSensorOnPLAN In colSensorOnPLAN
+        ActiveWindow.Select shpSensorOnPLAN, visSelect
     Next
     With ActiveWindow.Selection
         'Выравниваем по горизонтали
@@ -489,16 +532,57 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         DoEvents
         'Поднимаем вверх
         .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
-
     End With
-    'Включаем события автоматизации
-    Application.EventsEnabled = -1
+
+'    If vsoSelection.Count = 0 Then
+'        Exit Sub
+'    End If
+'    Set vsoGroup = vsoSelection.Group
+'    vsoSelection.DeselectAll
+'    vsoSelection.Select vsoGroup, visSelect
+'    For Each shpSensorOnPLAN In vsoSelection
+'       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = """"""
+'       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = """"""
+'    Next
+'    'Копируем на план что насобирали
+'    vsoSelection.Copy
+'    For Each shpSensorOnPLAN In vsoSelection
+'       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
+'       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
+'    Next
+'    vsoSelection.Ungroup
+'    'Отключаем события автоматизации (чтобы не перенумеровалось все)
+'    DoEvents
+'    Application.EventsEnabled = 0
+'    'Вставляем на листе план
+'    ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
+'    ActivePage.Paste
+'    ActiveWindow.Selection.Ungroup
+'    'Включаем пункт меню "Проложить кабель"
+'    For Each shpSensorOnPLAN In ActiveWindow.Selection
+'       shpSensorOnPLAN.Cells("Actions.Kabel.Invisible").Formula = 0
+'       shpSensorOnPLAN.Cells("Actions.AddReference.Invisible").Formula = 1
+'       shpSensorOnPLAN.Cells("Prop.KanalNumber").Formula = 0
+''       shpSensorOnPLAN.Cells("User.Dropped").Formula = 0
+'    Next
+'    With ActiveWindow.Selection
+'        'Выравниваем по горизонтали
+'        .Align visHorzAlignNone, visVertAlignMiddle, False
+'        'Распределяем по горизонтали
+'        .Distribute visDistHorzSpace, False
+'        DoEvents
+'        'Поднимаем вверх
+'        .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
+'
+'    End With
+'    'Включаем события автоматизации
+'    Application.EventsEnabled = -1
 End Sub
 
 
 
 
-Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection, BoxNumber As Integer)
+Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection, NazvanieShemy As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddLotokToCol - Заполняет коллекции лотков и линий
 '------------------------------------------------------------------------------------------------------------
@@ -508,7 +592,7 @@ Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colL
     
     For Each vsoShape In selLine 'Шейпы в выделении
         If vsoShape.Name Like "Lotok*" Then 'Нашли лоток
-            If (colLotok.Count = 0) And (LotokToBox(vsoShape, BoxNumber)) Then 'Первый в коллекции
+            If (colLotok.Count = 0) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Первый в коллекции
                 colLotok.Add vsoShape
                 i = i + 1
             Else
@@ -517,7 +601,7 @@ Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colL
                         i = i + 1
                         Exit For
                     Else
-                        If LotokToBox(vsoShape, BoxNumber) Then
+                        If LotokToBox(vsoShape, NazvanieShemy) Then
                             colLotok.Add vsoShape
                             i = i + 1
                         End If
@@ -531,7 +615,7 @@ Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colL
     End If
 End Sub
 
-Function LotokToBox(shpLotok As Visio.Shape, BoxNumber As Integer) As Boolean
+Function LotokToBox(shpLotok As Visio.Shape, NazvanieShemy As String) As Boolean
 '------------------------------------------------------------------------------------------------------------
 ' Function        : LotokToBox - Проверяет что лоток приклеен к нужному шкафу на плане
 '------------------------------------------------------------------------------------------------------------
@@ -539,7 +623,7 @@ Function LotokToBox(shpLotok As Visio.Shape, BoxNumber As Integer) As Boolean
     
             For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
                 If shpLotok.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
-                    If shpLotok.Connects(i).ToSheet.Cells("Prop.BoxNumber").Result(0) = BoxNumber Then 'Сравниваем номер шкафа
+                    If shpLotok.Connects(i).ToSheet.Cells("Prop.NazvanieShemy").ResultStr(0) = NazvanieShemy Then 'Сравниваем номер шкафа
                         LotokToBox = True
                         Exit Function
                     End If
