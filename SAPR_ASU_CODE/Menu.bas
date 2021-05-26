@@ -105,8 +105,19 @@ Private Sub AddButtons()
         .FaceID = 533 '786
     End With
 
-        '---Кнопка Перенумерация
+        '---Кнопка Копировать лист
     Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=8)
+    With Button
+        .Caption = "КопироватьЛист"
+        .Tag = "CopyList"
+        .style = msoButtonAutomatic
+        .OnAction = "CopySAPage"
+        .TooltipText = "Копировать лист"
+        .FaceID = 531 '585
+    End With
+
+        '---Кнопка Перенумерация
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=9)
     With Button
         .Caption = "ПеренумерацияЭлементов"
         .Tag = "ReNumber"

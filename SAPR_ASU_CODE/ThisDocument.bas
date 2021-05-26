@@ -65,7 +65,7 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
                 DeletePLCModParent vsoShape
             Case typePLCModChild   'Модуль ПЛК (дочерний)
                 DeletePLCModChild vsoShape
-            Case typePLCIOParent   'Вход ПЛК (родительский)
+            Case typePLCIOLParent, typePLCIORParent  'Вход ПЛК (родительский)
                 DeletePLCIOParent vsoShape
             Case typePLCIOChild   'Вход ПЛК (дочерний)
                 DeletePLCIOChild vsoShape
@@ -88,7 +88,7 @@ Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
                 Case typeWire   'Цепляем провод
                     ConnectWire Connects
                 Case typeVynoskaPL 'Цепляем выноску
-                    CableInfoPlan Connects
+                    VynoskaPlan Connects
             End Select
         End If
     End If
@@ -102,7 +102,7 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
                 Case typeWire   'Отцепляем провод
                     DisconnectWire Connects
                 Case typeVynoskaPL 'Отцепляем выноску
-                    CableInfoPlan Connects
+                    VynoskaPlan Connects
             End Select
         End If
     End If

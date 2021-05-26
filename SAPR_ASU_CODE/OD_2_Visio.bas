@@ -383,6 +383,9 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameOD)
 
+            Application.EventsEnabled = -1
+            ThisDocument.InitEvent
+
             MsgBox "Текстовая часть ОД добавлена", vbInformation
             Exit Sub
                             

@@ -126,7 +126,7 @@ Sub DeletePLCModChild(shpChild As Visio.Shape)
     
     'Перебираем все PLCIOChild внутри PLCModChild и чистим ссылки во всех связанных PLCIOParent
     For Each shpPLCIOChild In shpChild.Shapes
-        If shpPLCIOChild.Name Like "PLCIO*" Then
+        If ShapeSATypeIs(shpPLCIOChild, typePLCIOChild) Then
             DeletePLCIOChild shpPLCIOChild 'чистим ссылки в связанных PLCIOParent
         End If
     Next
@@ -171,7 +171,7 @@ Sub DeletePLCModParent(shpParent As Visio.Shape)
 
     'Перебираем все PLCIOParent внутри PLCModParent и чистим ссылки во всех связанных PLCIOChild
     For Each shpPLCIOParent In shpParent.Shapes
-        If (shpPLCIOParent.Name Like "PLCIOL*") Or (shpPLCIOParent.Name Like "PLCIOR*") Then
+        If ShapeSATypeIs(shpPLCIOParent, typePLCIOLParent) Or ShapeSATypeIs(shpPLCIOParent, typePLCIORParent) Then
             DeletePLCIOParent shpPLCIOParent 'чистим ссылки в связанных PLCIOChild
         End If
     Next
@@ -210,7 +210,7 @@ Sub ClearPLCModChild(shpChild As Visio.Shape)
     
     'Перебираем все PLCIOChild внутри PLCModChild и чистим в них ссылки
     For Each shpPLCIOChild In shpChild.Shapes
-        If shpPLCIOChild.Name Like "PLCIO*" Then
+        If ShapeSATypeIs(shpPLCIOChild, typePLCIOChild) Then
             ClearPLCIOChild shpPLCIOChild 'чистим ссылки
         End If
     Next
@@ -235,7 +235,7 @@ Sub ClearPLCModParent(shpParent As Visio.Shape)
     
     'Перебираем все PLCIOParent внутри PLCModParent и чистим в них ссылки
     For Each shpPLCIOParent In shpParent.Shapes
-        If (shpPLCIOParent.Name Like "PLCIOL*") Or (shpPLCIOParent.Name Like "PLCIOR*") Then
+        If ShapeSATypeIs(shpPLCIOParent, typePLCIOLParent) Or ShapeSATypeIs(shpPLCIOParent, typePLCIORParent) Then
             ClearPLCIOParent shpPLCIOParent 'чистим ссылки
         End If
     Next
@@ -380,6 +380,10 @@ Sub ClearPLCIOParent(shpParent As Visio.Shape)
     'Чистим родительский шейп
     shpParent.CellsU("Hyperlink.IO.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpParent.CellsU("Hyperlink.IO.ExtraInfo").FormulaForceU = ""
+    shpParent.CellsU("User.w1").Formula = 0
+    shpParent.CellsU("User.w2").Formula = 0
+    shpParent.CellsU("User.w3").Formula = 0
+    shpParent.CellsU("User.w4").Formula = 0
 End Sub
 
 

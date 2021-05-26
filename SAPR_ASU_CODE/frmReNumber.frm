@@ -3,11 +3,15 @@ Dim NazvanieShemy As String
 
 Private Sub brnRenumberCx_Click()
     ReNumberShemy
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
 Private Sub brnRenumberFSA_Click()
     ReNumberFSA
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
@@ -47,8 +51,8 @@ Private Sub UserForm_Initialize()
         obVydNaListeCx.Value = True
         obVydNaListeFSA.Value = True
     Else
-        obVybTipObCx.Value = True
-        obVybTipObFSA.Value = True
+        obVseTipObCx.Value = True 'Все obVybTipObCx.Value = True 'Выбранные
+        obVseTipObFSA.Value = True 'Все obVybTipObFSA.Value = True 'Выбранные
     End If
 
 End Sub
@@ -561,9 +565,13 @@ Private Sub cbDatCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, B
 End Sub
 
 Private Sub btnCloseCx_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
 Private Sub btnCloseFSA_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub

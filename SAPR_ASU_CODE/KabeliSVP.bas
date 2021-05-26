@@ -17,7 +17,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                 'Вставляется шейп кабеля для подключенного датчика/привода на эл.схеме
                 'группируется с подключенными проводами, нумеруется, связываются ссылками друг на друга
                 'Если датчик многокабельный(MultiCable=true), то кабели ссылаются не на датчик, а на конкретные входы в датчике
-                'iOptions - 1=Клеммы 2=Оба 3=Кабели
+                'iOptions - 1=Клеммы и провода 2=Клеммы+Кабели 3=Кабели из проводов
 '------------------------------------------------------------------------------------------------------------
     Dim shpKabel As Visio.Shape
     Dim shpSensorIO As Visio.Shape
@@ -44,8 +44,8 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
         For Each shpSensorIO In shpSensor.Shapes
             If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
                 'Добавляем клеммы и провода
-                If iOptions <= 2 Then AddKlemmyIProvoda shpSensorIO 'Клеммы
-                If iOptions >= 2 Then 'Кабели
+                If iOptions <= 2 Then AddKlemmyIProvoda shpSensorIO '1=Клеммы и провода
+                If iOptions >= 2 Then '3=Кабели из проводов
                     'Вставляем шейп кабеля
                     Set shpKabel = shpSensor.ContainingPage.Drop(vsoMaster, shpSensorIO.Cells("PinX").Result(0) + PinX, shpSensorIO.Cells("PinY").Result(0) + PinY + 0.196850393700787)
                     'Находим подключенные провода и суем их в коллекцию
@@ -104,6 +104,8 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
 '            shpSensorIO.Cells("User.LinkToCable").FormulaU = """" + shpKabel.ContainingPage.NameU + "/" + shpKabel.NameID + """"
         End If
     End If
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
 End Sub
 
 Sub AddToGroupCable(shpKabel As Visio.Shape, vsoPage As Visio.Page, colWires As Collection)
@@ -181,6 +183,8 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
         End If
     Next
     ActiveWindow.DeselectAll
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
 End Sub
 
 Sub DeleteCableSH(shpKabel As Visio.Shape)

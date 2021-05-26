@@ -131,24 +131,30 @@ Sub Macro11()
     ActiveWindow.Selection.Ungroup
 
 End Sub
-Sub Macro2()
-ActiveWindow.Selection.Item(1).Cells("Actions.Rotate.ButtonFace").FormulaU = "IF(Actions.Rotate.Action,""199"",""198"")" '128 129
-ActiveWindow.Selection.Item(1).Cells("Actions.AddReference.ButtonFace").FormulaU = "2651" '1623
-ActiveWindow.Selection.Item(1).Cells("Actions.Thumb.ButtonFace").FormulaU = "2871" '256
-End Sub
 Sub Macro1()
 
-    ActiveWindow.DeselectAll
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(98), visSelect
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(287), visSelect
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(295), visSelect
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(291), visSelect
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(299), visSelect
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(283), visSelect
-    ActiveWindow.Selection.Group
+    Application.ActiveWindow.Selection.Copy
 
-    ActiveWindow.DeselectAll
-    ActiveWindow.Select Application.ActiveWindow.Page.Shapes.ItemFromID(70), visSelect
-    ActiveWindow.Selection.Ungroup
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.ItemU("Page-55")
 
+    Application.ActiveWindow.Page.Paste
+
+End Sub
+Sub Macro2()
+
+    Application.ActiveWindow.Selection.Copy
+
+End Sub
+Sub Macro3()
+
+    Application.ActiveWindow.DeselectAll
+
+    Application.ActiveWindow.DeselectAll
+
+    Application.ActiveWindow.DeselectAll
+
+    Application.ActiveWindow.DeselectAll
+
+    Application.ActiveWindow.Selection.Copy
+Application.ActiveWindow.Page.Paste
 End Sub

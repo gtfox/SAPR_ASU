@@ -442,6 +442,8 @@ Private Sub btnClose_Click() ' выгрузка формы
         .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
                     '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
     End With
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
     
 End Sub

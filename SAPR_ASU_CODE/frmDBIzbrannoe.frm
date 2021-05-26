@@ -629,6 +629,8 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBPrice
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 

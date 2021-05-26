@@ -138,6 +138,15 @@ Private Sub btnAddRazdel_Click()
             Else
                 vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
             End If
+            
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageFSAAddSensorsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
+
         Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction
@@ -189,6 +198,8 @@ Private Sub btnAddRazdel_Click()
     
     ActiveWindow.DeselectAll
     
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 
 End Sub
@@ -357,5 +368,7 @@ Private Sub btnNazvanieFSADel_Click()
 End Sub
 
 Private Sub btnClose_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub

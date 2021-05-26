@@ -9,6 +9,8 @@ End Sub
 
 Private Sub btnAddElements_Click()
     AddPagesSVP cmbxNazvanieShemy.Text
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
@@ -36,5 +38,7 @@ Sub Fill_cmbxNazvanieShemy()
 End Sub
 
 Private Sub btnClose_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub

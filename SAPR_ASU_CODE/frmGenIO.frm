@@ -1,8 +1,3 @@
-
-
-
-Option Explicit
-
 '------------------------------------------------------------------------------------------------------------
 ' Module        : frmGenIO - Форма задания количества входов для генерации вне модуля
 ' Author        : gtfox
@@ -10,6 +5,8 @@ Option Explicit
 ' Description   : Формируется колонка входов с автонумерацией
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
+
+Option Explicit
 
 Dim shpIO As Visio.Shape 'шейп из модуля PLC
 
@@ -20,6 +17,8 @@ End Sub
 
 Private Sub CommandButton1_Click()
     gen
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
@@ -30,6 +29,8 @@ Private Sub gen()
 End Sub
 
 Private Sub btnClose_Click() ' выгрузка формы
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 

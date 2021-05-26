@@ -78,33 +78,81 @@ Sub SetElement() 'SetValueToSelSections
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
     
-arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ", "UZ1P", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor")
-
-For i = 0 To UBound(arrMast)
-Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i)).Shapes.Item("Par")
-Set mastshp = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
 
-
-SectionNumber = visSectionTextField 'Text Field
-            arrRowName = Array("")
-                    arrRowValue = Array("FIELDPICTURE(0)|Sheet." & mastshp.ID & "!Prop.Harakteristika|0|0", _
-                    "FIELDPICTURE(0)|Sheet." & mastshp.ID & "!Prop.Tok|0|0")
+SectionNumber = visSectionAction 'Action 240
+            arrRowName = Array("left", "Rigt", "55", "15", "LeftGrid")
+            arrRowValue = Array("SETF(GetRef(PinX),""(25 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Влево <--- к рамке""|""""|""154""|""10""|0|0|FALSE|FALSE|FALSE", _
+                            "SETF(GetRef(Controls.Line),""(ThePage!PageWidth-TheDoc!User.SA_FR_OffsetFrame-PinX)/ThePage!PageScale*ThePage!DrawingScale"")|""Вправо ---> к рамке""|""""|""157""|""30""|0|0|FALSE|FALSE|FALSE", _
+                            "SETF(GetRef(PinY),""(55 mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Вниз ?  55""|""""|""203""|""40""|0|0|FALSE|FALSE|FALSE", _
+                            "SETF(GetRef(PinY),""(15 mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Вниз v  15""|""""|""388""|""50""|0|0|FALSE|FALSE|FALSE", _
+                            "SETF(GetRef(PinX),""(29.164 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Влево <--- к сетке""|""""|""1017""|""20""|0|0|FALSE|FALSE|FALSE")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+End Sub
 
-SectionNumber = visSectionObject
-RowNumber = visRowXFormOut 'Shape Trannsform
-            arrRowName = Array("")
-                    arrRowValue = Array("GUARD(TxtWidth)|GUARD(TxtHeight)|IF(Sheet." & mastshp.ID & "!Actions.Rotate.Action,90 deg,0 deg)|SETATREF(Sheet." & mastshp.ID & "!Controls.TextPos)|SETATREF(Sheet." & mastshp.ID & "!Controls.TextPos.Y)|Width*0|Height*1|FALSE|FALSE|1")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-SectionNumber = visSectionObject
-RowNumber = visRowMisc 'Miscellaneous + Glue Info
-            arrRowName = Array("")
-                    arrRowValue = Array("FALSE|FALSE|FALSE|FALSE|1049|NOT(Sheet." & mastshp.ID & "!Prop.ShowPar)|FALSE|0|FALSE|0|1|TRUE|""""|100%|FALSE|||0|0")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-Next
+
+Sub GetAllSSValueSplit()
+    Dim arrSectionNumber()
+    Dim arrRowNumber()
+    Dim arrSectionNumberTEXT()
+    Dim arrRowNumberTEXT()
+    Dim i As Integer
+    Dim j As Integer
+    Dim strFile As String
+    Dim vsoObject As Object
+    
+'    Set vsoObject = ActivePage.PageSheet
+    
+'    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
+    
+    Set vsoObject = ActivePage.Shapes.ItemFromID(48)
+    
+    strFile = ThisDocument.path & "tempValue.vb"
+    
+    arrSectionNumber = Array(visSectionUser, visSectionProp, visSectionHyperlink, visSectionConnectionPts, visSectionAction, visSectionControls, visSectionScratch, visSectionTextField, visSectionCharacter, visSectionParagraph, visSectionObject)
+    arrRowNumber = Array(visRowXForm1D, visRowXFormOut, visRowLock, visRowMisc, visRowGroup, visRowLine, visRowFill, visRowText, visRowTextXForm, visRowLayerMem, visRowEvent, visRowImage, visRowShapeLayout)
+    
+    arrSectionNumberTEXT = Array("SectionNumber = visSectionUser 'User 242" & vbNewLine & "sSectionName = ""User.""" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionProp 'Prop 243" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionHyperlink  'Hyperlink 244" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionConnectionPts 'ConnectionPts 7 только именованные" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionAction 'Action 240" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionControls 'Controls 9" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionScratch 'Scratch 6" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionTextField 'Text Field" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionCharacter 'Character" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionParagraph 'Paragraph" & vbNewLine)
+
+    arrRowNumberTEXT = Array("SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowXForm1D '1-D Endpoints" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowXFormOut 'Shape Trannsform" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLock 'Protection" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowMisc 'Miscellaneous + Glue Info" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowGroup 'Group Propeties" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLine 'Line Format" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowFill 'Fill Format" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowText 'Text Block Format" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowTextXForm 'Text Transform" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLayerMem 'Layer Membership" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowEvent 'Events" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowImage 'Image Propeties" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowShapeLayout 'Shape Layout" & vbNewLine, _
+       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & vbTab & "")
+
+    For i = 0 To UBound(arrSectionNumber)
+        If arrSectionNumber(i) = visSectionObject Then
+            For j = 0 To UBound(arrRowNumber)
+                AddIntoTXTfile strFile, arrRowNumberTEXT(j)
+                GetShapeSheetValue vsoObject, strFile, arrSectionNumber(i), arrRowNumber(j)
+            Next
+            AddIntoTXTfile strFile, arrRowNumberTEXT(j)
+        Else
+            AddIntoTXTfile strFile, arrSectionNumberTEXT(i)
+            GetShapeSheetValue vsoObject, strFile, arrSectionNumber(i)
+        End If
+    Next
 End Sub
 
 Sub SetFont()
@@ -152,68 +200,6 @@ Sub SetIconPLC()
                 
             End With
         Next
-    Next
-End Sub
-
-
-Sub GetAllSSValueSplit()
-    Dim arrSectionNumber()
-    Dim arrRowNumber()
-    Dim arrSectionNumberTEXT()
-    Dim arrRowNumberTEXT()
-    Dim i As Integer
-    Dim j As Integer
-    Dim strFile As String
-    Dim vsoObject As Object
-    
-'    Set vsoObject = ActivePage.PageSheet
-    
-'    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
-    
-    Set vsoObject = ActivePage.Shapes.ItemFromID(218)
-    
-    strFile = ThisDocument.path & "tempValue.vb"
-    
-    arrSectionNumber = Array(visSectionUser, visSectionProp, visSectionHyperlink, visSectionConnectionPts, visSectionAction, visSectionControls, visSectionScratch, visSectionTextField, visSectionCharacter, visSectionParagraph, visSectionObject)
-    arrRowNumber = Array(visRowXForm1D, visRowXFormOut, visRowLock, visRowMisc, visRowGroup, visRowLine, visRowFill, visRowText, visRowTextXForm, visRowLayerMem, visRowEvent, visRowImage, visRowShapeLayout)
-    
-    arrSectionNumberTEXT = Array("SectionNumber = visSectionUser 'User 242" & vbNewLine & "sSectionName = ""User.""" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionProp 'Prop 243" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionHyperlink  'Hyperlink 244" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionConnectionPts 'ConnectionPts 7 только именованные" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionAction 'Action 240" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionControls 'Controls 9" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionScratch 'Scratch 6" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionTextField 'Text Field" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionCharacter 'Character" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionParagraph 'Paragraph" & vbNewLine)
-
-    arrRowNumberTEXT = Array("SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowXForm1D '1-D Endpoints" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowXFormOut 'Shape Trannsform" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLock 'Protection" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowMisc 'Miscellaneous + Glue Info" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowGroup 'Group Propeties" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLine 'Line Format" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowFill 'Fill Format" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowText 'Text Block Format" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowTextXForm 'Text Transform" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowLayerMem 'Layer Membership" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowEvent 'Events" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowImage 'Image Propeties" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & "SectionNumber = visSectionObject" & vbNewLine & "RowNumber = visRowShapeLayout 'Shape Layout" & vbNewLine, _
-       "SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber" & vbNewLine & vbNewLine & vbTab & "")
-
-    For i = 0 To UBound(arrSectionNumber)
-        If arrSectionNumber(i) = visSectionObject Then
-            For j = 0 To UBound(arrRowNumber)
-                AddIntoTXTfile strFile, arrRowNumberTEXT(j)
-                GetShapeSheetValue vsoObject, strFile, arrSectionNumber(i), arrRowNumber(j)
-            Next
-            AddIntoTXTfile strFile, arrRowNumberTEXT(j)
-        Else
-            AddIntoTXTfile strFile, arrSectionNumberTEXT(i)
-            GetShapeSheetValue vsoObject, strFile, arrSectionNumber(i)
-        End If
     Next
 End Sub
 

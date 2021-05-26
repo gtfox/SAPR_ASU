@@ -9,8 +9,6 @@ Sub run(vsoShape As Object)
     lblIndex.Caption = vsoShape.Index
     On Error Resume Next
     lblNameID.Caption = vsoShape.NameID
-    Application.EventsEnabled = -1
-    ThisDocument.InitEvent
     frmObjInfo.Show
 End Sub
 
@@ -18,4 +16,10 @@ End Sub
 Private Sub CommandButton1_Click()
     vsoObject.NameU = vsoObject.Name
     lblNameU.Caption = vsoObject.NameU
+End Sub
+
+Private Sub CommandButton2_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
 End Sub

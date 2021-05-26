@@ -64,6 +64,8 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
 '    Dim LineY As Double
     Dim PageWidth As Double
     Dim PageHeight As Double
+    Dim AntiScale As Double
+    
     Dim DlinaKabelya As Double
     Dim nCount As Double
     
@@ -75,6 +77,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     
     'Dim UndoScopeID1 As Long
 
+    AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
     Set colLine = New Collection
     Set colLotok = New Collection
@@ -171,7 +174,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
      
     'Находим смещение вставленного, относительно копированного
     For Each vsoShape In ActiveWindow.Selection
-        If vsoShape.Name Like "SensorFSA*" Then
+        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
             dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
             dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
             Set shpSensorFSATemp = vsoShape
@@ -187,7 +190,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     ActiveWindow.Selection.Trim 'разбиваем
 
     'находим ближайшие линии
-    Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02, 0)
+    Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02 * AntiScale, 0)
     For Each vsoShape In selLines
         If vsoShape.LayerCount > 0 Then
             If vsoShape.Layer(1).Name = vsoLayer.Name Then
@@ -215,9 +218,9 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     vsoLayer.Delete True
      
     'Находим лоток идущий в наш шкаф и которого касается кратчайшая линия
-    Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0, 0)
+    Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0.02, 0)
     For Each vsoShape In selSelection 'Шейпы в выделении
-        If (vsoShape.Name Like "Lotok*") And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
+        If ShapeSATypeIs(vsoShape, typeDuctPlan) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
 '            'Находим координаты точки в которой лоток подключен к шкафу
 '            For i = 1 To vsoShape.Connects.Count 'Перебираем подключенные концы лотка
 '                If vsoShape.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
@@ -259,7 +262,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
      
     'Находим смещение вставленного, относительно копированного
     For Each vsoShape In ActiveWindow.Selection
-        If vsoShape.Name Like "SensorFSA*" Then
+        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
             dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
             dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
             Set shpSensorFSATemp = vsoShape
@@ -278,9 +281,9 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer) 'выделяем все в слое
     'Для каждого делаем спатиал и ищем шкаф
     For Each vsoShape In selSelection
-        Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+        Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0.02 * AntiScale, 0)
         For Each vsoShapeTemp In selSelectionTemp
-            If vsoShapeTemp.Name Like "Box*" Then
+            If ShapeSATypeIs(vsoShapeTemp, typeBox) Then
                 If vsoShapeTemp.Cells("Prop.NazvanieShemy").ResultStr(0) = NazvanieShemy Then
                     Set shpLotokTemp = vsoShape
                 End If
@@ -357,6 +360,8 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     
     'Удаляем шаблон кабеля
     shpKabelPLPattern.Delete
+    
+    Application.ActiveWindow.DeselectAll
 
 '    'Application.EndUndoScope UndoScopeID1, True
 
@@ -383,6 +388,8 @@ Public Sub AddRouteCablesOnPlan()
         RouteCable shpSensorFSA
         DoEvents
     Next
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
 End Sub
 
 Public Sub PagePLANAddElementsFrm()
@@ -434,7 +441,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 
     'Находим что уже есть на плане
     For Each shpSensorOnPLAN In vsoPagePlan.Shapes
-        If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Or ShapeSATypeIs(shpSensorOnPLAN, typeActuator) Then
+        If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Then
             colSensorOnPLAN.Add shpSensorOnPLAN, shpSensorOnPLAN.Cells("User.Name").ResultStr(0) '& ";" & shpSensorOnPLAN.Cells("User.NameParent").ResultStr(0)
         End If
     Next
@@ -477,7 +484,6 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
         'Отключаем события автоматизации (чтобы не перенумеровалось все)
         Application.EventsEnabled = 0
-        DoEvents
         'Вставляем на листе план
         ActivePage.Paste
         'Включаем события автоматизации
@@ -513,6 +519,8 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             .Cells("Prop.Forma").Formula = AdrParent + "!Prop.Forma"
             .Cells("Prop.ResizeWithText").Formula = AdrParent + "!Prop.ResizeWithText"
             .Cells("Prop.NameParent").Formula = AdrParent + "!Prop.NameParent"
+            .Cells("Controls.Impuls").FormulaU = "BOUND(Width*0.5,0,FALSE,Width*-0.6667,Width*-0.6667,FALSE,Width*0.5,Width*0.5,FALSE,Width*1.6667,Width*1.6667)"
+            .Cells("Controls.Impuls.Y").FormulaU = "BOUND(Height*0.5,0,FALSE,Height*-0.6667,Height*-0.6667,FALSE,Height*0.5,Height*0.5,FALSE,Height*1.6667,Height*1.6667)"
             
         End With
         'Собираем в коллецию вставленные датчики
@@ -591,7 +599,7 @@ Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colL
     Dim shpLotok As Visio.Shape
     
     For Each vsoShape In selLine 'Шейпы в выделении
-        If vsoShape.Name Like "Lotok*" Then 'Нашли лоток
+        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then 'Нашли лоток
             If (colLotok.Count = 0) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Первый в коллекции
                 colLotok.Add vsoShape
                 i = i + 1
@@ -622,7 +630,7 @@ Function LotokToBox(shpLotok As Visio.Shape, NazvanieShemy As String) As Boolean
     Dim i As Integer
     
             For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
-                If shpLotok.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
+                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
                     If shpLotok.Connects(i).ToSheet.Cells("Prop.NazvanieShemy").ResultStr(0) = NazvanieShemy Then 'Сравниваем номер шкафа
                         LotokToBox = True
                         Exit Function
@@ -633,9 +641,9 @@ Function LotokToBox(shpLotok As Visio.Shape, NazvanieShemy As String) As Boolean
 End Function
 
 
-Public Sub CableInfoPlan(Connects As IVConnects)
+Public Sub VynoskaPlan(Connects As IVConnects)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : CableInfoPlan - Заполняет выноску на плане (лоток и кабели)
+' Macros        : VynoskaPlan - Заполняет выноску на плане (лоток и кабели)
                 'Клеим выноску на лоток, по которому проложены кабели
                 'Выноска заполняется названием лотка и номерами кабелей
 '------------------------------------------------------------------------------------------------------------
@@ -650,6 +658,9 @@ Public Sub CableInfoPlan(Connects As IVConnects)
     Dim i As Integer
     Dim j As Integer
     Dim UbNum As Long
+    Dim AntiScale As Double
+    
+    AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
     Set colNum = New Collection
     Set shpVynoska = Connects.FromSheet
@@ -660,55 +671,58 @@ Public Sub CableInfoPlan(Connects As IVConnects)
                 shpVynoska.Cells("Prop.Lotok").FormulaU = """"""
                 shpVynoska.Cells("Prop.Provoda").FormulaU = """"""
         Case 1, 2 'С одной стороны
-            Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02, 0)
+            Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
             For Each shpTouchingShapes In vsoSelection
-                'Debug.Print shpTouchingShapes.Name
-                If shpTouchingShapes.Name Like "KabelPL*" Then
+                If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Then
                     colNum.Add shpTouchingShapes.Cells("Prop.Number").Result(0)
-                ElseIf shpTouchingShapes.Name Like "Lotok*" Then
+                ElseIf ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
                     strLotok = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
                 End If
             Next
-
         'Case 2 'С двух сторон - не обрабатываем 2-ю сторону
+        
     End Select
-    If colNum.Count = 0 Then
-        shpVynoska.Cells("Prop.Lotok").FormulaU = """"""
-        shpVynoska.Cells("Prop.Provoda").FormulaU = """"""
-        Exit Sub
-    End If
-    'из коллекции передаем номера проводов в массив для сортировки
-    ReDim mNum(colNum.Count - 1)
-    i = 0
-    For Each NumTemp In colNum
-        mNum(i) = NumTemp
-        i = i + 1
-    Next
     
-    ' "Сортировка вставками" номеров проводов
-    '--V--Сортируем по возрастанию номеров проводов
-    UbNum = UBound(mNum)
-    For j = 1 To UbNum
-        NumTemp = mNum(j)
-        i = j
-        While mNum(i - 1) > NumTemp '>:возрастание, <:убывание
-            mNum(i) = mNum(i - 1)
-            i = i - 1
-            If i <= 0 Then GoTo ExitWhileX
-        Wend
-ExitWhileX: mNum(i) = NumTemp
-    Next
-    '--Х--Сортировка по возрастанию номеров проводов
- 
-    For i = 0 To UbNum
-        strProvoda = strProvoda & mNum(i) & ";"
-    Next
-                    
-    strProvoda = Left(strProvoda, Len(strProvoda) - 1)
-    If Len(strProvoda) > 1 Then
-        strProvoda = strProvoda & ")"
+    'Провода
+    If colNum.Count > 0 Then
+       'из коллекции передаем номера проводов в массив для сортировки
+       ReDim mNum(colNum.Count - 1)
+       i = 0
+       For Each NumTemp In colNum
+           mNum(i) = NumTemp
+           i = i + 1
+       Next
+       
+       ' "Сортировка вставками" номеров проводов
+       '--V--Сортируем по возрастанию номеров проводов
+       UbNum = UBound(mNum)
+       For j = 1 To UbNum
+           NumTemp = mNum(j)
+           i = j
+           While mNum(i - 1) > NumTemp '>:возрастание, <:убывание
+               mNum(i) = mNum(i - 1)
+               i = i - 1
+               If i <= 0 Then GoTo ExitWhileX
+           Wend
+ExitWhileX:    mNum(i) = NumTemp
+       Next
+       '--Х--Сортировка по возрастанию номеров проводов
+    
+       For i = 0 To UbNum
+           strProvoda = strProvoda & mNum(i) & ";"
+       Next
+                       
+       strProvoda = Left(strProvoda, Len(strProvoda) - 1)
+       If Len(strProvoda) > 1 Then
+           strProvoda = strProvoda & ")"
+       End If
+       
+    Else
+        strProvoda = ""
     End If
-
+    
+    If colNum.Count > 0 And strLotok = "" Then strLotok = "Гофра d16"
+    
     shpVynoska.Cells("Prop.Lotok").FormulaU = """" & strLotok & """"
     shpVynoska.Cells("Prop.Provoda").FormulaU = """" & strProvoda & """"
     

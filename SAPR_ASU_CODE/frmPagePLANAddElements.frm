@@ -7,6 +7,8 @@ End Sub
 
 Private Sub btnAddElements_Click()
     AddSensorsFSAOnPlan cmbxNazvanieFSA.Text
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
 
@@ -34,5 +36,7 @@ Sub Fill_cmbxNazvanieFSA()
 End Sub
 
 Private Sub btnClose_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub

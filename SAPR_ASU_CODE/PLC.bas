@@ -34,11 +34,11 @@ Sub GenModPLC(vsoModParent As Visio.Shape)
     NIO = vsoModParent.Cells("Prop.NIO").Result(0)
     
     For Each vsoShape In vsoModParent.Shapes
-        If vsoShape.Name Like "PLCIOL*" Then
+        If ShapeSATypeIs(vsoShape, typePLCIOLParent) Then
             Set shpPLCIOL = vsoShape
             shpPLCIOL.Cells("Prop.Autonum").Formula = True
             NColumn = NColumn + 1
-        ElseIf vsoShape.Name Like "PLCIOR*" Then
+        ElseIf ShapeSATypeIs(vsoShape, typePLCIORParent) Then
             Set shpPLCIOR = vsoShape
             shpPLCIOR.Cells("Prop.Autonum").Formula = True
             NColumn = NColumn + 1
@@ -95,6 +95,8 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer,
         shpPLCIO.Cells("PinX").FormulaForceU = "=GUARD(sheet." & shpID & "!PinX)"
         shpPLCIO.Cells("PinY").FormulaForceU = "GUARD(sheet." & shpID & "!PinY-sheet." & shpID & "!Width)"
         
+        ClearPLCIOParent shpPLCIO
+        
         shpID = shpPLCIO.ID
 
     Next
@@ -144,7 +146,7 @@ Sub GlueIO(shpPLCIO As Visio.Shape)
     
     'Выбираем к кому приклеиться
     For Each vsoShape In vsoSelection
-        If (vsoShape.Name <> shpPLCIO.Name) And (vsoShape.Name <> shpPLCIO.Parent.Name) And (ShapeSATypeIs(vsoShape, typePLCIOParent)) Then
+        If (vsoShape.Name <> shpPLCIO.Name) And (vsoShape.Name <> shpPLCIO.Parent.Name) And (ShapeSATypeIs(vsoShape, typePLCIOLParent) Or ShapeSATypeIs(vsoShape, typePLCIORParent)) Then
             Set shpToWhichGlue = vsoShape
         End If
     Next
@@ -155,7 +157,7 @@ Sub GlueIO(shpPLCIO As Visio.Shape)
         shpToWhichGlue.Cells("Prop.Autonum").Formula = True
         shpPLCIO.Cells("Prop.Autonum").Formula = True
         shpPLCIO.Cells("User.TNumber1").FormulaU = shpToWhichGlue.NameID & "!User.LaqstNum+1"
-        If ((shpToWhichGlue.Name Like "PLCIOL*") And (shpPLCIO.Name Like "PLCIOL*")) Or ((shpToWhichGlue.Name Like "PLCIOR*") And (shpPLCIO.Name Like "PLCIOR*")) Then
+        If (ShapeSATypeIs(shpToWhichGlue, typePLCIOLParent) And ShapeSATypeIs(shpPLCIO, typePLCIOLParent)) Or (ShapeSATypeIs(shpToWhichGlue, typePLCIORParent) And ShapeSATypeIs(shpPLCIO, typePLCIORParent)) Then
              'Есил одинаковые (лев/прав) то связываем и приклеиваем
              shpPLCIO.Cells("PinX").FormulaForceU = "GUARD(" & shpToWhichGlue.NameID & "!PinX)"
              shpPLCIO.Cells("PinY").FormulaForceU = "GUARD(" & shpToWhichGlue.NameID & "!PinY-" & shpToWhichGlue.NameID & "!Width)"

@@ -114,7 +114,7 @@ Sub DeletePLCChild(shpChild As Visio.Shape)
     
     'Перебираем все PLCModChild внутри PLCChild и чистим ссылки во всех связанных PLCModParent
     For Each shpPLCModChild In shpChild.Shapes
-        If shpPLCModChild.Name Like "PLCModChild*" Then
+        If ShapeSATypeIs(shpPLCModChild, typePLCModChild) Then
             DeletePLCModChild shpPLCModChild 'чистим ссылки в связанных PLCIOParent
         End If
     Next
@@ -160,7 +160,7 @@ Sub DeletePLCParent(shpParent As Visio.Shape)
     
     'Перебираем все PLCModParent внутри PLCParent и чистим ссылки во всех связанных PLCModChild
     For Each shpPLCModParent In shpParent.Shapes
-        If shpPLCModParent.Name Like "PLCModParent*" Then
+        If ShapeSATypeIs(shpPLCModParent, typePLCModParent) Then
             DeletePLCModParent shpPLCModParent 'чистим ссылки в связанных PLCIOParent
         End If
     Next
@@ -198,7 +198,7 @@ Sub ClearPLCChild(shpChild As Visio.Shape)
     
     'Перебираем все PLCModChild внутри PLCChild и чистим в них все ссылки
     For Each shpPLCModChild In shpChild.Shapes
-        If shpPLCModChild.Name Like "PLCModChild*" Then
+        If ShapeSATypeIs(shpPLCModChild, typePLCModChild) Then
             ClearPLCModChild shpPLCModChild 'чистим ссылки
         End If
     Next
@@ -224,7 +224,7 @@ Sub ClearPLCParent(shpParent As Visio.Shape)
     
     'Перебираем все PLCModParent внутри PLCParent и чистим в них все ссылки
     For Each shpPLCModParent In shpParent.Shapes
-        If shpPLCModParent.Name Like "PLCModParent*" Then
+        If ShapeSATypeIs(shpPLCModParent, typePLCModParent) Then
             ClearPLCModParent shpPLCModParent 'чистим ссылки
         End If
     Next

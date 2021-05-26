@@ -82,6 +82,8 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
     ReSize
     
     If bError Then
+        Application.EventsEnabled = -1
+        ThisDocument.InitEvent
         Unload Me
     Else
         frmAddReferencePLCMod.Show
@@ -105,7 +107,7 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
                     lblPLC.Caption = "ПЛК: " & shpParentPLC.CellsU("User.Name").ResultStr(0) & "   Модель: " & shpParentPLC.CellsU("Prop.Model").ResultStr(0)
 
                     For Each vsoShp In shpParentPLC.Shapes
-                        If vsoShp.Name Like "PLCModParent*" Then
+                        If ShapeSATypeIs(vsoShp, typePLCModParent) Then
                             colShapes.Add vsoShp.ID
                             colPages.Add vsoShp.ContainingPage.ID
                         End If
@@ -127,7 +129,7 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
                     lblPLCMod.Caption = "Модуль: " & shpParentPLCMod.CellsU("User.Name").ResultStr(0) & "   Модель: " & shpParentPLCMod.CellsU("Prop.Model").ResultStr(0)
                     
                     For Each vsoShp In shpParentPLCMod.Shapes
-                        If vsoShp.Name Like "PLCIO*" Then
+                        If ShapeSATypeIs(vsoShp, typePLCIOLParent) Or ShapeSATypeIs(vsoShp, typePLCIORParent) Then
                             colShapes.Add vsoShp.ID
                             colPages.Add vsoShp.ContainingPage.ID
                         End If
@@ -191,7 +193,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     x = 0
                     Y = 0
                     For Each vsoShape In .Shapes
-                        If (vsoShape.Name Like "PLCIOL*") Or (vsoShape.Name Like "PLCIOR*") Then
+                        If ShapeSATypeIs(vsoShape, typePLCIOLParent) Or ShapeSATypeIs(vsoShape, typePLCIORParent) Then
                             'подсчет кол-ва связанных входов
                             x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
                             'подсчет кол-ва подключенных входов
@@ -316,6 +318,8 @@ End Sub
         .SetViewRect pinLeft, pinTop, pinWidth, pinHeight  'Восстановление вида окна после закрытия формы
                     '[левый] , [верхний] угол , [ширина] , [высота](вниз) видового окна
     End With
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
     
 End Sub

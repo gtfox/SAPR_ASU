@@ -459,6 +459,99 @@ err:
     End If
 End Sub
 
+Sub CopySAPage()
+'------------------------------------------------------------------------------------------------------------
+' Sub           : CopySAPage - Копирует страницу САПР-АСУ за текущей, копируя ее свойства и содержимое
+                'Переименовывает страницы раздела идущие за вставляемой страницей
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim vsoPageNew As Visio.Page
+    Dim vsoPageSource As Visio.Page
+    Dim colPagesAll As Collection
+    Dim colPagesAfter As Collection
+    Dim Ramka As Visio.Master
+    Dim Setka As Visio.Master
+    Dim shpRamka As Visio.Shape
+    Dim shpRamkaSource As Visio.Shape
+    Dim MaxNpage As Integer
+    Dim PageName As String
+    Dim PageNumber As Integer
+    Dim Index As Integer
+    Dim ItemCol As Integer
+    Dim NazvanieShemy As String
+    Dim NazvanieFSA As String
+    
+    Set colPagesAfter = New Collection
+    Set colPagesAll = New Collection
+    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
+    Set Setka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("SETKA KOORD")
+    Set vsoPageSource = ActivePage
+    Index = vsoPageSource.Index
+    PageName = GetPageName(vsoPageSource.Name)
+    PageNumber = GetPageNumber(vsoPageSource.Name)
+    Set shpRamkaSource = vsoPageSource.Shapes("Рамка")
+
+    'Ищем страницы раздела больше текущей
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.Name Like PageName & "*" Then
+            colPagesAll.Add vsoPage
+            If GetPageNumber(vsoPage.Name) > PageNumber Then
+                colPagesAfter.Add vsoPage
+            End If
+        End If
+    Next
+    
+    'Если вставляем страницу в середину раздела
+    'Сдвигаем = Переименовываем все листы ниже текущего : к номеру последнего прибавляем + 1
+    While colPagesAfter.Count > 0
+        ItemCol = FindPageMaxMinNumber(colPagesAfter)
+        Set vsoPage = colPagesAfter.Item(ItemCol)
+        colPagesAfter.Remove ItemCol
+        vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+    Wend
+    
+    'Находим максимальный номер страницы в NameU и Name
+    MaxNpage = MaxMinPageNumber(colPagesAll, , , True)
+    'Создаем страницу раздела с максимальным номером
+    Set vsoPageNew = ActiveDocument.Pages.Add
+    vsoPageNew.Name = PageName & "." & CStr(MaxNpage + 1)
+    'Переименовываем вставленный лист в нумерацию Name после текущего
+    vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
+    'Положение новой страницы сразу за текущей
+    vsoPageNew.Index = Index + 1
+'    Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
+'    ActiveDocument.Masters.Item("Рамка").Delete
+'    shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
+'    shpRamka.Cells("Prop.Type").Formula = shpRamkaSource.Cells("Prop.Type").Formula
+'    shpRamka.Cells("Prop.CNUM").Formula = shpRamkaSource.Cells("Prop.CNUM").Formula
+'    shpRamka.Cells("Prop.TNUM").Formula = shpRamkaSource.Cells("Prop.TNUM").Formula
+    vsoPageNew.PageSheet.Cells("PageWidth").Formula = vsoPageSource.PageSheet.Cells("PageWidth").Formula
+    vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
+    vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
+    vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
+        SetNazvanieShemy vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula
+'        vsoPageNew.Drop Setka, 0, 0
+    End If
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
+        SetNazvanieFSA vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
+    End If
+
+    Application.ActiveWindow.Page = vsoPageSource
+    ActiveWindow.DeselectAll
+'    ActiveWindow.SelectAll
+    ActiveWindow.Selection.Copy
+    Application.ActiveWindow.Page = vsoPageNew
+    ActiveWindow.Page.Paste
+    ActiveWindow.DeselectAll
+    LockTitleBlock
+    
+End Sub
+
 Function GetPageName(NamePage As String) As String
     Dim mstrName() As String
     mstrName = Split(NamePage, ".")

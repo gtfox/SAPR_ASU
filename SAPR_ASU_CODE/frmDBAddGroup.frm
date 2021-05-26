@@ -79,5 +79,7 @@ Private Sub chbxAddFile_Change()
 End Sub
 
 Private Sub btnClose_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
     Unload Me
 End Sub
