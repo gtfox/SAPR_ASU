@@ -65,18 +65,20 @@ End Sub
 
 Private Sub xls_query(imya_lista As String)
     Dim oExcel As Excel.Application
-    Set oExcel = CreateObject("Excel.Application")
     Dim sp As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim tr As Object
     Dim tc As Object
     Dim qx As Integer
     Dim qy As Integer
-    pth = Visio.ActiveDocument.path
     Dim ffs As FileDialogFilters
     Dim sFileName As String
-    oExcel.Visible = True ' для наглядности
     Dim fd As FileDialog
+    
+    Set oExcel = CreateObject("Excel.Application")
+    pth = Visio.ActiveDocument.path
+    oExcel.Visible = True ' для наглядности
+    
 '    Set fd = oExcel.FileDialog(msoFileDialogOpen)
 '    With fd
 '        .AllowMultiSelect = False
@@ -88,7 +90,7 @@ Private Sub xls_query(imya_lista As String)
 '        End With
 '        oExcel.FileDialog(msoFileDialogOpen).Show
 '    End With
-    
+'    sFileName = oExcel.FileDialog(msoFileDialogOpen).SelectedItems(1)
 
     
     Dim sPath, sFile As String

@@ -154,6 +154,23 @@ Sub ShowSettingsProject()
     frmSettingsProject.Show
 End Sub
 
+Sub SaveProjectFileAs()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SaveProjectFileAs - Сохраняет копию файла с датой
+'------------------------------------------------------------------------------------------------------------
+    Dim sTime As String
+    Dim sPath As String
+    Dim sName As String
+    sPath = ActiveDocument.path
+    sName = Replace(ActiveDocument.Name, ".vsd", "")
+    sTime = Format(Now(), "_yyyy.mm.dd_hh.mm.ss")
+    If MsgBox("Сохранить копию проекта?" + vbNewLine + vbNewLine + sName, vbQuestion + vbOKCancel, "SaveAs") = vbOK Then
+        Application.ActiveDocument.SaveAsEx sPath + sName + sTime + ".vsd", visSaveAsWS + visSaveAsListInMRU
+        Application.ActiveDocument.SaveAsEx sPath + sName + ".vsd", visSaveAsWS + visSaveAsListInMRU
+        MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime, vbInformation + vbOKOnly, "Info"
+    End If
+End Sub
+
 Sub SetSAStyle()
     SetVisioProp
     SetGridSnap

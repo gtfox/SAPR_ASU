@@ -118,19 +118,15 @@ Private Sub CommandButton1_Click()
 End Sub
 Private Sub CommandButton10_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Gip").Formula = """" + cmbxSA_FR_Gip + """"
-    Reload_cmbx
 End Sub
 Private Sub CommandButton11_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_NachOtdela").Formula = """" + cmbxSA_FR_NachOtdela + """"
-    Reload_cmbx
 End Sub
 Private Sub CommandButton12_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_NKontr").Formula = """" + cmbxSA_FR_NKontr + """"
-    Reload_cmbx
 End Sub
 Private Sub CommandButton13_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Utverdil").Formula = """" + cmbxSA_FR_Utverdil + """"
-    Reload_cmbx
 End Sub
 Private Sub CommandButton14_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Data").Formula = """" + tbSA_FR_Data + """"
@@ -176,9 +172,7 @@ Private Sub CommandButton7_Click()
 End Sub
 Private Sub CommandButton8_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal").Formula = """" + cmbxSA_FR_Razrabotal + """"
-    Reload_cmbx
 End Sub
 Private Sub CommandButton9_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Proveril").Formula = """" + cmbxSA_FR_Proveril + """"
-    Reload_cmbx
 End Sub

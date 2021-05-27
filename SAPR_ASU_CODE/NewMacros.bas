@@ -133,28 +133,25 @@ Sub Macro11()
 End Sub
 Sub Macro1()
 
-    Application.ActiveWindow.Selection.Copy
+    Dim UndoScopeID1 As Long
+    UndoScopeID1 = Application.BeginUndoScope("Свойства поведения")
+    Application.ActiveWindow.Page.Shapes.ItemFromID(254).CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "0"
+    Application.EndUndoScope UndoScopeID1, True
 
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.ItemU("Page-55")
-
-    Application.ActiveWindow.Page.Paste
+    Dim UndoScopeID2 As Long
+    UndoScopeID2 = Application.BeginUndoScope("Свойства поведения")
+    Application.ActiveWindow.Page.Shapes.ItemFromID(254).CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "1"
+    Application.EndUndoScope UndoScopeID2, True
 
 End Sub
 Sub Macro2()
 
-    Application.ActiveWindow.Selection.Copy
+    Application.ActiveDocument.SaveAsEx "D:\YandexDisk\VISIO\SAPR_ASU\SAPR_ASU+.vsd", visSaveAsWS + visSaveAsListInMRU
+
+    Application.ActiveDocument.SaveAsEx "D:\YandexDisk\VISIO\SAPR_ASU\SAPR_ASU.vsd", visSaveAsWS + visSaveAsListInMRU
 
 End Sub
 Sub Macro3()
+    Application.CommandBars("САПР АСУ").Delete
 
-    Application.ActiveWindow.DeselectAll
-
-    Application.ActiveWindow.DeselectAll
-
-    Application.ActiveWindow.DeselectAll
-
-    Application.ActiveWindow.DeselectAll
-
-    Application.ActiveWindow.Selection.Copy
-Application.ActiveWindow.Page.Paste
 End Sub
