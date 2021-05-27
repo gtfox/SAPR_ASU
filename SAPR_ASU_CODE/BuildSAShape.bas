@@ -108,7 +108,8 @@ Sub GetAllSSValueSplit()
     
 '    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
     
-    Set vsoObject = ActivePage.Shapes.ItemFromID(48)
+'    Set vsoObject = ActivePage.Shapes.ItemFromID(48)
+    Set vsoObject = ActiveDocument.DocumentSheet
     
     strFile = ThisDocument.path & "tempValue.vb"
     

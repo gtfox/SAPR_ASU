@@ -128,6 +128,18 @@ Private Sub AddButtons()
         .BeginGroup = True
     End With
     
+        '---Кнопка Настройки
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=10)
+    With Button
+        .Caption = "НастройкиПроекта"
+        .Tag = "SettingsProject"
+        .style = msoButtonAutomatic
+        .OnAction = "ShowSettingsProject"
+        .TooltipText = "Настройки Проекта"
+        .FaceID = 642
+        .BeginGroup = True
+    End With
+    
     Set Button = Nothing
            
 End Sub

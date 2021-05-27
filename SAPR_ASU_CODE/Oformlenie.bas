@@ -149,6 +149,10 @@ Public Sub LockTitleBlock()
     End If
 End Sub
 
+Sub ShowSettingsProject()
+    Load frmSettingsProject
+    frmSettingsProject.Show
+End Sub
 
 Sub SetSAStyle()
     SetVisioProp
