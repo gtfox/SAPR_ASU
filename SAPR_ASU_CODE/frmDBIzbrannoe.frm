@@ -352,18 +352,18 @@ End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
-    Dim mstr() As String
+    Dim Mstr() As String
     Dim colNum As Long
     
-    mstr = Split(Replace(Item.Key, """", ""), "/")
+    Mstr = Split(Replace(Item.Key, """", ""), "/")
 
-    mstrShpData(0) = mstr(1)
+    mstrShpData(0) = Mstr(1)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
     mstrShpData(4) = Item.SubItems(4)
     mstrShpData(5) = Item.SubItems(2)
-    mstrShpData(6) = mstr(0)
+    mstrShpData(6) = Mstr(0)
     mstrShpData(7) = Item.SubItems(3)
     
     If Item.ForeColor = NaboryColor Then
@@ -418,17 +418,17 @@ Private Sub lstvTableIzbrannoe_DblClick()
 End Sub
 
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
-    Dim mstr() As String
+    Dim Mstr() As String
 
-    mstr = Split(Replace(Item.Key, """", ""), "/")
+    Mstr = Split(Replace(Item.Key, """", ""), "/")
     
-    mstrVybPozVNabore(0) = mstr(1)
+    mstrVybPozVNabore(0) = Mstr(1)
     mstrVybPozVNabore(1) = Item.Key
     mstrVybPozVNabore(2) = Item.SubItems(1)
     mstrVybPozVNabore(3) = Item
     mstrVybPozVNabore(4) = Item.SubItems(4)
     mstrVybPozVNabore(5) = Item.SubItems(2)
-    mstrVybPozVNabore(6) = mstr(0)
+    mstrVybPozVNabore(6) = Mstr(0)
     mstrVybPozVNabore(7) = Item.SubItems(3)
     
 End Sub

@@ -63,7 +63,6 @@ Private Sub OD_2_Visio(A4 As Boolean)
             'подготавливаем копирование
             Set objFSO = CreateObject("Scripting.FileSystemObject")
             Set objFile = objFSO.GetFile(sFile)
-    
             'удаляем старый
             sFileName = "OD_2_Visio_Split.doc"
             sFile = sPath & sFileName
@@ -79,6 +78,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             'Name sPath & "ОД - копия.doc" As sFile
     
             Set wa = CreateObject("Word.Application")
+            wa.f
             wa.Documents.Open (sFile)
             wa.Visible = True
             Set wad = wa.ActiveDocument

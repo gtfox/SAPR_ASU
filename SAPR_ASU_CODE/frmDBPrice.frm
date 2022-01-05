@@ -321,7 +321,7 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub btnFavAdd_Click()
-    Dim mstr() As String
+    Dim Mstr() As String
     If mstrShpData(2) <> "" Then
         If Not bBlock Then
             bBlock = True
@@ -330,18 +330,18 @@ Private Sub btnFavAdd_Click()
             Me.Hide
         End If
         Load frmDBAddToIzbrannoe
-        mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mstr(2)
+        Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
     End If
 End Sub
 
 Private Sub btnNabAdd_Click()
-    Dim mstr() As String
+    Dim Mstr() As String
     If mstrShpData(2) <> "" Then
         Me.Hide
         Load frmDBAddToNabor
-        mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mstr(2)
+        Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
     End If
 End Sub
 

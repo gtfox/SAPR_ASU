@@ -10,6 +10,7 @@ Sub run(vsoShape As Object)
     On Error Resume Next
     lblNameID.Caption = vsoShape.NameID
     frmObjInfo.Show
+
 End Sub
 
 

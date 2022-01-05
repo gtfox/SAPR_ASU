@@ -82,8 +82,8 @@ Sub ObjInfo()
     Dim vsoSelection As Visio.Selection
    
     Set vsoSelection = Application.ActiveWindow.Selection
-    
     Load frmObjInfo
+    If ActiveWindow.Selection.Count > 1 Then frmObjInfo.Caption = "Info " + "(выделено " + CStr(ActiveWindow.Selection.Count) + ")"
     If vsoSelection.PrimaryItem Is Nothing Then
         vsoSelection.IterationMode = visSelModeOnlySub
         'For Each sh In vsoSelection

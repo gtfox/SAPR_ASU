@@ -40,8 +40,10 @@ Dim yx As Integer
 Dim pth As String
 
 Public Sub spDEL()
-    del_sp
-    'MsgBox "Старая версия спецификации удалена", vbInformation
+    If MsgBox("Удалить листы спецификации?", vbQuestion + vbOKCancel, "Удалить спецификацию") = vbOK Then
+        del_sp
+        'MsgBox "Старая версия спецификации удалена", vbInformation
+    End If
 End Sub
 
 'Public Sub spDEL_ADD()
@@ -74,34 +76,36 @@ Private Sub xls_query(imya_lista As String)
     Dim ffs As FileDialogFilters
     Dim sFileName As String
     Dim fd As FileDialog
+    Dim sPath, sFile As String
+    
     
     Set oExcel = CreateObject("Excel.Application")
     pth = Visio.ActiveDocument.path
-    oExcel.Visible = True ' для наглядности
+'    oExcel.Visible = True ' для наглядности
     
-'    Set fd = oExcel.FileDialog(msoFileDialogOpen)
-'    With fd
-'        .AllowMultiSelect = False
-'        .InitialFileName = pth
-'        Set ffs = .Filters
-'        With ffs
-'            .Clear
-'            .Add "Excel", "*.xls"
-'        End With
-'        oExcel.FileDialog(msoFileDialogOpen).Show
-'    End With
-'    sFileName = oExcel.FileDialog(msoFileDialogOpen).SelectedItems(1)
+    Set fd = oExcel.FileDialog(msoFileDialogOpen)
+    With fd
+        .AllowMultiSelect = False
+        .InitialFileName = pth
+        Set ffs = .Filters
+        With ffs
+            .Clear
+            .Add "Excel", "*.xls"
+        End With
+        oExcel.FileDialog(msoFileDialogOpen).Show
+    End With
+    sFileName = oExcel.FileDialog(msoFileDialogOpen).SelectedItems(1)
 
     
-    Dim sPath, sFile As String
+
     sPath = pth
-    sFileName = "SP_2_Visio.xls"
-    sFile = sPath & sFileName
+'    sFileName = "SP_2_Visio.xls"
+    sFile = sFileName
     
-    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
-        Exit Sub
-    End If
+'    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
+'        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+'        Exit Sub
+'    End If
     
     Set sp = oExcel.Workbooks.Open(sFile)
     sp.Activate
@@ -111,7 +115,7 @@ Private Sub xls_query(imya_lista As String)
     On Error Resume Next
     If oExcel.Worksheets(imya_lista) Is Nothing Then
         'действия, если листа нет
-        oExcel.run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
+'        oExcel.run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
     Else
         'действия, если лист есть
     End If
@@ -226,23 +230,50 @@ SubAddPage:
  
 Sub AddPageSpecifikac(pName As String)
     Dim aPage As Visio.Page
-    Dim Ramka As Visio.Master
-    Set aPage = ActiveDocument.Pages.Add
-    aPage.Name = pName
-    aPage.PageSheet.Cells("PageWidth").Formula = "420 MM"
-    aPage.PageSheet.Cells("PageHeight").Formula = "297 MM"
-    aPage.PageSheet.Cells("Paperkind").Formula = 8
-    aPage.PageSheet.Cells("PrintPageOrientation").Formula = 2
-    Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
-    Set sh = ActivePage.Drop(Ramka, 0, 0)
-    ActiveDocument.Masters.Item("Рамка").Delete
-    sh.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
-    sh.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
-    sh.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
-    sh.Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
-    If Len(pName) > 1 Then sh.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
-    sh.Cells("Prop.cnum") = 0
-    sh.Cells("Prop.tnum") = 0
+    Dim Mstr As Visio.Master
+    Dim Ramka As Visio.Shape
+    If GetSAPageExist(pName) Is Nothing Then
+        Set aPage = ActiveDocument.Pages.Add
+        aPage.Name = pName
+        With aPage.PageSheet
+            .Cells("PageWidth").Formula = "420 MM"
+            .Cells("PageHeight").Formula = "297 MM"
+            .Cells("Paperkind").Formula = 8
+            .Cells("PrintPageOrientation").Formula = 2
+            .AddSection visSectionAction
+            .AddRow visSectionAction, visRowLast, visTagDefault
+            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
+            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
+            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
+            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
+            .AddRow visSectionAction, visRowLast, visTagDefault
+            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
+            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spADD_Visio_Perenos"")"
+            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
+            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
+            .AddRow visSectionAction, visRowLast, visTagDefault
+            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы спецификации"""
+            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spDEL"")"
+            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
+            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
+        End With
+        Set Mstr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
+        Set Ramka = ActivePage.Drop(Mstr, 0, 0)
+        LockTitleBlock
+        ActiveDocument.Masters.Item("Рамка").Delete
+    Else
+        ActiveWindow.Page = ActiveDocument.Pages(pName)
+        ActiveWindow.SelectAll
+        ActiveWindow.Selection.Delete
+        Set Ramka = ActivePage.Shapes.Item("Рамка")
+    End If
+    Ramka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
+    Ramka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
+    Ramka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
+'    Ramka.Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
+    If Len(pName) > 1 Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
+    Ramka.Cells("Prop.cnum") = 0
+    Ramka.Cells("Prop.tnum") = 0
 
 End Sub
 

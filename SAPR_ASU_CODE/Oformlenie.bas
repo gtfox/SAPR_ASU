@@ -161,10 +161,31 @@ Sub SaveProjectFileAs()
     Dim sTime As String
     Dim sPath As String
     Dim sName As String
+    Dim oWindow As Window
+    Dim oDocument As Visio.Document
+    Dim colWindows As Collection
+    
     sPath = ActiveDocument.path
     sName = Replace(ActiveDocument.Name, ".vsd", "")
     sTime = Format(Now(), "_yyyy.mm.dd_hh.mm.ss")
     If MsgBox("Сохранить копию проекта?" + vbNewLine + vbNewLine + sName, vbQuestion + vbOKCancel, "SaveAs") = vbOK Then
+        'Сохраняем наборы элементов
+        For Each oDocument In Application.Documents
+            If oDocument.Type = visTypeStencil Then
+                On Error Resume Next
+                oDocument.Save
+            End If
+        Next
+        'Закрываем другие окна + ShapeSheet
+        Set colWindows = New Collection
+        For Each oWindow In Visio.Application.Windows
+           If Not (oWindow.Type = visDrawing And oWindow.SubType = visPageWin) Then ' If oWindow.Type = visSheet Then
+                colWindows.Add oWindow
+            End If
+        Next
+        For Each oWindow In colWindows
+            oWindow.Close
+        Next
         Application.ActiveDocument.SaveAsEx sPath + sName + sTime + ".vsd", visSaveAsWS + visSaveAsListInMRU
         Application.ActiveDocument.SaveAsEx sPath + sName + ".vsd", visSaveAsWS + visSaveAsListInMRU
         MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime, vbInformation + vbOKOnly, "Info"
