@@ -78,7 +78,6 @@ Private Sub OD_2_Visio(A4 As Boolean)
             'Name sPath & "ОД - копия.doc" As sFile
     
             Set wa = CreateObject("Word.Application")
-            wa.f
             wa.Documents.Open (sFile)
             wa.Visible = True
             Set wad = wa.ActiveDocument

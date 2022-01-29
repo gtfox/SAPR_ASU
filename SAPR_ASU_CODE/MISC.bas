@@ -290,7 +290,7 @@ End Sub
 
 
 'Sub ReadCopyRight()
-'    Debug.Print ActiveWindow.Selection(1).Cells("Copyright").FormulaU
+'    MsgBox ActiveWindow.Selection(1).Cells("Copyright").FormulaU
 'End Sub
 'Sub RegCopyright()
 '    On Error GoTo EMSG

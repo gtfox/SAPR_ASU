@@ -31,7 +31,7 @@ Private Sub AddButtons()
 
     
     '---Кнопка Формат->Специальный
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=33841)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1) '33841
     With Button
         .Caption = "ФорматСпециальный"
         .Tag = "FormatSpecial"
@@ -142,8 +142,20 @@ Private Sub AddButtons()
         .BeginGroup = True
     End With
     
-        '---Кнопка Настройки
+        '---Кнопка Данные для спецификации
     Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=11)
+    With Button
+        .Caption = "ДанныеСпецификации"
+        .Tag = "ReNumber"
+        .style = msoButtonAutomatic
+        .OnAction = "ShowSpecifikaciya"
+        .TooltipText = "Перечень оборудования из Visio в Excel"
+        .FaceID = 263 '5897
+        .BeginGroup = True
+    End With
+    
+        '---Кнопка Настройки
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=12)
     With Button
         .Caption = "НастройкиПроекта"
         .Tag = "SettingsProject"

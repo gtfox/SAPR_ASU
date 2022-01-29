@@ -193,11 +193,11 @@ Private Sub btnAddRazdel_Click()
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
-                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
+'                .AddRow visSectionAction, visRowLast, visTagDefault
+'                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
+'                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
+'                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
+'                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
                 .AddRow visSectionAction, visRowLast, visTagDefault
                 .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
                 .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spADD_Visio_Perenos"")"

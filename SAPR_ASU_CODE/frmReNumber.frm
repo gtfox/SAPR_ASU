@@ -1,14 +1,14 @@
 Dim NazvanieFSA As String
 Dim NazvanieShemy As String
 
-Private Sub brnRenumberCx_Click()
+Private Sub btnRenumberCx_Click()
     ReNumberShemy
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
 End Sub
 
-Private Sub brnRenumberFSA_Click()
+Private Sub btnRenumberFSA_Click()
     ReNumberFSA
     Application.EventsEnabled = -1
     ThisDocument.InitEvent

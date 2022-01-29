@@ -364,8 +364,13 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
 
 End Sub
 
-
-
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ExtractOboz - Функция определения неизменяемой части обозначения
+' Author        : Shishok
+' Date          : 2014.12.01
+' Description   : Определения неизменяемой части обозначения Например: 1, ГР1, р, Гр1.1, ППР1-1, Выкл, П122.1 или типа того
+' Link          : https://visio.getbb.ru/viewtopic.php?p=5904#p5904, https://github.com/shishok, https://disk.yandex.ru/d/qbpj9WI9d2eqF
+'------------------------------------------------------------------------------------------------------------
 Function ExtractOboz(Oboz) ' Функция определения неизменяемой части обозначения
 
 Dim ObozF As String, i As Integer, Flag As Boolean

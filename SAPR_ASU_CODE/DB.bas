@@ -13,7 +13,12 @@ Public Const DBNameIzbrannoe As String = "SAPR_ASU_Izbrannoe.accdb" 'Имя фа
 
 Public Const NaboryColor   As Long = &HBD0429 'синий
 
-Public Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+#If VBA7 Then
+    Public Declare PtrSafe Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+#Else
+    Public Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
+#End If
+
 
 
 'Активация формы выбора элементов схемы из БД
