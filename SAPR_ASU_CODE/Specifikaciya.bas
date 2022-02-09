@@ -404,7 +404,99 @@ Function get_data() '(pgName As Page)
 out:
 End Function
 
+Public Function SortNumInString(strToSort As String) As String
+'------------------------------------------------------------------------------------------------------------
+' Function      : SortNumInString - "Сортировка вставками" чисел в строке, разделенных ";"
+                'Строка чисел, разделенных ";", преобразуется в массив, сортируется,
+                'и возвращается в виде склеенной строки
+'------------------------------------------------------------------------------------------------------------
+    Dim mNum() As String
+    Dim NumTemp As Variant
+    Dim i As Integer
+    Dim j As Integer
+    Dim UbNum As Long
+    
+    mNum = Split(strToSort, ";")
+    UbNum = UBound(mNum)
+    If UbNum > 0 Then
+        strToSort = ""
+        '--V--Сортировка
+        For j = 1 To UbNum
+            NumTemp = IIf(mNum(j) = "", "0", mNum(j))
+            i = j
+            While CInt(mNum(i - 1)) > CInt(NumTemp) '>:возрастание, <:убывание
+                mNum(i) = mNum(i - 1)
+                i = i - 1
+                If i <= 0 Then GoTo ExitWhile
+            Wend
+ExitWhile:     mNum(i) = NumTemp
+        Next
+        '--Х--Сортировка
+        For i = 0 To UbNum
+            strToSort = strToSort & mNum(i) & ";"
+        Next
+        strToSort = Left(strToSort, Len(strToSort) - 1)
+    End If
+    SortNumInString = strToSort
+End Function
 
 
+Public Function ReplaceSequenceInString(strToReplace As String) As String
+'------------------------------------------------------------------------------------------------------------
+' Function      : ReplaceSequenceInString - Заменяет последовательно идущие чисела в строке на тире
+                ' "1;2;3;4;5;9" заменяется на "1-;5;9"
+                'и возвращается в виде склеенной строки
+'------------------------------------------------------------------------------------------------------------
+    Dim mNum() As String
+    Dim NumTemp As Variant
+    Dim i As Integer
+    Dim j As Integer
+    Dim NumStart As Integer
+    Dim NumEnd As Integer
+    Dim TempStart As Integer
+    Dim nCount As Integer
+    Dim UbNum As Long
+    
+    mNum = Split(strToReplace, ";")
+    strToReplace = ""
+    UbNum = UBound(mNum)
+    For i = 0 To UbNum
+        NumStart = CInt(IIf(mNum(i) = "", "0", mNum(i)))
+        TempStart = NumStart
+        For j = i To UbNum 'Сканируем диапазон
+            If j = UbNum Then '--------достигли конца строки---------
+                If TempStart - NumStart > 0 Then 'конец = диапазон
+                    If TempStart - NumStart = 1 Then
+                        strToReplace = strToReplace & NumStart & ";" & TempStart & ";" 'конец = диапазон - 2 цифры
+                    Else
+                        strToReplace = strToReplace & NumStart & "-;" & TempStart & ";" 'конец = диапазон - больше 2-х цифр
+                    End If
+                Else
+                    strToReplace = strToReplace & TempStart & ";"  'конец = единичное число
+                End If
+                i = j
+                Exit For
+            End If
+            NumEnd = CInt(mNum(j + 1))
+            If NumEnd - TempStart = 1 Then 'идет последовательность
+                TempStart = NumEnd
+                nCount = nCount + 1
+            Else '---------------Конец последовательности-------------------
+                If nCount = 0 Then
+                    strToReplace = strToReplace & TempStart & ";" 'нет последовательности
+                ElseIf nCount = 1 Then
+                    strToReplace = strToReplace & NumStart & ";" & TempStart & ";" 'конец = диапазон - 2 цифры
+                Else
+                    strToReplace = strToReplace & NumStart & "-;" & TempStart & ";" 'конец = диапазон - больше 2-х цифр
+                End If
+                nCount = 0
+                i = j
+                Exit For
+            End If
+        Next
+    Next
 
+    strToReplace = Left(strToReplace, Len(strToReplace) - 1)
 
+    ReplaceSequenceInString = strToReplace
+End Function

@@ -94,39 +94,27 @@ Public Sub FindElementShemy()
     Dim colCxem As Collection
     Dim nCount As Double
     Dim strColKey As String
-    
-    
     Dim vsoPage As Visio.Page
-    Dim ThePage As Visio.Shape
     Dim vsoShapeOnPage As Visio.Shape
-    Dim vsoShape As Visio.Shape
-    Dim colItems As Collection
-    Dim colTermSelectNames As Collection
-    Dim colElementSelectNames As Collection
+    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
+    Dim PageName As String      'Имена листов где возможна нумерация
+    Dim i As Integer
+    
+    
     Dim ItemCol As Variant
     Dim mstrNames() As String
     Dim NumberKlemmnik As Integer
     Dim SymNameKlemmnik As String
     Dim SAType As Integer
-    Dim SymName As String       'Буквенная часть нумерации
-    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
-    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
-    Dim PageName As String      'Имена листов где возможна нумерация
 
-    Dim Cxema As classCxema
-    Dim List As classListCxemy
-    Dim NazvanieShemyOld As String
-    Dim NextWire As Integer
-    Dim NextCableSH As Integer
-    Dim NextTerm As Integer
-    Dim NextElement As Integer
-    Dim bWireSelect As Boolean, bCableSHSelect As Boolean, bTermSelect As Boolean, bElementSelect As Boolean
-    Dim i As Integer
-    
+
     PageName = cListNameCxema  'Имена листов
     
     Set colPage = New Collection
     Set colCxem = New Collection
+    Set clsStrokaSpecif = New classStrokaSpecifikacii
+    Set colStrokaSpecif = New Collection
 
     For i = 1 To cmbxNazvanieShemy.ListCount
         NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
@@ -146,55 +134,64 @@ Public Sub FindElementShemy()
     Set colPage = New Collection
     If obVseCx Then
         For Each colPage In colCxem
-            For Each vsoPage In colPage
-                'Собираем шейпы и коллекции фильтов
-                For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
-                    If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
-                        UserType = ShapeSAType(vsoShapeOnPage)
-                        Select Case UserType
-                            Case typeCableSH 'Кабели на схеме электрической
-                                
-                            Case typeTerm 'Клеммы
-                                
-                            Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
-                                clsStrokaSpecif.SymName = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
-                                clsStrokaSpecif.SAType = vsoShapeOnPage.Cells("User.SAType").Result(0)
-                                clsStrokaSpecif.NazvanieDB = vsoShapeOnPage.Cells("Prop.NazvanieDB").ResultStr(0)
-                                clsStrokaSpecif.ArtikulDB = vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
-                                clsStrokaSpecif.ProizvoditelDB = vsoShapeOnPage.Cells("Prop.ProizvoditelDB").ResultStr(0)
-                                clsStrokaSpecif.CenaDB = vsoShapeOnPage.Cells("Prop.CenaDB").ResultStr(0)
-                                clsStrokaSpecif.EdDB = vsoShapeOnPage.Cells("Prop.EdDB").ResultStr(0)
-                                clsStrokaSpecif.KolVo = 1
-                                clsStrokaSpecif.NomeraPozicij = CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
-                                strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
-                                nCount = colStrokaSpecif.Count
-                                On Error Resume Next
-                                colStrokaSpecif.Add clsStrokaSpecif, strColKey
-                                If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем кол-во
-                                    colStrokaSpecif(strColKey).KolVo = colStrokaSpecif(strColKey).KolVo + 1
-                                    colStrokaSpecif(strColKey).NomeraPozicij = colStrokaSpecif(strColKey).NomeraPozicij & ";" & CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
-                                End If
-                        End Select
-                    End If
-                Next
-            Next
-            If colPage.Count > 0 Then
-                colCxem.Add colPage, NazvanieShemy
-            End If
-            Set colPage = New Collection
+            GoSub PageInCxem
         Next
     ElseIf obVybCx Then
         NazvanieShemy = cmbxNazvanieShemy.Text
-        For Each vsoPage In colCxem(NazvanieShemy)
-            If vsoPage.Name Like PageName & "*" Then
-                If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
-                    colPage.Add vsoPage, vsoPage.Name
-                End If
-            End If
-        Next
+        Set colPage = colCxem(NazvanieShemy)
+        GoSub PageInCxem
     ElseIf obTekListCx Then
-'        NazvanieShemy = cmbxNazvanieShemy.Text
+        GoSub ShpOnPage
     End If
+
+    'Сортировка номеров и замена последовательных позиционных обозначений
+    For Each clsStrokaSpecif In colStrokaSpecif
+        clsStrokaSpecif.NomeraPozicij = SortNumInString(clsStrokaSpecif.NomeraPozicij)
+        clsStrokaSpecif.NomeraPozicij = ReplaceSequenceInString(clsStrokaSpecif.NomeraPozicij)
+    Next
+    
+Exit Sub
+'-----------------------------------------------------------------------------------
+PageInCxem:
+    For Each vsoPage In colPage
+        GoSub ShpOnPage
+    Next
+Return
+
+ShpOnPage:
+    For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+        If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
+            UserType = ShapeSAType(vsoShapeOnPage)
+            Set clsStrokaSpecif = New classStrokaSpecifikacii
+            Select Case UserType
+                Case typeCableSH 'Кабели на схеме электрической
+                    
+                Case typeTerm 'Клеммы
+                    
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                    clsStrokaSpecif.SymName = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                    clsStrokaSpecif.SAType = vsoShapeOnPage.Cells("User.SAType").Result(0)
+                    clsStrokaSpecif.NazvanieDB = vsoShapeOnPage.Cells("Prop.NazvanieDB").ResultStr(0)
+                    clsStrokaSpecif.ArtikulDB = vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
+                    clsStrokaSpecif.ProizvoditelDB = vsoShapeOnPage.Cells("Prop.ProizvoditelDB").ResultStr(0)
+                    clsStrokaSpecif.CenaDB = vsoShapeOnPage.Cells("Prop.CenaDB").ResultStr(0)
+                    clsStrokaSpecif.EdDB = vsoShapeOnPage.Cells("Prop.EdDB").ResultStr(0)
+                    clsStrokaSpecif.KolVo = 1
+                    clsStrokaSpecif.NomeraPozicij = CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
+                    strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
+                    
+                    On Error Resume Next
+                    colStrokaSpecif.Add clsStrokaSpecif, strColKey
+                    If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
+                        colStrokaSpecif(strColKey).KolVo = colStrokaSpecif(strColKey).KolVo + 1
+                        colStrokaSpecif(strColKey).NomeraPozicij = colStrokaSpecif(strColKey).NomeraPozicij & ";" & CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
+                    Else
+                        nCount = colStrokaSpecif.Count
+                    End If
+            End Select
+        End If
+    Next
+Return
 
 End Sub
 

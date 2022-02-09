@@ -702,9 +702,9 @@ Public Sub VynoskaPlan(Connects As IVConnects)
            While mNum(i - 1) > NumTemp '>:возрастание, <:убывание
                mNum(i) = mNum(i - 1)
                i = i - 1
-               If i <= 0 Then GoTo ExitWhileX
+               If i <= 0 Then GoTo ExitWhile
            Wend
-ExitWhileX:    mNum(i) = NumTemp
+ExitWhile:    mNum(i) = NumTemp
        Next
        '--Х--Сортировка по возрастанию номеров проводов
     
