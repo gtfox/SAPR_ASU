@@ -10,11 +10,13 @@ Sub run(vsoShape As Object)
     lblNameU.Caption = vsoShape.NameU
     lblID.Caption = vsoShape.ID
     lblIndex.Caption = vsoShape.Index
-    If vsoShape.Cells("Copyright").FormulaU <> """""" Then
-        frameCopyRight.Visible = True
-        frmObjInfo.Height = 160
-'        tbCopyRight.Height = 55
-        tbCopyRight.Value = vsoShape.Cells("Copyright").ResultStr(0)
+    If vsoShape.Type <> visTypeForeground Then
+        If vsoShape.Cells("Copyright").FormulaU <> """""" Then
+            frameCopyRight.Visible = True
+            frmObjInfo.Height = 160
+    '        tbCopyRight.Height = 55
+            tbCopyRight.Value = vsoShape.Cells("Copyright").ResultStr(0)
+        End If
     End If
     On Error Resume Next
     lblNameID.Caption = vsoShape.NameID

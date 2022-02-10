@@ -98,7 +98,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     'Находим кабели на плане (чтобы не проложить повторно)
     For Each shpKabel In shpSensorFSA.ContainingPage.Shapes 'Перебираем все кабели
         If ShapeSATypeIs(shpKabel, typeCablePL) Then
-            colCablesTemp.Add shpKabel, CStr(shpKabel.Cells("Prop.Number").Result(0))
+            colCablesTemp.Add shpKabel, CStr(shpKabel.Cells("Prop.Number").ResultStr(0))
         End If
     Next
     
@@ -109,7 +109,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
             Set vsoCollection = FillColWires(vsoShape)
             nCount = colCablesTemp.Count
             On Error Resume Next
-            colCablesTemp.Add vsoCollection.Item(1).Parent, CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0))
+            colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").ResultStr(0)))
             If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
                 colCables.Add vsoCollection.Item(1).Parent
                 nCount = colCablesTemp.Count
@@ -327,6 +327,11 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
         .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = "90"
         .AddSection visSectionProp
         .AddRow visSectionProp, visRowLast, visTagDefault
+        .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "SymName"
+        .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Букв. обозначение"""
+        .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Букв. обозначение"""
+        .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "0"
+        .AddRow visSectionProp, visRowLast, visTagDefault
         .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Number"
         .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Номер кабеля"""
         .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Номер кабеля"""
@@ -350,7 +355,8 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
         'Переименовываем кабель на плане и заполняем свойства
         With shpKabelPL
             .Name = "KabelPL." & .ID
-            .Cells("Prop.Number").FormulaU = shpKabel.Cells("Prop.Number").Result(0)
+            .Cells("Prop.SymName").Formula = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), """" & shpKabel.Cells("Prop.SymName").ResultStr(0) & """", """""")
+            .Cells("Prop.Number").Formula = shpKabel.Cells("Prop.Number").Result(0)
             .Cells("Prop.Dlina").Formula = DlinaKabelya
         End With
         
@@ -653,18 +659,18 @@ Public Sub VynoskaPlan(Connects As IVConnects)
     Dim strProvoda As String
     Dim strLotok As String
     Dim colNum As Collection
-    Dim mNum() As Integer
-    Dim NumTemp As Variant
+    Dim masShape() As Visio.Shape
+    Dim CabTemp As Visio.Shape
     Dim i As Integer
     Dim j As Integer
-    Dim UbNum As Long
+    Dim UbMas As Long
     Dim AntiScale As Double
     
     AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
     Set colNum = New Collection
     Set shpVynoska = Connects.FromSheet
-    strProvoda = "("
+    
     
     Select Case shpVynoska.Connects.Count 'кол-во соединенных концов у выноски
         Case 0 'Нет соединенных концов - отцепили
@@ -674,7 +680,7 @@ Public Sub VynoskaPlan(Connects As IVConnects)
             Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
             For Each shpTouchingShapes In vsoSelection
                 If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Then
-                    colNum.Add shpTouchingShapes.Cells("Prop.Number").Result(0)
+                    colNum.Add shpTouchingShapes
                 ElseIf ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
                     strLotok = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
                 End If
@@ -686,30 +692,32 @@ Public Sub VynoskaPlan(Connects As IVConnects)
     'Провода
     If colNum.Count > 0 Then
        'из коллекции передаем номера проводов в массив для сортировки
-       ReDim mNum(colNum.Count - 1)
+       ReDim masShape(colNum.Count - 1)
        i = 0
-       For Each NumTemp In colNum
-           mNum(i) = NumTemp
+       For Each CabTemp In colNum
+           Set masShape(i) = CabTemp
            i = i + 1
        Next
        
        ' "Сортировка вставками" номеров проводов
        '--V--Сортируем по возрастанию номеров проводов
-       UbNum = UBound(mNum)
-       For j = 1 To UbNum
-           NumTemp = mNum(j)
+       UbMas = UBound(masShape)
+       For j = 1 To UbMas
+           Set CabTemp = masShape(j)
            i = j
-           While mNum(i - 1) > NumTemp '>:возрастание, <:убывание
-               mNum(i) = mNum(i - 1)
+           While masShape(i - 1).Cells("Prop.Number").Result(0) > CabTemp.Cells("Prop.Number").Result(0) '>:возрастание, <:убывание
+               Set masShape(i) = masShape(i - 1)
                i = i - 1
                If i <= 0 Then GoTo ExitWhile
            Wend
-ExitWhile:    mNum(i) = NumTemp
+ExitWhile:    Set masShape(i) = CabTemp
        Next
        '--Х--Сортировка по возрастанию номеров проводов
-    
-       For i = 0 To UbNum
-           strProvoda = strProvoda & mNum(i) & ";"
+       
+       strProvoda = "("
+        
+       For i = 0 To UbMas
+           strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & ";"
        Next
                        
        strProvoda = Left(strProvoda, Len(strProvoda) - 1)

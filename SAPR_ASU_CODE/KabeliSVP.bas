@@ -264,7 +264,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
                     vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
                 Next
                 'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
-                colCablesOnElSh.Add colWires.Item(1).Parent, CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0))
+                colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
             End If
         Next
         vsoSelection.Select shpSensor, visSelect 'Датчик
@@ -289,7 +289,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
             vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
         Next
         'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
-        colCablesOnElSh.Add colWires.Item(1).Parent, CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0))
+        colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
     End If
     ActiveWindow.Selection = vsoSelection
     Set vsoGroup = ActiveWindow.Selection.Group
@@ -391,11 +391,11 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         'Вставляем шейп кабеля СВП
         Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik + WireHeight - SVPWireL)
         shpKabelSVP.Cells("Width").Formula = WireHeight - SVPWireL * 2
-        shpKabelSVP.Cells("Prop.Number").Formula = shpCable.Cells("Prop.Number").Result(0)
+        shpKabelSVP.Cells("Prop.Number").Formula = """" & IIf(shpCable.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & shpCable.Cells("Prop.Number").Result(0), CStr(shpCable.Cells("Prop.Number").Result(0))) & """"
         shpKabelSVP.Cells("Prop.Marka").Formula = """" & shpCable.Cells("User.Marka").ResultStr(0) & """"
         shpKabelSVP.Cells("Prop.WireCount").Formula = shpCable.Shapes.Count
         'По номеру кабеля СВП находим шейп кабеля на эл.сх.
-        Set vsoShape = colCablesOnElSh.Item(CStr(shpCable.Cells("Prop.Number").Result(0)))
+        Set vsoShape = colCablesOnElSh.Item(IIf(shpCable.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & shpCable.Cells("Prop.Number").Result(0), CStr(shpCable.Cells("Prop.Number").Result(0))))
         'Заполняем длину кабеля из эл.схемы (длина кабеля эл.схемы заполняется из плана)
         shpKabelSVP.Cells("Prop.Dlina").FormulaU = "Pages[" + vsoShape.ContainingPage.NameU + "]!" + vsoShape.NameID + "!Prop.Dlina"
         

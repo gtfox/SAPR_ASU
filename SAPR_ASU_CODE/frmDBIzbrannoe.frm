@@ -521,11 +521,13 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     lblResult.Left = frameTab.Width - lblResult.Width
     btnFind.Left = frameTab.Width - btnFind.Width - 6
     frameNazvanie.Width = btnFind.Left - frameNazvanie.Left - 6
-    txtNazvanie1.Width = frameNazvanie.Width / 4
-    txtNazvanie2.Left = txtNazvanie1.Left + txtNazvanie1.Width
-    txtNazvanie2.Width = (frameNazvanie.Width - 16) / 2
-    txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
-    txtNazvanie3.Width = frameNazvanie.Width / 4
+'    txtNazvanie1.Width = frameNazvanie.Width / 4
+'    txtNazvanie2.Left = txtNazvanie1.Left + txtNazvanie1.Width
+'    txtNazvanie2.Width = (frameNazvanie.Width - 16) / 2
+'    txtNazvanie3.Left = txtNazvanie2.Left + txtNazvanie2.Width
+'    txtNazvanie3.Width = frameNazvanie.Width / 4
+    txtNazvanie2.Left = 3
+    txtNazvanie2.Width = frameNazvanie.Width - 9
     
 End Sub
 

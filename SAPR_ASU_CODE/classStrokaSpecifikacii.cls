@@ -7,4 +7,4 @@ Public ProizvoditelDB As String
 Public CenaDB As String
 Public EdDB As String
 Public KolVo As Integer
-Public NomeraPozicij As String
+Public PozOboznach As String

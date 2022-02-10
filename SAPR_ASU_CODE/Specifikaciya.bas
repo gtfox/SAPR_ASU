@@ -317,6 +317,7 @@ Public Sub spEXP_2_XLS()
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data
     Next
+    
     Dim apx As Excel.Application
     Set apx = CreateObject("Excel.Application")
     Dim WB As Excel.Workbook
@@ -485,9 +486,9 @@ Public Function ReplaceSequenceInString(strToReplace As String) As String
                 If nCount = 0 Then
                     strToReplace = strToReplace & TempStart & ";" 'нет последовательности
                 ElseIf nCount = 1 Then
-                    strToReplace = strToReplace & NumStart & ";" & TempStart & ";" 'конец = диапазон - 2 цифры
+                    strToReplace = strToReplace & NumStart & ";" & TempStart & ";" 'диапазон - 2 цифры
                 Else
-                    strToReplace = strToReplace & NumStart & "-;" & TempStart & ";" 'конец = диапазон - больше 2-х цифр
+                    strToReplace = strToReplace & NumStart & "-;" & TempStart & ";" 'диапазон - больше 2-х цифр
                 End If
                 nCount = 0
                 i = j
@@ -499,4 +500,26 @@ Public Function ReplaceSequenceInString(strToReplace As String) As String
     strToReplace = Left(strToReplace, Len(strToReplace) - 1)
 
     ReplaceSequenceInString = strToReplace
+End Function
+
+Public Function PozNameInString(strPozNumber As String, strPozName As String) As String
+'------------------------------------------------------------------------------------------------------------
+' Function      : PozNameInString - Добавляет ИМЕНА позиционных обозначений к НОМЕРАМ позиционных обозначений
+                'Строка чисел, разделенных ";", преобразуется в массив, добавляются имена,
+                'и возвращается в виде склеенной строки разделенной ","
+'------------------------------------------------------------------------------------------------------------
+    Dim mNum() As String
+    Dim i As Integer
+    Dim UbNum As Long
+    
+    mNum = Split(strPozNumber, ";")
+    UbNum = UBound(mNum)
+    If UbNum > -1 Then
+        strPozNumber = ""
+        For i = 0 To UbNum
+            strPozNumber = strPozNumber & strPozName & mNum(i) & IIf(InStr(mNum(i), "-"), "", ",")
+        Next
+        strPozNumber = Left(strPozNumber, Len(strPozNumber) - 1)
+    End If
+    PozNameInString = strPozNumber
 End Function

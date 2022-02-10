@@ -188,7 +188,7 @@ Sub SaveProjectFileAs()
         Next
         Application.ActiveDocument.SaveAsEx sPath + sName + sTime + ".vsd", visSaveAsWS + visSaveAsListInMRU
         Application.ActiveDocument.SaveAsEx sPath + sName + ".vsd", visSaveAsWS + visSaveAsListInMRU
-        MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime, vbInformation + vbOKOnly, "Info"
+        MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime + ".vsd", vbInformation + vbOKOnly, "Info"
     End If
 End Sub
 

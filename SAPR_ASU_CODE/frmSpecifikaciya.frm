@@ -3,22 +3,18 @@
 Dim NazvanieFSA As String
 Dim NazvanieShemy As String
 
-Private Sub btnRenumberCx_Click()
-    ReNumberShemy
-    Application.EventsEnabled = -1
-    ThisDocument.InitEvent
-    Unload Me
-End Sub
-
-Private Sub btnRenumberFSA_Click()
-    ReNumberFSA
-    Application.EventsEnabled = -1
-    ThisDocument.InitEvent
-    Unload Me
-End Sub
-
 Private Sub btnExportCx_Click()
-FindElementShemy
+    FindElementShemyToExcel
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
+Private Sub btnExportFSA_Click()
+    
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
 End Sub
 
 Private Sub obTekListCx_Click()
@@ -81,16 +77,15 @@ Private Sub UserForm_Initialize()
     obNaListCx.Value = True
 End Sub
 
-Public Sub FindElementShemy()
+Public Sub FindElementShemyToExcel()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : FindElementShemy - Поиск элементов схемы и заполнение полей спецификации
+' Macros        : FindElementShemyToExcel - Поиск элементов схемы и заполнение полей спецификации
 
                 '
                 '
 '------------------------------------------------------------------------------------------------------------
     Dim clsStrokaSpecif As classStrokaSpecifikacii
     Dim colStrokaSpecif As Collection
-    Dim colPage As Collection
     Dim colCxem As Collection
     Dim nCount As Double
     Dim strColKey As String
@@ -100,91 +95,120 @@ Public Sub FindElementShemy()
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
-    
-    
-    Dim ItemCol As Variant
-    Dim mstrNames() As String
-    Dim NumberKlemmnik As Integer
-    Dim SymNameKlemmnik As String
-    Dim SAType As Integer
-
+    Dim mNum() As String
+    Dim Cxema As classCxema
+    '-------Вывод EXCEL---------
+    Dim apx As Excel.Application
+    Dim WB As Excel.Workbook
+    Dim sht As Excel.Sheets
+    Dim en As String
+    Dim un As String
+    Dim sPath, sFile As String
+    Dim NameSheet As String
+    Dim str As Integer
 
     PageName = cListNameCxema  'Имена листов
     
-    Set colPage = New Collection
     Set colCxem = New Collection
+    Set Cxema = New classCxema
+    Set Cxema.colListov = New Collection
     Set clsStrokaSpecif = New classStrokaSpecifikacii
     Set colStrokaSpecif = New Collection
 
     For i = 1 To cmbxNazvanieShemy.ListCount
         NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
+        Cxema.NameCxema = NazvanieShemy
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.Name Like PageName & "*" Then
                 If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
-                    colPage.Add vsoPage, vsoPage.Name
+                    Cxema.colListov.Add vsoPage, vsoPage.Name
                 End If
             End If
         Next
-        If colPage.Count > 0 Then
-            colCxem.Add colPage, NazvanieShemy
+        If Cxema.colListov.Count > 0 Then
+            colCxem.Add Cxema, NazvanieShemy
         End If
-        Set colPage = New Collection
+        Set Cxema = New classCxema
+        Set Cxema.colListov = New Collection
     Next
-
-    Set colPage = New Collection
+    
+    i = 0
     If obVseCx Then
-        For Each colPage In colCxem
-            GoSub PageInCxem
+        For Each Cxema In colCxem
+            NazvanieShemy = Cxema.NameCxema
+            For Each vsoPage In Cxema.colListov
+                GoSub ShpOnPage
+            Next
+            If i > 0 Then
+                GoSub OutExcelNext
+            Else
+                GoSub OutExcel
+            End If
+            i = i + 1
         Next
+        WB.Save
     ElseIf obVybCx Then
         NazvanieShemy = cmbxNazvanieShemy.Text
-        Set colPage = colCxem(NazvanieShemy)
-        GoSub PageInCxem
+        For Each vsoPage In colCxem(NazvanieShemy).colListov
+            GoSub ShpOnPage
+        Next
+        GoSub OutExcel
+        WB.Save
     ElseIf obTekListCx Then
+        Set vsoPage = ActivePage
         GoSub ShpOnPage
     End If
 
-    'Сортировка номеров и замена последовательных позиционных обозначений
-    For Each clsStrokaSpecif In colStrokaSpecif
-        clsStrokaSpecif.NomeraPozicij = SortNumInString(clsStrokaSpecif.NomeraPozicij)
-        clsStrokaSpecif.NomeraPozicij = ReplaceSequenceInString(clsStrokaSpecif.NomeraPozicij)
-    Next
-    
 Exit Sub
-'-----------------------------------------------------------------------------------
-PageInCxem:
-    For Each vsoPage In colPage
-        GoSub ShpOnPage
-    Next
-Return
 
+'-----------------------------------------------------------------------------------
 ShpOnPage:
     For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
         If ShapeSAType(vsoShapeOnPage) > 1 Then   'Берем только шейпы САПР АСУ
             UserType = ShapeSAType(vsoShapeOnPage)
             Set clsStrokaSpecif = New classStrokaSpecifikacii
+            clsStrokaSpecif.SymName = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+            clsStrokaSpecif.SAType = vsoShapeOnPage.Cells("User.SAType").Result(0)
+            clsStrokaSpecif.NazvanieDB = vsoShapeOnPage.Cells("Prop.NazvanieDB").ResultStr(0)
+            clsStrokaSpecif.ArtikulDB = vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
+            clsStrokaSpecif.ProizvoditelDB = vsoShapeOnPage.Cells("Prop.ProizvoditelDB").ResultStr(0)
+            clsStrokaSpecif.CenaDB = vsoShapeOnPage.Cells("Prop.CenaDB").ResultStr(0)
+            clsStrokaSpecif.EdDB = vsoShapeOnPage.Cells("Prop.EdDB").ResultStr(0)
+            clsStrokaSpecif.KolVo = 1
+            clsStrokaSpecif.PozOboznach = vsoShapeOnPage.Cells("Prop.Number").ResultStr(0)
+            strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
+            
             Select Case UserType
                 Case typeCableSH 'Кабели на схеме электрической
-                    
+                    clsStrokaSpecif.SymName = IIf(vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), "")
+                    clsStrokaSpecif.KolVo = vsoShapeOnPage.Cells("Prop.Dlina").Result(0)
+                    strColKey = IIf(vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), "") & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
+                    On Error Resume Next
+                    colStrokaSpecif.Add clsStrokaSpecif, strColKey
+                    If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
+                        colStrokaSpecif(strColKey).KolVo = colStrokaSpecif(strColKey).KolVo + vsoShapeOnPage.Cells("Prop.Dlina").Result(0)
+                        colStrokaSpecif(strColKey).PozOboznach = colStrokaSpecif(strColKey).PozOboznach & ";" & vsoShapeOnPage.Cells("Prop.Number").ResultStr(0)
+                    Else
+                        nCount = colStrokaSpecif.Count
+                    End If
                 Case typeTerm 'Клеммы
-                    
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
-                    clsStrokaSpecif.SymName = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
-                    clsStrokaSpecif.SAType = vsoShapeOnPage.Cells("User.SAType").Result(0)
-                    clsStrokaSpecif.NazvanieDB = vsoShapeOnPage.Cells("Prop.NazvanieDB").ResultStr(0)
-                    clsStrokaSpecif.ArtikulDB = vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
-                    clsStrokaSpecif.ProizvoditelDB = vsoShapeOnPage.Cells("Prop.ProizvoditelDB").ResultStr(0)
-                    clsStrokaSpecif.CenaDB = vsoShapeOnPage.Cells("Prop.CenaDB").ResultStr(0)
-                    clsStrokaSpecif.EdDB = vsoShapeOnPage.Cells("Prop.EdDB").ResultStr(0)
-                    clsStrokaSpecif.KolVo = 1
-                    clsStrokaSpecif.NomeraPozicij = CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
-                    strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
-                    
+                    clsStrokaSpecif.PozOboznach = vsoShapeOnPage.Cells("Prop.NumberKlemmnik").ResultStr(0)
                     On Error Resume Next
                     colStrokaSpecif.Add clsStrokaSpecif, strColKey
                     If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
                         colStrokaSpecif(strColKey).KolVo = colStrokaSpecif(strColKey).KolVo + 1
-                        colStrokaSpecif(strColKey).NomeraPozicij = colStrokaSpecif(strColKey).NomeraPozicij & ";" & CStr(vsoShapeOnPage.Cells("Prop.Number").Result(0))
+                        mNum = Split(colStrokaSpecif(strColKey).PozOboznach, ";")
+                        colStrokaSpecif(strColKey).PozOboznach = colStrokaSpecif(strColKey).PozOboznach & IIf(vsoShapeOnPage.Cells("Prop.NumberKlemmnik").ResultStr(0) = mNum(UBound(mNum)), "", ";" & vsoShapeOnPage.Cells("Prop.NumberKlemmnik").ResultStr(0))
+                    Else
+                        nCount = colStrokaSpecif.Count
+                    End If
+
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                    On Error Resume Next
+                    colStrokaSpecif.Add clsStrokaSpecif, strColKey
+                    If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
+                        colStrokaSpecif(strColKey).KolVo = colStrokaSpecif(strColKey).KolVo + 1
+                        colStrokaSpecif(strColKey).PozOboznach = colStrokaSpecif(strColKey).PozOboznach & ";" & vsoShapeOnPage.Cells("Prop.Number").ResultStr(0)
                     Else
                         nCount = colStrokaSpecif.Count
                     End If
@@ -193,9 +217,96 @@ ShpOnPage:
     Next
 Return
 
+
+OutExcel:
+    
+    Set apx = CreateObject("Excel.Application")
+    sPath = Visio.ActiveDocument.path
+    sFileName = "SP_2_Visio.xls"
+    sFile = sPath & sFileName
+    
+    
+    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+        Exit Sub
+    End If
+    
+    Set WB = apx.Workbooks.Open(sFile)
+
+    'Set wb = apx.Workbooks.Add
+    'un = Format(Now(), "yyyy_mm_dd")
+    'pth = Visio.ActiveDocument.Path
+    'en = pth & "Спецификация_" & un & ".xls"
+    apx.Visible = True
+
+OutExcelNext:
+    'Сортировка номеров и замена последовательных позиционных обозначений
+    For Each clsStrokaSpecif In colStrokaSpecif
+        clsStrokaSpecif.PozOboznach = SortNumInString(clsStrokaSpecif.PozOboznach)
+        clsStrokaSpecif.PozOboznach = ReplaceSequenceInString(clsStrokaSpecif.PozOboznach)
+    Next
+    
+    str = colStrokaSpecif.Count
+    NameSheet = NazvanieShemy
+    'удаляем старый лист
+    apx.DisplayAlerts = False
+    On Error Resume Next
+    apx.Sheets(NameSheet).Delete
+    apx.DisplayAlerts = True
+    'добавляем новый
+    apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    
+    apx.Sheets("SP (2)").Name = NameSheet
+    
+    lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlUp).Row
+    apx.Application.CutCopyMode = False
+    apx.Worksheets(NameSheet).Activate
+    apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
+    apx.ActiveSheet.Range("A3:I5").ClearContents
+    apx.ActiveSheet.Rows("5:" & str + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    WB.Activate
+    apx.ActiveSheet.Range("M1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
+    apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
+    For xx = 1 To str
+        WB.Sheets(NameSheet).Cells(xx + 2, 1) = "=A" & xx + 1 & "+1" '1 Позиция
+        WB.Sheets(NameSheet).Cells(xx + 2, 2) = colStrokaSpecif(xx).NazvanieDB '2 Наименование и техническая характеристика
+        WB.Sheets(NameSheet).Cells(xx + 2, 3) = colStrokaSpecif(xx).ArtikulDB '3 Тип, марка, обозначение документа, опросного листа
+        WB.Sheets(NameSheet).Cells(xx + 2, 4) = PozNameInString(colStrokaSpecif(xx).PozOboznach, colStrokaSpecif(xx).SymName) '4 Код оборудования, изделия, материала
+        WB.Sheets(NameSheet).Cells(xx + 2, 5) = colStrokaSpecif(xx).ProizvoditelDB '5 Завод-изготовитель
+        WB.Sheets(NameSheet).Cells(xx + 2, 6) = colStrokaSpecif(xx).EdDB '6 Единица измерения
+        WB.Sheets(NameSheet).Cells(xx + 2, 7) = colStrokaSpecif(xx).KolVo '7 Количество
+        'WB.Sheets(NameSheet).Cells(xx + 2, 8) = colStrokaSpecif(xx) '8 Масса единицы, кг
+        'WB.Sheets(NameSheet).Cells(xx + 2, 9) = colStrokaSpecif(xx) '9 Примечание
+        WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(colStrokaSpecif(xx).CenaDB)  'Цена
+        WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & xx + 2 & "*G" & xx + 2
+
+        'wb.Sheets(NameSheet).Range("A" & (xx + 2)).Select 'для наглядности
+    Next
+    WB.Sheets(NameSheet).Range("A3") = 1
+    WB.Sheets(NameSheet).Range("K2") = "Цена"
+    WB.Sheets(NameSheet).Range("L2") = "Сумма"
+    WB.Sheets(NameSheet).Range("K2:L2").HorizontalAlignment = xlRight
+    WB.Sheets(NameSheet).Range("K2:L2").VerticalAlignment = xlCenter
+    apx.ActiveSheet.Range("A3:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид
+    apx.ActiveSheet.Range("B3:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
+    apx.ActiveSheet.Range("K3:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).NumberFormat = "#,##0"
+    apx.ActiveSheet.Range("L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row + 1).FormulaLocal = "=СУММ(L3:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row & ")"
+    For i = 7 To 12: Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
+    apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
+
+    
+    Set clsStrokaSpecif = New classStrokaSpecifikacii
+    Set colStrokaSpecif = New Collection
+    
+'    WB.Save
+'    WB.Close SaveChanges:=True
+'    apx.Quit
+'    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист " & NameSheet, vbInformation
+Return
+
 End Sub
-
-
 
 
 Sub Fill_cmbxNazvanieShemy()

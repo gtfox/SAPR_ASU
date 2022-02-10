@@ -117,52 +117,55 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
     Dim RecordCount As Double
 
     Set rst = GetRecordSet(DBName, SQLQuery, QueryDefName)
-    rst.MoveLast
-    RecordCount = rst.RecordCount
-'    frmDBPrice.lblResult.Caption = "Найдено записей: " & RecordCount
-'    frmDBPrice.ProgressBar.Visible = True
-'    frmDBPrice.ProgressBar.Max = RecordCount
     lstvTable.ListItems.Clear
-    i = 0
-    iold = 1000
-    With rst
-        If .EOF Then Exit Function
-        .MoveFirst
-        Do Until .EOF
-            Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & "/" & .Fields("ЕдиницыКод").Value & """", .Fields("Артикул").Value)
-            itmx.SubItems(1) = .Fields("Название").Value
-            itmx.SubItems(2) = .Fields("Цена").Value
-            itmx.SubItems(3) = .Fields("Единица").Value
-            If TableType = 1 Then
-                itmx.SubItems(4) = .Fields("Производитель").Value
-                itmx.SubItems(5) = "    "
-            ElseIf TableType = 2 Then
-                itmx.SubItems(4) = .Fields("Производитель").Value
-                itmx.SubItems(5) = .Fields("Количество").Value
-                itmx.SubItems(6) = "    "
-            End If
-
-            'красим наборы
-            If TableType = 1 Then  'and .Fields("Артикул").Value like "Набор_*" then
-                If .Fields("ПодгруппыКод").Value = 2 Then
-                    itmx.ForeColor = NaboryColor
-    '                    itmx.Bold = True
-                    For j = 1 To itmx.ListSubItems.Count
-    '                        itmx.ListSubItems(j).Bold = True
-                        itmx.ListSubItems(j).ForeColor = NaboryColor
-                    Next
+    If rst.RecordCount > 0 Then
+        rst.MoveLast
+        RecordCount = rst.RecordCount
+    '    frmDBPrice.lblResult.Caption = "Найдено записей: " & RecordCount
+    '    frmDBPrice.ProgressBar.Visible = True
+    '    frmDBPrice.ProgressBar.Max = RecordCount
+'        lstvTable.ListItems.Clear
+        i = 0
+        iold = 1000
+        With rst
+            If .EOF Then Exit Function
+            .MoveFirst
+            Do Until .EOF
+                Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & "/" & .Fields("ЕдиницыКод").Value & """", .Fields("Артикул").Value)
+                itmx.SubItems(1) = .Fields("Название").Value
+                itmx.SubItems(2) = .Fields("Цена").Value
+                itmx.SubItems(3) = .Fields("Единица").Value
+                If TableType = 1 Then
+                    itmx.SubItems(4) = .Fields("Производитель").Value
+                    itmx.SubItems(5) = "    "
+                ElseIf TableType = 2 Then
+                    itmx.SubItems(4) = .Fields("Производитель").Value
+                    itmx.SubItems(5) = .Fields("Количество").Value
+                    itmx.SubItems(6) = "    "
                 End If
-            End If
-'            i = i + 1
-'            If iold < i Then
-'                iold = iold + 1000
-'                frmDBPrice.ProgressBar.Value = i
-'            End If
-            .MoveNext
-        Loop
-    End With
-    Fill_lstvTable = RecordCount 'i
-'    frmDBPrice.ProgressBar.Visible = False
+    
+                'красим наборы
+                If TableType = 1 Then  'and .Fields("Артикул").Value like "Набор_*" then
+                    If .Fields("ПодгруппыКод").Value = 2 Then
+                        itmx.ForeColor = NaboryColor
+        '                    itmx.Bold = True
+                        For j = 1 To itmx.ListSubItems.Count
+        '                        itmx.ListSubItems(j).Bold = True
+                            itmx.ListSubItems(j).ForeColor = NaboryColor
+                        Next
+                    End If
+                End If
+    '            i = i + 1
+    '            If iold < i Then
+    '                iold = iold + 1000
+    '                frmDBPrice.ProgressBar.Value = i
+    '            End If
+                .MoveNext
+            Loop
+        End With
+        Fill_lstvTable = RecordCount 'i
+    '    frmDBPrice.ProgressBar.Visible = False
+    End If
     Set rst = Nothing
 
 End Function
