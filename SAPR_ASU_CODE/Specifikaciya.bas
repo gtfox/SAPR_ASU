@@ -154,7 +154,7 @@ End Sub
 Private Sub fill_table()  ' заполнение спецификации
 
     Dim TheDocListovSpecifikac As Cell
-    Dim NCell As Integer
+    Dim ncell As Integer
     Dim NStrokiXls As Integer
     Dim NRow As Integer ' счетчик количества строк спецификации на странице
     Dim mastSpecifikacia As Master
@@ -171,20 +171,20 @@ Private Sub fill_table()  ' заполнение спецификации
     NRow = 1
     pName = cListNameSpec & "."
     AddPageSpecifikac cListNameSpec
-    Set mastSpecifikacia = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Спецификация")
+    Set mastSpecifikacia = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("СП")
     ActivePage.Drop mastSpecifikacia, 0, 0
-    Set shpSpecifikacia = ActivePage.Shapes.Item("Спецификация")
+    Set shpSpecifikacia = ActivePage.Shapes.Item("СП")
     For NStrokiXls = 1 To RowCountXls
         Set shpRow = shpSpecifikacia.Shapes.Item("row" & NRow)
-        For NCell = 1 To 9 'ColoumnCountXls
-            Set shpCell = shpRow.Shapes.Item(NRow & "." & NCell)
-            shpCell.Text = arr(NStrokiXls, NCell)
-            If NCell = 2 Or NCell = 9 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
-            If NCell = 2 And arr(NStrokiXls, 1) = "" Then
+        For ncell = 1 To 9 'ColoumnCountXls
+            Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
+            shpCell.Text = arr(NStrokiXls, ncell)
+            If ncell = 2 Or ncell = 9 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
+            If ncell = 2 And arr(NStrokiXls, 1) = "" Then
                 shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
                 shpCell.CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание
             End If
-        Next NCell
+        Next ncell
 
         DoEvents
 
@@ -227,7 +227,7 @@ SubAddPage:
     TheDocListovSpecifikac.Formula = pNumber
     AddPageSpecifikac pName & pNumber
     ActivePage.Drop mastSpecifikacia, 0, 0
-    Set shpSpecifikacia = ActivePage.Shapes.Item("Спецификация")
+    Set shpSpecifikacia = ActivePage.Shapes.Item("СП")
     Return
 
  End Sub
@@ -300,7 +300,7 @@ Private Sub del_sp()
     ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
 End Sub
 
-Public Sub spEXP_2_XLS()
+Public Sub SP_EXP_2_XLS()
     Dim opn As Long
     Dim npName As String
     Dim pName As String
@@ -311,11 +311,11 @@ Public Sub spEXP_2_XLS()
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameSpec)
-    get_data
+    get_data ActivePage.Shapes.Item("СП"), 9
     For N = 2 To ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac")
         pName = cListNameSpec & "." & N
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
-        get_data
+        get_data ActivePage.Shapes.Item("СП"), 9
     Next
     
     Dim apx As Excel.Application
@@ -343,7 +343,7 @@ Public Sub spEXP_2_XLS()
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
     'pth = Visio.ActiveDocument.Path
-    'en = pth & "Спецификация_" & un & ".xls"
+    'en = pth & "СП_" & un & ".xls"
     apx.Visible = True
     'удаляем старый лист
     apx.DisplayAlerts = False
@@ -380,30 +380,109 @@ Public Sub spEXP_2_XLS()
     MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист EXP_2_XLS", vbInformation
 End Sub
 
-Function get_data() '(pgName As Page)
-    Dim r As Integer
-    Dim target As Shape
+Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень элементов - экспорт в EXCEL
+    Dim opn As Long
+    Dim npName As String
+    Dim pName As String
+    Dim np As Page
+    Dim pg As Page
+    Dim N As Integer
+    pName = PerechenElementov.ContainingPage.Name
+    str = 1
+    Erase tabl
+    get_data PerechenElementov, 4
+    
+    Dim apx As Excel.Application
+    Set apx = CreateObject("Excel.Application")
+    Dim WB As Excel.Workbook
+    Dim sht As Excel.Sheets
+    Dim en As String
+    Dim un As String
+    
+    Dim sPath, sFile As String
+    sPath = Visio.ActiveDocument.path
+    sFileName = "SP_2_Visio.xls"
+    sFile = sPath & sFileName
+    
+    
+    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+        Exit Sub
+    End If
+    
+    Set WB = apx.Workbooks.Open(sFile)
+    
+
+    
+    'Set wb = apx.Workbooks.Add
+    'un = Format(Now(), "yyyy_mm_dd")
+    'pth = Visio.ActiveDocument.Path
+    'en = pth & "СП_" & un & ".xls"
+    apx.Visible = True
+    'удаляем старый лист
+    apx.DisplayAlerts = False
+    On Error Resume Next
+    apx.Sheets("ПЭ_EXP_2_XLS").Delete
+    apx.DisplayAlerts = True
+    'добавляем новый
+    apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("SP (2)").Name = "ПЭ_EXP_2_XLS"
+    
+    
+    lLastRow = apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
+    apx.Application.CutCopyMode = False
+    apx.Worksheets("ПЭ_EXP_2_XLS").Activate
+    apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
+    apx.ActiveSheet.Range("A3:I5").ClearContents
+    apx.ActiveSheet.Rows("5:" & str).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    apx.ActiveSheet.Range("A1") = "Поз."
+    apx.ActiveSheet.Range("B1") = "Наименование"
+    apx.ActiveSheet.Range("C1") = "Кол."
+    apx.ActiveSheet.Range("D1") = "Примечание"
+    apx.ActiveSheet.Columns("E:I").Delete
+   
+    WB.Activate
+        
+        For xx = 1 To str + 2
+            For yx = 1 To 4
+                WB.Sheets("ПЭ_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
+                'wb.Sheets("ПЭ_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
+            Next yx
+        Next xx
+        
+    apx.ActiveSheet.Range("A1:I" & apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
+    
+    apx.ActiveSheet.Range("B3:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
+    apx.ActiveSheet.Range("D3:D" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
+    apx.ActiveSheet.Range("F1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
+    apx.ActiveSheet.Range("A1:D" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
+   
+   
+   
+    WB.Save
+'    WB.Close SaveChanges:=True
+'    apx.Quit
+'    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист ПЭ_EXP_2_XLS", vbInformation
+End Sub
+
+Public Sub get_data(Tablica As Visio.Shape, kolcell As Integer) '(pgName As Page)
+    Dim i As Integer
     Dim c As Integer
-    Dim main As Shape   ' шейп - основная группа
     Dim rw As Shape     ' шейп - строка
-    Dim rn As String      ' имя шейпа-строки
-    Set main = ActivePage.Shapes.Item("Спецификация")
-    Dim SSS As Shapes  ' подмножество шейпов основной группы
-    Dim tn As String ' имя целевого шейпа
-    Set SSS = main.Shapes
-    For r = 1 To 30
-        rn = "row" & r
-        Set rw = SSS.Item(rn)
+    Dim cn As String ' имя целевого шейпа
+    
+    For i = 1 To 30
+        Set rw = Tablica.Shapes.Item("row" & i)
         If rw.CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight) = 0 Then GoTo out:
-        For c = 1 To 9
-            tn = r & "." & c
-            Set target = rw.Shapes.Item(tn)
-            tabl(str, c) = target.Text
-        Next c
+        For c = 1 To kolcell
+            cn = i & "." & c
+             tabl(str, c) = rw.Shapes.Item(cn).Text
+        Next
         str = str + 1
-    Next r
+    Next
 out:
-End Function
+End Sub
 
 Public Function SortNumInString(strToSort As String) As String
 '------------------------------------------------------------------------------------------------------------

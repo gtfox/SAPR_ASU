@@ -106,7 +106,13 @@ Public Sub FindElementShemyToExcel()
     Dim sPath, sFile As String
     Dim NameSheet As String
     Dim str As Integer
-
+    '-------Вывод на Лист-------
+    Dim shpPerechenElementov As Visio.Shape
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    Dim ncell As Integer
+    Dim NRow As Integer
+    
     PageName = cListNameCxema  'Имена листов
     
     Set colCxem = New Collection
@@ -157,6 +163,12 @@ Public Sub FindElementShemyToExcel()
     ElseIf obTekListCx Then
         Set vsoPage = ActivePage
         GoSub ShpOnPage
+        If obVExcelCx Then
+            GoSub OutExcel
+            WB.Save
+        Else 'obNaListCx
+            GoSub OutList
+        End If
     End If
 
 Exit Sub
@@ -217,6 +229,13 @@ ShpOnPage:
     Next
 Return
 
+SortReplace:
+    'Сортировка номеров и замена последовательных позиционных обозначений
+    For Each clsStrokaSpecif In colStrokaSpecif
+        clsStrokaSpecif.PozOboznach = SortNumInString(clsStrokaSpecif.PozOboznach)
+        clsStrokaSpecif.PozOboznach = ReplaceSequenceInString(clsStrokaSpecif.PozOboznach)
+    Next
+Return
 
 OutExcel:
     
@@ -236,18 +255,19 @@ OutExcel:
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
     'pth = Visio.ActiveDocument.Path
-    'en = pth & "Спецификация_" & un & ".xls"
+    'en = pth & "СП_" & un & ".xls"
     apx.Visible = True
 
 OutExcelNext:
-    'Сортировка номеров и замена последовательных позиционных обозначений
-    For Each clsStrokaSpecif In colStrokaSpecif
-        clsStrokaSpecif.PozOboznach = SortNumInString(clsStrokaSpecif.PozOboznach)
-        clsStrokaSpecif.PozOboznach = ReplaceSequenceInString(clsStrokaSpecif.PozOboznach)
-    Next
+
+    GoSub SortReplace
     
     str = colStrokaSpecif.Count
-    NameSheet = NazvanieShemy
+    If obTekListCx Then
+        NameSheet = NazvanieShemy & "_" & vsoPage.Name
+    Else
+        NameSheet = NazvanieShemy
+    End If
     'удаляем старый лист
     apx.DisplayAlerts = False
     On Error Resume Next
@@ -263,7 +283,8 @@ OutExcelNext:
     apx.Worksheets(NameSheet).Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
     apx.ActiveSheet.Range("A3:I5").ClearContents
-    apx.ActiveSheet.Rows("5:" & str + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    If str < 5 Then nstr = 5 Else nstr = str
+    apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
     WB.Activate
     apx.ActiveSheet.Range("M1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
@@ -304,6 +325,27 @@ OutExcelNext:
 '    WB.Close SaveChanges:=True
 '    apx.Quit
 '    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист " & NameSheet, vbInformation
+Return
+
+OutList:
+    GoSub SortReplace
+    ActivePage.Drop Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("ПЭ"), 0, ActivePage.PageSheet.Cells("PageHeight").Result(mm) - 10 / 25.4
+    Set shpPerechenElementov = Application.ActiveWindow.Selection(1)
+    str = colStrokaSpecif.Count
+    If str > 30 Then str = 30: MsgBox "Данных больше, чем строк в твблице (30):" & colStrokaSpecif.Count
+    For NRow = 1 To str
+        Set shpRow = shpPerechenElementov.Shapes("row" & NRow)
+        shpRow.Shapes(NRow & ".1").Text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)
+        shpRow.Shapes(NRow & ".2").Text = colStrokaSpecif(NRow).NazvanieDB
+        shpRow.Shapes(NRow & ".3").Text = colStrokaSpecif(NRow).KolVo
+        shpRow.Shapes(NRow & ".4").Text = colStrokaSpecif(NRow).ArtikulDB
+        If shpRow.Shapes(NRow & ".3").Text = " " Then
+            shpRow.Shapes(NRow & ".2").CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
+            shpRow.Shapes(NRow & ".2").CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание
+        End If
+        shpRow.Shapes(NRow & ".2").CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
+        shpRow.Shapes(NRow & ".4").CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
+    Next
 Return
 
 End Sub

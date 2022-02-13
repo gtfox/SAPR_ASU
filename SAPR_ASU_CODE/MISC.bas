@@ -150,7 +150,7 @@ Sub TuneTable_1()
     Dim shpRow As Visio.Shape
     Dim shpCel As Visio.Shape
     For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("Спецификация").Shapes("row" & i)
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
         shpRow.Shapes(i & "." & 1).Cells("Width").FormulaU = "=Sheet.65!Width"
         shpRow.Shapes(i & "." & 1).Cells("PinX").FormulaU = "=Sheet.65!PinX"
         shpRow.Shapes(i & "." & 2).Cells("Width").FormulaU = "=Sheet.57!Width"
@@ -184,7 +184,7 @@ Sub TuneTable_2()
     Dim shpRow As Visio.Shape
     Dim shpCel As Visio.Shape
     For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("Спецификация").Shapes("row" & i)
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
         shpRow.Cells("Height").FormulaForceU = Replace(shpRow.Cells("Height").FormulaU, "))", "," & shpRow.Shapes(i & ".10").NameID & "!User.Row_1))")
     Next
 End Sub
@@ -193,9 +193,9 @@ Sub TuneTable_3()
     Dim shpCel As Visio.Shape
     For i = 1 To 10
         If i < 10 Then
-            Set shpCel = ActivePage.Shapes("Спецификация").Shapes("Head").Shapes("0" & i)
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
         Else
-            Set shpCel = ActivePage.Shapes("Спецификация").Shapes("Head").Shapes("10")
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
         End If
         With shpCel
             .AddSection visSectionFirstComponent
@@ -227,11 +227,34 @@ Sub TuneTable_4()
     Dim shpCel As Visio.Shape
     For i = 1 To 10
         If i < 10 Then
-            Set shpCel = ActivePage.Shapes("Спецификация").Shapes("Head").Shapes("0" & i)
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
         Else
-            Set shpCel = ActivePage.Shapes("Спецификация").Shapes("Head").Shapes("10")
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
         End If
         shpCel.Cells("Width").FormulaU = "=Sheet.47!Width*Sheet.45!Prop.S" & i & "/Sheet.45!Prop.Width"
+    Next
+End Sub
+
+Sub TuneTable_5() 'поля
+    Dim shpRow As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "10 pt"
+        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "10 pt"
+        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "5 pt"
+        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "1 pt"
+    Next
+End Sub
+    
+Sub TuneTable_6() 'очистка таблицы
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        For j = 1 To 10
+            Set shpCel = shpRow.Shapes(i & "." & j)
+            shpCel.Text = " "
+        Next
     Next
 End Sub
 
