@@ -30,16 +30,16 @@ Private Sub AddButtons()
     
 
     
-    '---Кнопка Формат->Специальный
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1) '33841
-    With Button
-        .Caption = "ФорматСпециальный"
-        .Tag = "FormatSpecial"
-        .style = msoButtonAutomatic
-        '.OnAction = "LockTitleBlock"
-        .TooltipText = "Формат->Специальный"
-        .FaceID = 274
-    End With
+'    '---Кнопка Формат->Специальный
+'    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1) '33841
+'    With Button
+'        .Caption = "ФорматСпециальный"
+'        .Tag = "FormatSpecial"
+'        .style = msoButtonAutomatic
+'        '.OnAction = "LockTitleBlock"
+'        .TooltipText = "Формат->Специальный"
+'        .FaceID = 274
+'    End With
     
         '---Кнопка ObjInfo Формат->Специальный +
     Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=2)
