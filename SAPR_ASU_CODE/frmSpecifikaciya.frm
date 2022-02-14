@@ -97,6 +97,7 @@ Public Sub FindElementShemyToExcel()
     Dim i As Integer
     Dim mNum() As String
     Dim Cxema As classCxema
+    Dim xx As Integer
     '-------Вывод EXCEL---------
     Dim apx As Excel.Application
     Dim WB As Excel.Workbook
@@ -106,6 +107,7 @@ Public Sub FindElementShemyToExcel()
     Dim sPath, sFile As String
     Dim NameSheet As String
     Dim str As Integer
+    Dim Mstr() As String
     '-------Вывод на Лист-------
     Dim shpPerechenElementov As Visio.Shape
     Dim shpRow As Visio.Shape
@@ -188,6 +190,7 @@ ShpOnPage:
             clsStrokaSpecif.EdDB = vsoShapeOnPage.Cells("Prop.EdDB").ResultStr(0)
             clsStrokaSpecif.KolVo = 1
             clsStrokaSpecif.PozOboznach = vsoShapeOnPage.Cells("Prop.Number").ResultStr(0)
+            clsStrokaSpecif.KodPoziciiDB = vsoShapeOnPage.Cells("User.KodPoziciiDB").Formula
             strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
             
             Select Case UserType
@@ -274,21 +277,32 @@ OutExcelNext:
     apx.Sheets(NameSheet).Delete
     apx.DisplayAlerts = True
     'добавляем новый
-    apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
     
-    apx.Sheets("SP (2)").Name = NameSheet
+    apx.Sheets("СП (2)").Name = NameSheet
     
     lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlUp).Row
     apx.Application.CutCopyMode = False
     apx.Worksheets(NameSheet).Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
     apx.ActiveSheet.Range("A3:I5").ClearContents
+
+    
+    WB.Activate
+    apx.ActiveSheet.Range("J1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
+    apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
+    For xx = 1 To str
+        If colStrokaSpecif(xx).ArtikulDB Like "Набор_*" Then
+            Mstr = Split(colStrokaSpecif(xx).KodPoziciiDB, "/")
+            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(xx).KolVo, Mstr(0), xx)
+            str = str + NElemNabora - 1
+            colStrokaSpecif.Remove xx
+        End If
+    Next
+    
     If str < 5 Then nstr = 5 Else nstr = str
     apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
-    WB.Activate
-    apx.ActiveSheet.Range("M1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
-    apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
     For xx = 1 To str
         WB.Sheets(NameSheet).Cells(xx + 2, 1) = "=A" & xx + 1 & "+1" '1 Позиция
         WB.Sheets(NameSheet).Cells(xx + 2, 2) = colStrokaSpecif(xx).NazvanieDB '2 Наименование и техническая характеристика
@@ -301,9 +315,9 @@ OutExcelNext:
         'WB.Sheets(NameSheet).Cells(xx + 2, 9) = colStrokaSpecif(xx) '9 Примечание
         WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(colStrokaSpecif(xx).CenaDB)  'Цена
         WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & xx + 2 & "*G" & xx + 2
-
         'wb.Sheets(NameSheet).Range("A" & (xx + 2)).Select 'для наглядности
     Next
+
     WB.Sheets(NameSheet).Range("A3") = 1
     WB.Sheets(NameSheet).Range("K2") = "Цена"
     WB.Sheets(NameSheet).Range("L2") = "Сумма"
@@ -316,7 +330,7 @@ OutExcelNext:
     apx.ActiveSheet.Range("L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row + 1).FormulaLocal = "=СУММ(L3:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row & ")"
     For i = 7 To 12: Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
     apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
-
+    apx.ActiveSheet.Range("J1").Select
     
     Set clsStrokaSpecif = New classStrokaSpecifikacii
     Set colStrokaSpecif = New Collection
@@ -332,7 +346,17 @@ OutList:
     ActivePage.Drop Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("ПЭ"), 0, ActivePage.PageSheet.Cells("PageHeight").Result(mm) - 10 / 25.4
     Set shpPerechenElementov = Application.ActiveWindow.Selection(1)
     str = colStrokaSpecif.Count
-    If str > 30 Then str = 30: MsgBox "Данных больше, чем строк в твблице (30):" & colStrokaSpecif.Count
+    For NRow = 1 To str
+        If colStrokaSpecif(NRow).ArtikulDB Like "Набор_*" Then
+            Mstr = Split(colStrokaSpecif(NRow).KodPoziciiDB, "/")
+            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(NRow).KolVo, Mstr(0), NRow)
+            If NRow < 5 Then nstr = 5 Else nstr = NRow
+            str = str + NElemNabora - 1
+            colStrokaSpecif.Remove NRow
+        End If
+    Next
+    str = colStrokaSpecif.Count
+    If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "Перечень элементов"
     For NRow = 1 To str
         Set shpRow = shpPerechenElementov.Shapes("row" & NRow)
         shpRow.Shapes(NRow & ".1").Text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)

@@ -38,6 +38,9 @@ Dim ColoumnCountXls As Integer
 Dim xx As Integer
 Dim yx As Integer
 Dim pth As String
+Public Excel_imya_lista As String
+Public sp As Excel.Workbook
+Public frmClose As Boolean
 
 Sub ShowSpecifikaciya()
     frmSpecifikaciya.Show
@@ -55,24 +58,24 @@ End Sub
 '    spADD
 'End Sub
 
-'Public Sub spADD_Excel_Razbienie()
-'    xls_query "SP_2_Visio"
-'    fill_table False
-'    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
-'    MsgBox "Спецификация добавлена", vbInformation
-'End Sub
-
-Public Sub spADD_Visio_Perenos()
-    xls_query "SP"
-    fill_table
+Public Sub SP_Excel_2_Visio()
+    xls_query
+    If frmClose Then Exit Sub
+    fill_table_SP
     Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
     MsgBox "Спецификация добавлена", vbInformation
 End Sub
 
-Private Sub xls_query(imya_lista As String)
+Public Sub PE_Excel_2_Visio(PerechenElementov As Visio.Shape)
+    xls_query
+    If frmClose Then Exit Sub
+    fill_table_PE PerechenElementov
+End Sub
+
+Private Sub xls_query()
     Dim oExcel As Excel.Application
-    Dim sp As Excel.Workbook
-    Dim sht As Excel.Sheets
+'    Dim sp As Excel.Workbook
+'    Dim sht As Excel.Worksheet
     Dim tr As Object
     Dim tc As Object
     Dim qx As Integer
@@ -81,6 +84,7 @@ Private Sub xls_query(imya_lista As String)
     Dim sFileName As String
     Dim fd As FileDialog
     Dim sPath, sFile As String
+    Dim Chois As Integer
     
     
     Set oExcel = CreateObject("Excel.Application")
@@ -96,10 +100,11 @@ Private Sub xls_query(imya_lista As String)
             .Clear
             .Add "Excel", "*.xls"
         End With
-        oExcel.FileDialog(msoFileDialogOpen).Show
+        Chois = oExcel.FileDialog(msoFileDialogOpen).Show
     End With
+    If Chois = 0 Then oExcel.Application.Quit: frmClose = True: Exit Sub
     sFileName = oExcel.FileDialog(msoFileDialogOpen).SelectedItems(1)
-
+    
     
 
     sPath = pth
@@ -112,12 +117,16 @@ Private Sub xls_query(imya_lista As String)
 '    End If
     
     Set sp = oExcel.Workbooks.Open(sFile)
+    Load frmVyborListaExcel
+    frmVyborListaExcel.Show
+    If frmClose Then oExcel.Application.Quit: Exit Sub
+
     sp.Activate
     Dim UserRange As Excel.Range
     Dim Total As Excel.Range ' диапазон Full_list
     
     On Error Resume Next
-    If oExcel.Worksheets(imya_lista) Is Nothing Then
+    If oExcel.Worksheets(Excel_imya_lista) Is Nothing Then
         'действия, если листа нет
 '        oExcel.run "'SP_2_Visio.xls'!Spec_2_Visio.Spec_2_Visio" 'создаем
     Else
@@ -126,8 +135,8 @@ Private Sub xls_query(imya_lista As String)
     
     'oExcel.GoTo Reference:=sp.Worksheets(1).Range("A2")
     'oExcel.ActiveCell.Select
-    lLastRow = oExcel.Sheets(imya_lista).Cells(oExcel.Sheets(imya_lista).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = oExcel.Worksheets(imya_lista).Range("A3:I" & lLastRow) 'oExcel.InputBox _
+    lLastRow = oExcel.Sheets(Excel_imya_lista).Cells(oExcel.Sheets(Excel_imya_lista).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = oExcel.Worksheets(Excel_imya_lista).Range("A3:I" & lLastRow) 'oExcel.InputBox _
     '(Prompt:="Выберите диапазон A3:Ix", _
     'Title:="Выбор диапазона", _
     'Type:=8)
@@ -151,7 +160,7 @@ Private Sub xls_query(imya_lista As String)
 
 End Sub
 
-Private Sub fill_table()  ' заполнение спецификации
+Private Sub fill_table_SP()  ' заполнение спецификации
 
     Dim TheDocListovSpecifikac As Cell
     Dim ncell As Integer
@@ -232,6 +241,33 @@ SubAddPage:
 
  End Sub
  
+ 
+ Private Sub fill_table_PE(PerechenElementov As Visio.Shape)  ' заполнение таблицы перечня элементов
+    Dim ncell As Integer
+    Dim NStrokiXls As Integer
+    Dim NRow As Integer ' счетчик количества строк спецификации на странице
+    Dim shpCell As Shape
+    Dim shpRow As Shape
+
+    NRow = 1
+    If RowCountXls > 30 Then MsgBox "Строк на листе Excel больше, чем строк в таблице(30): " & RowCountXls & vbNewLine & vbNewLine & "Разбейте перечень на несколько таблиц", vbExclamation, "Перечень элементов": RowCountXls = 30
+    For NStrokiXls = 1 To RowCountXls
+        Set shpRow = PerechenElementov.Shapes.Item("row" & NRow)
+        For ncell = 1 To 4 'ColoumnCountXls
+            Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
+            shpCell.Text = arr(NStrokiXls, ncell)
+            If ncell = 2 Or ncell = 4 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
+            If ncell = 2 And arr(NStrokiXls, 1) = "" Then
+                shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
+                shpCell.CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание
+            End If
+        Next ncell
+        NRow = NRow + 1
+        If NRow > 30 Then NRow = 0
+    Next NStrokiXls
+    RowCountXls = 0
+End Sub
+ 
 Sub AddPageSpecifikac(pName As String)
     Dim aPage As Visio.Page
     Dim Mstr As Visio.Master
@@ -252,7 +288,7 @@ Sub AddPageSpecifikac(pName As String)
 '            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
             .AddRow visSectionAction, visRowLast, visTagDefault
             .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
-            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spADD_Visio_Perenos"")"
+            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""SP_Excel_2_Visio"")"
             .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
             .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
             .AddRow visSectionAction, visRowLast, visTagDefault
@@ -348,16 +384,16 @@ Public Sub SP_EXP_2_XLS()
     'удаляем старый лист
     apx.DisplayAlerts = False
     On Error Resume Next
-    apx.Sheets("EXP_2_XLS").Delete
+    apx.Sheets("СП_EXP_2_XLS").Delete
     apx.DisplayAlerts = True
     'добавляем новый
-    apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
-    apx.Sheets("SP (2)").Name = "EXP_2_XLS"
+    apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП (2)").Name = "СП_EXP_2_XLS"
     
     
-    lLastRow = apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
+    lLastRow = apx.Sheets("СП_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
     apx.Application.CutCopyMode = False
-    apx.Worksheets("EXP_2_XLS").Activate
+    apx.Worksheets("СП_EXP_2_XLS").Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
     apx.ActiveSheet.Range("A3:I5").ClearContents
     apx.ActiveSheet.Rows("5:" & str).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
@@ -366,28 +402,31 @@ Public Sub SP_EXP_2_XLS()
         
         For xx = 1 To str + 2
             For yx = 1 To 9
-                WB.Sheets("EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
-                'wb.Sheets("EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
+                WB.Sheets("СП_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
+                'wb.Sheets("СП_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
         
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
-   
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("СП_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets("СП_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
+    apx.ActiveSheet.Range("K1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
+    apx.ActiveSheet.Range("K1").Select
     WB.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
-    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист EXP_2_XLS", vbInformation
+    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист СП_EXP_2_XLS", vbInformation
 End Sub
 
 Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень элементов - экспорт в EXCEL
     Dim opn As Long
     Dim npName As String
     Dim pName As String
+    Dim NameListExcel As String
     Dim np As Page
     Dim pg As Page
     Dim N As Integer
     pName = PerechenElementov.ContainingPage.Name
+    NameListExcel = "ПЭ_" & pName & "_EXP_2_XLS"
     str = 1
     Erase tabl
     get_data PerechenElementov, 4
@@ -422,16 +461,16 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень эл
     'удаляем старый лист
     apx.DisplayAlerts = False
     On Error Resume Next
-    apx.Sheets("ПЭ_EXP_2_XLS").Delete
+    apx.Sheets(NameListExcel).Delete
     apx.DisplayAlerts = True
     'добавляем новый
-    apx.Sheets("SP").Copy After:=apx.Sheets(apx.Worksheets.Count)
-    apx.Sheets("SP (2)").Name = "ПЭ_EXP_2_XLS"
+    apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП (2)").Name = NameListExcel
     
     
-    lLastRow = apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
+    lLastRow = apx.Sheets(NameListExcel).Cells(apx.Rows.Count, 1).End(xlUp).Row
     apx.Application.CutCopyMode = False
-    apx.Worksheets("ПЭ_EXP_2_XLS").Activate
+    apx.Worksheets(NameListExcel).Activate
     apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
     apx.ActiveSheet.Range("A3:I5").ClearContents
     apx.ActiveSheet.Rows("5:" & str).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
@@ -445,21 +484,22 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень эл
         
         For xx = 1 To str + 2
             For yx = 1 To 4
-                WB.Sheets("ПЭ_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
-                'wb.Sheets("ПЭ_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
+                WB.Sheets(NameListExcel).Cells(xx + 2, yx) = tabl(xx, yx)
+                'wb.Sheets(NameListExcel).Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
         
-    apx.ActiveSheet.Range("A1:I" & apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
-    apx.ActiveSheet.Range("A3:I" & apx.Sheets("ПЭ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
+    apx.ActiveSheet.Range("A1:I" & apx.Sheets(NameListExcel).Cells(apx.Rows.Count, 1).End(xlUp).Row).WrapText = False
+    apx.ActiveSheet.Range("A3:I" & apx.Sheets(NameListExcel).Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
     
     apx.ActiveSheet.Range("B3:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
     apx.ActiveSheet.Range("D3:D" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
     apx.ActiveSheet.Range("F1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
     apx.ActiveSheet.Range("A1:D" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
-   
-   
-   
+    apx.ActiveSheet.Range("F1").Select
+    
+    
+    
     WB.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
@@ -601,4 +641,63 @@ Public Function PozNameInString(strPozNumber As String, strPozName As String) As
         strPozNumber = Left(strPozNumber, Len(strPozNumber) - 1)
     End If
     PozNameInString = strPozNumber
+End Function
+
+
+Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Integer, IzbPozCod As String, iIndex As Integer) As Double
+'------------------------------------------------------------------------------------------------------------
+' Function      : AddSostavNaboraIzBD - Добавляет состав набора из БД к списку позиций спецификации
+                'Возвращает число добавленных строк
+                '
+'------------------------------------------------------------------------------------------------------------
+    Dim i As Double
+    Dim iold As Double
+    Dim rst As DAO.Recordset
+    Dim RecordCount As Double
+    Dim SQLQuery As String
+    Dim clsStrokaSpecif As classStrokaSpecifikacii
+    Dim strColKey As String
+   
+
+    nCount = colStrokaSpecif.Count
+    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
+                "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
+                "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
+    Set rst = GetRecordSet(DBNameIzbrannoe, SQLQuery)
+    If rst.RecordCount > 0 Then
+        rst.MoveLast
+        RecordCount = rst.RecordCount
+        i = 0
+        iold = 1000
+        With rst
+            If .EOF Then Exit Function
+            .MoveFirst
+            Do Until .EOF
+                Set clsStrokaSpecif = New classStrokaSpecifikacii
+                clsStrokaSpecif.SymName = colStrokaSpecif(iIndex).SymName
+                clsStrokaSpecif.SAType = ""
+                clsStrokaSpecif.NazvanieDB = .Fields("Название").Value
+                clsStrokaSpecif.ArtikulDB = .Fields("Артикул").Value
+                clsStrokaSpecif.ProizvoditelDB = .Fields("Производитель").Value
+                clsStrokaSpecif.CenaDB = .Fields("Цена").Value
+                clsStrokaSpecif.EdDB = .Fields("Единица").Value
+                clsStrokaSpecif.KolVo = .Fields("Количество").Value * KolVo
+                clsStrokaSpecif.PozOboznach = colStrokaSpecif(iIndex).PozOboznach
+                clsStrokaSpecif.KodPoziciiDB = ""
+                strColKey = ";;" & .Fields("Артикул").Value
+                        
+                On Error Resume Next
+                colStrokaSpecif.Add clsStrokaSpecif, strColKey
+                If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент
+                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & .Fields("Артикул").Value, vbExclamation, "Добавление набора в состав спецификации"
+                Else
+                    nCount = colStrokaSpecif.Count
+                End If
+
+                .MoveNext
+            Loop
+        End With
+        AddSostavNaboraIzBD = RecordCount
+    End If
+    Set rst = Nothing
 End Function

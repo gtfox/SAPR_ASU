@@ -8,3 +8,4 @@ Public CenaDB As String
 Public EdDB As String
 Public KolVo As Integer
 Public PozOboznach As String
+Public KodPoziciiDB As String

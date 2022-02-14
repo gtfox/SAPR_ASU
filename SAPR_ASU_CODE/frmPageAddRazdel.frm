@@ -200,7 +200,7 @@ Private Sub btnAddRazdel_Click()
 '                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
                 .AddRow visSectionAction, visRowLast, visTagDefault
                 .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spADD_Visio_Perenos"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""SP_Excel_2_Visio"")"
                 .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
                 .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
                 .AddRow visSectionAction, visRowLast, visTagDefault
