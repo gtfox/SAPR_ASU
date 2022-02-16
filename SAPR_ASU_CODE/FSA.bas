@@ -79,12 +79,12 @@ Public Sub AddSensorsOnFSA(NazvanieShemy As String)
     For Each vsoPageCxema In colPagesCxema
         For Each shpSensorOnCxema In vsoPageCxema.Shapes
             If ShapeSATypeIs(shpSensorOnCxema, typeSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeActuator) Then
-                nCount = colSensorOnCxema.Count
+                nCount = colSensorOnFSA.Count
                 On Error Resume Next
-                colSensorOnCxema.Add shpSensorOnCxema, shpSensorOnCxema.Cells("User.Name").ResultStr(0)
-                If colSensorOnCxema.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                colSensorOnFSA.Add shpSensorOnCxema, shpSensorOnCxema.Cells("User.Name").ResultStr(0)
+                If colSensorOnFSA.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
                     colSensorToFSA.Add shpSensorOnCxema
-                    nCount = colSensorOnCxema.Count
+                    nCount = colSensorOnFSA.Count
                 End If
             End If
         Next

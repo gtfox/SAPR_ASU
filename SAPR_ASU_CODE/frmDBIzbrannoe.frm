@@ -243,7 +243,7 @@ Sub Find_ItemsByText()
     If txtNazvanie1.Value = "" And txtNazvanie2.Value = "" And txtNazvanie3.Value = "" Then
         findNazvanie = ""
     Else
-        findNazvanie = "Избранное.Название like ""*" & txtNazvanie1.Value & "*" & txtNazvanie2.Value & "*" & txtNazvanie3.Value & "*"""
+        findNazvanie = "Избранное.Название like ""*" & txtNazvanie1.Value & "*" & Replace(txtNazvanie2.Value, " ", "*") & "*" & txtNazvanie3.Value & "*"""
     End If
     
     If cmbxProizvoditel.ListIndex = -1 Then

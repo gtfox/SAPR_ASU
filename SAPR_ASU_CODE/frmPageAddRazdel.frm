@@ -138,29 +138,7 @@ Private Sub btnAddRazdel_Click()
             Else
                 vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
             End If
-            
-            With vsoPageNew.PageSheet
-                .AddSection visSectionAction
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование со схемы"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageFSAAddSensorsFrm"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
-            End With
-
         Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
-            With vsoPageNew.PageSheet
-                .AddSection visSectionAction
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование из ФСА"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
-                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Проложить кабели для всего оборудования"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""AddRouteCablesOnPlan"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "2633" '2645
-                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
-            End With
         Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
             SetNazvanieShemy vsoPageNew.PageSheet
             If cmbxNazvanieShemy.ListIndex = -1 Then NazvanieShemyAdd
@@ -175,42 +153,12 @@ Private Sub btnAddRazdel_Click()
             End If
             vsoPageNew.Drop Setka, 0, 0
         Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
-            With vsoPageNew.PageSheet
-                .AddSection visSectionAction
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить элементы со схемы"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageVIDAddElementsFrm"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
-            End With
         Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
-            With vsoPageNew.PageSheet
-                .AddSection visSectionAction
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить провода со схемы"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageSVPAddKabeliFrm"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
-            End With
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
-            With vsoPageNew.PageSheet
-                .AddSection visSectionAction
-'                .AddRow visSectionAction, visRowLast, visTagDefault
-'                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
-'                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
-'                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
-'                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""SP_Excel_2_Visio"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
-                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
-                .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы спецификации"""
-                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spDEL"")"
-                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
-                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
-            End With
         Case Else
     End Select
+    
+    SetPageAction vsoPageNew
 
     LockTitleBlock
     

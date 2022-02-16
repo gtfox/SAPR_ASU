@@ -166,6 +166,18 @@ Private Sub AddButtons()
         .BeginGroup = True
     End With
     
+        '---Кнопка Блокировки выделенного объекта
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=12)
+    With Button
+        .Caption = "БлокировкаВыделенного"
+        .Tag = "LockSelect"
+        .style = msoButtonAutomatic
+        .OnAction = "LockSelect"
+        .TooltipText = "Блокировки выделенного объекта"
+        .FaceID = 519
+        .BeginGroup = True
+    End With
+    
     Set Button = Nothing
            
 End Sub

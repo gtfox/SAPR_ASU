@@ -131,7 +131,7 @@ Public Sub LockTitleBlock()
 '------------------------------------------------------------------------------------------------------------
     Dim vsoLayer1 As Visio.Layer
     Set vsoLayer1 = Application.ActiveWindow.Page.Layers("SA_Рамка")
-    
+
     If vsoLayer1.CellsC(visLayerLock).FormulaU = 0 Then
         'Блокруем слой
         vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
@@ -148,6 +148,55 @@ Public Sub LockTitleBlock()
         Application.CommandBars("САПР АСУ").Controls("БлокРамки").State = msoButtonUp
     End If
 End Sub
+
+Public Sub LockSelect()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : LockSelect - Блокировки выделенного объекта
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoLayer1 As Visio.Layer
+    
+    If Application.ActiveWindow.Selection.Count = 1 Then
+        If MsgBox("Заблокировать " & Application.ActiveWindow.Selection(1).Name & "?", vbExclamation + vbOKCancel, "Блокировки выделенного объекта") = vbOK Then
+            'Создаем и блокруем слой
+            Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("LockSelect")
+            SetLayer Application.ActiveWindow.Selection(1), vsoLayer1
+            vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
+            vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
+            vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
+            vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
+        Else
+            Exit Sub
+        End If
+    ElseIf Application.ActiveWindow.Selection.Count > 1 Then
+        MsgBox "Выделите 1 объект для блокировки", vbInformation, "Блокировки выделенного объекта"
+        Exit Sub
+    Else
+        'Форма разблокировки заблокированных шейпов
+        
+    End If
+End Sub
+
+
+Public Sub SetLayer(vsoShape As Visio.Shape, Optional vsoLayer As Visio.Layer)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetLayer - Устанавливает слой для фигуры(группы). Если слой не указан - очищает слой в фигуре(группе)
+'------------------------------------------------------------------------------------------------------------
+    Dim shpShape As Visio.Shape
+    If vsoLayer Is Nothing Then
+        vsoShape.CellsSRC(visSectionObject, visRowLayerMem, visLayerMember).FormulaForceU = """"""
+        For Each shpShape In vsoShape.Shapes
+            If shpShape.Shapes.Count <> 0 Then SetLayer shpShape, vsoLayer
+            shpShape.CellsSRC(visSectionObject, visRowLayerMem, visLayerMember).FormulaForceU = """"""
+        Next
+    Else
+        vsoShape.CellsSRC(visSectionObject, visRowLayerMem, visLayerMember).FormulaForceU = """" & vsoLayer.Index & """"
+        For Each shpShape In vsoShape.Shapes
+            If shpShape.Shapes.Count <> 0 Then SetLayer shpShape, vsoLayer
+            shpShape.CellsSRC(visSectionObject, visRowLayerMem, visLayerMember).FormulaForceU = """" & vsoLayer.Index & """"
+        Next
+    End If
+End Sub
+
 
 Sub ShowSettingsProject()
     Load frmSettingsProject
@@ -352,6 +401,8 @@ Function AddSAPage(PageName As String) As Visio.Page
     vsoPage.PageSheet.Cells("Paperkind").Formula = 8
     vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 2
     
+    SetPageAction vsoPage
+    
     LockTitleBlock
 
     Set AddSAPage = vsoPage
@@ -443,6 +494,8 @@ Sub AddSAPageNext()
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
     End If
+    
+    SetPageAction vsoPageNew
     
     LockTitleBlock
 
@@ -582,6 +635,8 @@ Sub CopySAPage()
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
     End If
+    
+    SetPageAction vsoPageNew
 
     Application.ActiveWindow.Page = vsoPageSource
     ActiveWindow.DeselectAll
@@ -592,6 +647,69 @@ Sub CopySAPage()
     ActiveWindow.DeselectAll
     LockTitleBlock
     
+End Sub
+
+Sub SetPageAction(vsoPageNew As Visio.Page)
+    Dim PageName As String
+    
+    PageName = GetPageName(vsoPageNew.Name)
+    Select Case PageName
+        Case cListNameOD ' "ОД" 'Общие указания
+        Case cListNameFSA ' "ФСА" 'Схема функциональная автоматизации
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageFSAAddSensorsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
+        Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить оборудование из ФСА"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Проложить кабели для всего оборудования"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""AddRouteCablesOnPlan"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "2633" '2645
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
+            End With
+        Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
+        Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить элементы со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageVIDAddElementsFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
+        Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить провода со схемы"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageSVPAddKabeliFrm"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+            End With
+        Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""SP_Excel_2_Visio"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы спецификации"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spDEL"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
+            End With
+        Case Else
+    End Select
 End Sub
 
 Function GetPageName(NamePage As String) As String

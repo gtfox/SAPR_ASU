@@ -145,6 +145,27 @@ Private Sub Tune_Stencils() 'переделка шаблонов электры 
 
 End Sub
 
+Private Sub Tune_Stencil()
+    Dim mast As Master
+    Dim vsoShape As Visio.Shape
+    
+'    For Each mast In Application.Documents("SAPR_ASU_VID.vss").Masters
+''        ActivePage.Drop mast, 0, 0
+'
+'        mast.Shapes(1).Cells("TxtWidth").FormulaForceU = "=GUARD(TEXTWIDTH(TheText)/ThePage!PageScale*ThePage!DrawingScale)"
+'        mast.Shapes(1).Cells("TxtHeight").FormulaForceU = "=GUARD(TEXTHEIGHT(TheText,TxtWidth)/ThePage!PageScale*ThePage!DrawingScale)"
+''        For Each vsoShape In mast.Shapes(1).Shapes
+''            vsoShape.Cells("TxtWidth").FormulaForceU = "=GUARD(TEXTWIDTH(TheText)/ThePage!PageScale*ThePage!DrawingScale)"
+''            vsoShape.Cells("TxtHeight").FormulaForceU = "=GUARD(TEXTHEIGHT(TheText,TxtWidth)/ThePage!PageScale*ThePage!DrawingScale)"
+''        Next
+'    Next
+    
+    For Each mast In Application.Documents("SAPR_ASU_VID.vss").Masters
+'        mast.Shapes(1).Cells("TxtLocPinY").FormulaForceU = "=TxtHeight*(1+0.2*(ThePage!PageScale/ThePage!DrawingScale))"
+    Next
+End Sub
+
+
 '-----------------------------Переделка таблицы спецификации под универсальную---------------------------------
 Sub TuneTable_1()
     Dim shpRow As Visio.Shape

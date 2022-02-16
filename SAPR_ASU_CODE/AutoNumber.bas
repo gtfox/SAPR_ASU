@@ -235,6 +235,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
                 'В EventMultiDrop должна быть формула = CALLTHIS("AutoNumber.AutoNumFSA", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     If BlockMacros Then Exit Sub
+    If vsoShape Is Nothing Or vsoShape.ID = 0 Then Exit Sub
     
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim SymName As String       'Буквенная часть нумерации

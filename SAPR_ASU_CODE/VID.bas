@@ -229,6 +229,7 @@ Sub VpisatVList()
     Dim k As Double
     
     Set vsoPage = Application.ActivePage
+    If Application.ActiveWindow.Selection.Count <> 1 Then Exit Sub
     Set vsoShape = Application.ActiveWindow.Selection(1)
     
     vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = "420 mm"
@@ -240,10 +241,10 @@ Sub VpisatVList()
     kH = vsoShape.Cells("Height").Result(0) / vsoPage.PageSheet.Cells("PageHeight").Result(0)
     k = IIf(kW > kH, kW, kH)
     With vsoPage.PageSheet
-        .CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = Replace(CStr(k), ",", ".") & " mm"
         .CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageWidth).Result("mm") * k), ",", ".") & " mm"
         .CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = Replace(CStr(.CellsSRC(visSectionObject, visRowPage, visPageHeight).Result("mm") * k), ",", ".") & " mm"
         .CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "3"
+        .CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = Replace(CStr(k), ",", ".") & " mm"
     End With
     vsoShape.Delete
 End Sub

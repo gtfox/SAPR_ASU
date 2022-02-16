@@ -260,7 +260,7 @@ Sub Find_ItemsByText()
     If txtNazvanie1.Value = "" And txtNazvanie2.Value = "" And txtNazvanie3.Value = "" Then
         findNazvanie = ""
     Else
-        findNazvanie = "Прайс.Название like ""*" & txtNazvanie1.Value & "*" & txtNazvanie2.Value & "*" & txtNazvanie3.Value & "*"""
+        findNazvanie = "Прайс.Название like ""*" & txtNazvanie1.Value & "*" & Replace(txtNazvanie2.Value, " ", "*") & "*" & txtNazvanie3.Value & "*"""
     End If
     
     findMode = IIf(findArtikul = "", 0, 2) + IIf(findNazvanie = "", 0, 1)
