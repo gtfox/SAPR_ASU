@@ -149,17 +149,21 @@ Public Sub LockTitleBlock()
     End If
 End Sub
 
-Public Sub LockSelect()
+Public Sub LockSelected()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : LockSelect - Блокировки выделенного объекта
+' Macros        : LockSelected - Блокировка выделенных объектов
 '------------------------------------------------------------------------------------------------------------
     Dim vsoLayer1 As Visio.Layer
+    Dim vsoShape As Visio.Shape
     
-    If Application.ActiveWindow.Selection.Count = 1 Then
-        If MsgBox("Заблокировать " & Application.ActiveWindow.Selection(1).Name & "?", vbExclamation + vbOKCancel, "Блокировки выделенного объекта") = vbOK Then
+    If Application.ActiveWindow.Selection.Count > 0 Then
+        If MsgBox("Заблокировать выделененые объекты: " & Application.ActiveWindow.Selection.Count & "шт.?", vbExclamation + vbOKCancel, "Блокировки выделенного объекта") = vbOK Then
             'Создаем и блокруем слой
-            Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("LockSelect")
-            SetLayer Application.ActiveWindow.Selection(1), vsoLayer1
+            Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("SA_LockedLayer")
+'            SetLayer Application.ActiveWindow.Selection(1), vsoLayer1
+            For Each vsoShape In Application.ActiveWindow.Selection
+                vsoLayer1.Add vsoShape, 0
+            Next
             vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
             vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
             vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
@@ -167,12 +171,10 @@ Public Sub LockSelect()
         Else
             Exit Sub
         End If
-    ElseIf Application.ActiveWindow.Selection.Count > 1 Then
-        MsgBox "Выделите 1 объект для блокировки", vbInformation, "Блокировки выделенного объекта"
-        Exit Sub
     Else
         'Форма разблокировки заблокированных шейпов
-        
+        Load frmUnLockSALayer
+        frmUnLockSALayer.Show
     End If
 End Sub
 

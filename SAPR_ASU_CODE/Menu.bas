@@ -172,8 +172,8 @@ Private Sub AddButtons()
         .Caption = "БлокировкаВыделенного"
         .Tag = "LockSelect"
         .style = msoButtonAutomatic
-        .OnAction = "LockSelect"
-        .TooltipText = "Блокировки выделенного объекта"
+        .OnAction = "LockSelected"
+        .TooltipText = "Блокировка выделенных объектов"
         .FaceID = 519
         .BeginGroup = True
     End With
