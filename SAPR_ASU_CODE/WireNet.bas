@@ -505,7 +505,7 @@ Sub WireToPLCTerm(shpProvod As Visio.Shape, shpPLCTerm As Visio.Shape, bConnect 
     LinkWireNumber = "Pages[" & shpProvod.ContainingPage.NameU & "]!" & shpProvod.NameID & "!Prop.Number"
     On Error GoTo ExitSub
     'Номер контакта во входе ПЛК
-    PinNumber = CInt(Right(shpPLCTerm.Name, 1))
+    PinNumber = CInt(Right(shpPLCTerm.name, 1))
     'Находим родительский вход ПЛК
     Set shpPLCIOParent = ShapeByHyperLink(shpPLCTerm.Parent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
     'Пишем в него ссылку на номер провода или 0 (когда происходит отсоединение или удаление провода)

@@ -73,7 +73,7 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer,
     'R-генерим правый столбец
     'shpPLCIOLast-Последний шейп из левого столбца
     
-    shpID = shpPLCIO.ID
+    shpID = shpPLCIO.id
     NPin = shpPLCIO.Cells("Prop.NPin").Result(0)
     
     'Если начало второго столбца - то берем номера клемм из последнего входа левого столбца
@@ -81,7 +81,7 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer,
         If shpPLCIO.Cells("Prop.IOName").ResultStr(0) Like shpPLCIOLast.Cells("Prop.IOName").ResultStr(0) Then 'одинаковые имена входов
             shpPLCIO.Cells("Prop.IONumber").FormulaU = shpPLCIOLast.Cells("Prop.IONumber").Result(0) + 1
         End If
-        shpPLCIO.Cells("User.TNumber1").FormulaU = "sheet." & shpPLCIOLast.ID & "!User.LaqstNum+1"
+        shpPLCIO.Cells("User.TNumber1").FormulaU = "sheet." & shpPLCIOLast.id & "!User.LaqstNum+1"
     End If
 
     For i = 2 To NIO / NColumn
@@ -97,7 +97,7 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer,
         
         ClearPLCIOParent shpPLCIO
         
-        shpID = shpPLCIO.ID
+        shpID = shpPLCIO.id
 
     Next
     Set ColumnCopy = shpPLCIO
@@ -146,7 +146,7 @@ Sub GlueIO(shpPLCIO As Visio.Shape)
     
     'Выбираем к кому приклеиться
     For Each vsoShape In vsoSelection
-        If (vsoShape.Name <> shpPLCIO.Name) And (vsoShape.Name <> shpPLCIO.Parent.Name) And (ShapeSATypeIs(vsoShape, typePLCIOLParent) Or ShapeSATypeIs(vsoShape, typePLCIORParent)) Then
+        If (vsoShape.name <> shpPLCIO.name) And (vsoShape.name <> shpPLCIO.Parent.name) And (ShapeSATypeIs(vsoShape, typePLCIOLParent) Or ShapeSATypeIs(vsoShape, typePLCIORParent)) Then
             Set shpToWhichGlue = vsoShape
         End If
     Next
@@ -231,7 +231,7 @@ Sub GlueFSAPodval(shpFSAPodval As Visio.Shape)
     
     'Выбираем к кому приклеиться
     For Each vsoShape In vsoSelection
-        If (vsoShape.Name <> shpFSAPodval.Name) And (vsoShape.Name <> shpFSAPodval.Parent.Name) And ((ShapeSATypeIs(vsoShape, typeFSAPodval)) Or (vsoShape.Name Like "FSAPodvalTab*")) Then
+        If (vsoShape.name <> shpFSAPodval.name) And (vsoShape.name <> shpFSAPodval.Parent.name) And ((ShapeSATypeIs(vsoShape, typeFSAPodval)) Or (vsoShape.name Like "FSAPodvalTab*")) Then
             Set shpToWhichGlue = vsoShape
         End If
     Next

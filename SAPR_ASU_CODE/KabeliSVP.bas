@@ -243,7 +243,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Set colTerms = New Collection
     Set colCablesOnElSh = New Collection
     
-    ActiveWindow.Page = ActiveDocument.Pages(shpSensor.ContainingPage.Name)
+    ActiveWindow.Page = ActiveDocument.Pages(shpSensor.ContainingPage.name)
     
     Set vsoSelection = ActiveWindow.Selection
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
@@ -324,7 +324,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 
     ActiveWindow.Selection.Ungroup
 
-    ActiveWindow.Page = ActiveDocument.Pages(vsoPageSVP.Name)
+    ActiveWindow.Page = ActiveDocument.Pages(vsoPageSVP.name)
     'Отключаем события автоматизации (чтобы не перенумеровалось все)
     Application.EventsEnabled = 0
     
@@ -507,7 +507,7 @@ Public Sub AddPagesSVP(NazvanieShemy As String)
     Dim Index As Integer
     Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому номеру жилы в кабеле
     Dim ss As String
-    Dim i As Integer, ii As Integer, j As Integer, N As Integer
+    Dim i As Integer, ii As Integer, j As Integer, n As Integer
     
     ShinaNumber = 1
     
@@ -523,7 +523,7 @@ Public Sub AddPagesSVP(NazvanieShemy As String)
 
     'Цикл поиска датчиков и приводов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
+        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
             If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с номером той, на которую вставляем элемент
                 Set colShpPage = New Collection
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах

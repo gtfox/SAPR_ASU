@@ -59,7 +59,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
 
     'Цикл поиска максимального номера существующих элементов схемы
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If Left(vsoPage.Name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
+        If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
             If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с именем той, на которую вставляем элемент
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
@@ -117,7 +117,7 @@ Public Function ReNumber(colShp As Collection, StartNumber As Integer) As Intege
     Dim shpTemp As Shape
     Dim XPred As Double
     Dim XTekush As Double
-    Dim i As Integer, ii As Integer, j As Integer, N As Integer
+    Dim i As Integer, ii As Integer, j As Integer, n As Integer
 
     'из коллекции передаем их в массив для сортировки
     ReDim masShape(colShp.Count - 1)
@@ -235,7 +235,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
                 'В EventMultiDrop должна быть формула = CALLTHIS("AutoNumber.AutoNumFSA", "SAPR_ASU")
 '------------------------------------------------------------------------------------------------------------
     If BlockMacros Then Exit Sub
-    If vsoShape Is Nothing Or vsoShape.ID = 0 Then Exit Sub
+    If vsoShape Is Nothing Or vsoShape.id = 0 Then Exit Sub
     
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim SymName As String       'Буквенная часть нумерации
@@ -272,7 +272,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
 
     'Цикл поиска максимального номера существующих элементов схемы
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
+        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
             If vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0) = NazvanieFSA Then    'Берем все схемы с номером той, на которую вставляем элемент
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then      'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
@@ -327,7 +327,7 @@ Sub HideWireNumChildInDoc()
     Dim PageName As String
     PageName = cListNameCxema  'Имена листов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.Name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
+        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
             HideWireNumChild vsoPage
         End If
     Next

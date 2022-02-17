@@ -274,7 +274,7 @@ Sub AddPageSpecifikac(pName As String)
     Dim Ramka As Visio.Shape
     If GetSAPageExist(pName) Is Nothing Then
         Set aPage = ActiveDocument.Pages.Add
-        aPage.Name = pName
+        aPage.name = pName
         With aPage.PageSheet
             .Cells("PageWidth").Formula = "420 MM"
             .Cells("PageHeight").Formula = "297 MM"
@@ -323,7 +323,7 @@ Private Sub del_sp()
     Set colPage = New Collection
     'Спецификацию в колекцию
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, cListNameSpec & ".") > 0 Then
+        If InStr(1, dp.name, cListNameSpec & ".") > 0 Then
             colPage.Add dp
         End If
     Next
@@ -342,14 +342,14 @@ Public Sub SP_EXP_2_XLS()
     Dim pName As String
     Dim np As Page
     Dim pg As Page
-    Dim N As Integer
+    Dim n As Integer
     pName = cListNameSpec
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameSpec)
     get_data ActivePage.Shapes.Item("СП"), 9
-    For N = 2 To ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac")
-        pName = cListNameSpec & "." & N
+    For n = 2 To ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac")
+        pName = cListNameSpec & "." & n
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data ActivePage.Shapes.Item("СП"), 9
     Next
@@ -388,7 +388,7 @@ Public Sub SP_EXP_2_XLS()
     apx.DisplayAlerts = True
     'добавляем новый
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
-    apx.Sheets("СП (2)").Name = "СП_EXP_2_XLS"
+    apx.Sheets("СП (2)").name = "СП_EXP_2_XLS"
     
     
     lLastRow = apx.Sheets("СП_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
@@ -424,8 +424,8 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень эл
     Dim NameListExcel As String
     Dim np As Page
     Dim pg As Page
-    Dim N As Integer
-    pName = PerechenElementov.ContainingPage.Name
+    Dim n As Integer
+    pName = PerechenElementov.ContainingPage.name
     NameListExcel = "ПЭ_" & pName & "_EXP_2_XLS"
     str = 1
     Erase tabl
@@ -465,7 +465,7 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень эл
     apx.DisplayAlerts = True
     'добавляем новый
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
-    apx.Sheets("СП (2)").Name = NameListExcel
+    apx.Sheets("СП (2)").name = NameListExcel
     
     
     lLastRow = apx.Sheets(NameListExcel).Cells(apx.Rows.Count, 1).End(xlUp).Row

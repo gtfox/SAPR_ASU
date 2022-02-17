@@ -105,8 +105,8 @@ End Sub
 
 Private Sub AddToCol(vsoShape As Visio.Shape, vsoPage As Visio.Page)  ' добавление элементов в коллекции
     On Error GoTo ExitLine
-        colShapes.Add vsoShape.ID ' коллекция ID шейпов
-        colPages.Add vsoPage.ID ' коллекция ID страниц
+        colShapes.Add vsoShape.id ' коллекция ID шейпов
+        colPages.Add vsoPage.id ' коллекция ID страниц
 ExitLine:
 End Sub
 
@@ -209,7 +209,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
             Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), IIf(.Cells("Prop.Number").Result(0) = 0, "?", .Cells("Prop.Number").Result(0)) & ":" & .Cells("Prop.SymName").ResultStr(0)) 'IIf(.Cells("Prop.Number").Result(0) = 0, "?", .Cells("Prop.Number").Result(0))
                 itmx.SubItems(1) = .Cells("User.LocLink").ResultStr(0)
                 itmx.SubItems(2) = .Cells("User.Location").ResultStr(0)
-                itmx.SubItems(3) = .ContainingPage.Name
+                itmx.SubItems(3) = .ContainingPage.name
         End With
     Next i
     
@@ -224,7 +224,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
-            Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
+            Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
         End If
     Next
     
@@ -327,7 +327,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     optAll.Caption = "Все"
     lblCurParent.Caption = ""
     lblCurPageALL.Caption = "Все страницы"
-    lblCurPage.Caption = ActivePage.Name
+    lblCurPage.Caption = ActivePage.name
     chkAllPages.Value = False
     
     lstvPages.ColumnHeaders.Add , , "Страницы" ' добавить ColumnHeaders

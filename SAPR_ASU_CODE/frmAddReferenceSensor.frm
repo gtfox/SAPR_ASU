@@ -149,8 +149,8 @@ End Sub
 
 Private Sub AddToCol(vsoShape As Visio.Shape, vsoPage As Visio.Page)  ' добавление элементов в коллекции
     On Error GoTo ExitLine
-        colShapes.Add vsoShape.ID ' коллекция ID шейпов
-        colPages.Add vsoPage.ID ' коллекция ID страниц
+        colShapes.Add vsoShape.id ' коллекция ID шейпов
+        colPages.Add vsoPage.id ' коллекция ID страниц
 ExitLine:
 End Sub
 
@@ -289,7 +289,7 @@ Sub Fill_lstvChild(vsoShape As Visio.Shape) ' заполнение списка 
         'Разбиваем HyperLink на имя страницы и имя шейпа
         mstrAdrChild = Split(vsoShape.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0), "/")
         Set shpInfoChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
-        Set itmx = lstvChild.ListItems.Add(, shpInfoChild.ContainingPage.ID & "/" & shpInfoChild.ID, _
+        Set itmx = lstvChild.ListItems.Add(, shpInfoChild.ContainingPage.id & "/" & shpInfoChild.id, _
         vsoShape.Cells("User.NameChild").ResultStr(0) & " " & vsoShape.Cells("User.Location").ResultStr(0)) '
     End If
             
@@ -310,7 +310,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0))  '.Cells("TheText").ResultStr("")         .Characters.Text & "/" & .Cells("User.Kontur").ResultStr(0)
                     itmx.SubItems(1) = IIf(.Cells("User.NameChild").ResultStr(0) = "0,0000", "", .Cells("User.NameChild").ResultStr(0)) 'IIf(.Cells("User.LocationParent").ResultStr(0) = "0,0000", "", .Cells("Hyperlink.Shema.ExtraInfo").ResultStr(0))
                     itmx.SubItems(2) = .Cells("User.Location").ResultStr(0)
-                    itmx.SubItems(3) = .ContainingPage.Name
+                    itmx.SubItems(3) = .ContainingPage.name
                 End With
             Next i
         Case typeSensor, typeActuator 'Если макрос активировался родителем - значит искали дочерних
@@ -322,7 +322,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     itmx.SubItems(3) = .Cells("Prop.NameKontur").ResultStr(0)
                     itmx.SubItems(4) = IIf(.Cells("Prop.KanalNumber").Result(0) = "0", "", .Cells("Prop.KanalNumber").Result(0))
                     itmx.SubItems(5) = .Cells("User.Location").ResultStr(0)
-                    itmx.SubItems(6) = .ContainingPage.Name
+                    itmx.SubItems(6) = .ContainingPage.name
                 End With
             Next i
         Case typeFSAPodval 'Если макрос активировался typeFSAPodval - значит искали typeFSASensor
@@ -334,7 +334,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     itmx.SubItems(3) = .Cells("Prop.NameKontur").ResultStr(0)
                     itmx.SubItems(4) = IIf(.Cells("User.NameParent").ResultStr(0) = "0,0000", "", .Cells("User.NameParent").ResultStr(0))
                     itmx.SubItems(5) = .Cells("User.Location").ResultStr(0)
-                    itmx.SubItems(6) = .ContainingPage.Name
+                    itmx.SubItems(6) = .ContainingPage.name
                 End With
             Next i
     End Select
@@ -351,18 +351,18 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     For Each vsoPage In ActiveDocument.Pages
         Select Case FindType
             Case typeSensor, typeActuator
-                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Or (InStr(1, vsoPage.Name, cListNamePlan) > 0) Then
+                If (InStr(1, vsoPage.name, cListNameFSA) > 0) Or (InStr(1, vsoPage.name, cListNamePlan) > 0) Then
                 '(InStr(1, vsoPage.Name, cListNameVID) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0)
-                    Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
+                    Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
             Case typeFSASensor
                 If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
-                    Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
+                    Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
             Case typeFSAPodval
-                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Then
+                If (InStr(1, vsoPage.name, cListNameFSA) > 0) Then
                 '(InStr(1, vsoPage.Name, cListNameVID) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0)
-                    Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)
+                    Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
         End Select
     Next
@@ -469,7 +469,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     txtShapeText.Text = "*" ' вставка текста в поле поиска
     lblCurParent.Caption = ""
     lblCurPageALL.Caption = "Все страницы"
-    lblCurPage.Caption = ActivePage.Name
+    lblCurPage.Caption = ActivePage.name
     chkAllPages.Value = True
     
     lstvPages.ColumnHeaders.Add , , "Страницы" ' добавить ColumnHeaders

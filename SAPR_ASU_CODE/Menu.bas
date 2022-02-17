@@ -3,13 +3,13 @@ Sub AddToolBar()
     
     'Меню существует?
     For Each Bar In Application.CommandBars
-        If Bar.Name = "САПР АСУ" Then Bar.Delete 'Exit Sub
+        If Bar.name = "САПР АСУ" Then Bar.Delete 'Exit Sub
     Next
     
     Set Bar = Application.CommandBars.Add(Position:=msoBarTop, Temporary:=True) 'msoBarTop msoBarFloating
     
     With Bar
-        .Name = "САПР АСУ"
+        .name = "САПР АСУ"
         .Visible = True
         .RowIndex = 7
         .Left = 944
@@ -42,7 +42,7 @@ Private Sub AddButtons()
 '    End With
     
         '---Кнопка ObjInfo Формат->Специальный +
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1)
     With Button
         .Caption = "ФорматСпециальныйNameU"
         .Tag = "ObjInfo"
@@ -53,7 +53,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Экспорта на GitHub
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=2)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=2)
     With Button
         .Caption = "ЭкспортGitHub"
         .Tag = "ExportGit"
@@ -64,7 +64,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Блокировки рамки
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=3)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
     With Button
         .Caption = "БлокРамки"
         .Tag = "LockTitle"
@@ -75,7 +75,7 @@ Private Sub AddButtons()
     End With
     
             '---Кнопка Сохранить копию проекта
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=4)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
     With Button
         .Caption = "СохранитьПроект"
         .Tag = "SaveFileAs"
@@ -86,7 +86,7 @@ Private Sub AddButtons()
     End With
 
         '---Кнопка Добавить лист
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=5)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=5)
     With Button
         .Caption = "ДобавитьЛист"
         .Tag = "AddPage"
@@ -98,7 +98,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Удалить лист
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=6)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=6)
     With Button
         .Caption = "УдалитьЛист"
         .Tag = "DelPage"
@@ -109,7 +109,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Создать раздел
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=7)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=7)
     With Button
         .Caption = "СоздатьРаздел"
         .Tag = "AddRazdel"
@@ -120,7 +120,7 @@ Private Sub AddButtons()
     End With
 
         '---Кнопка Копировать лист
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=8)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=8)
     With Button
         .Caption = "КопироватьЛист"
         .Tag = "CopyList"
@@ -131,7 +131,7 @@ Private Sub AddButtons()
     End With
 
         '---Кнопка Перенумерация
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=9)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=9)
     With Button
         .Caption = "ПеренумерацияЭлементов"
         .Tag = "ReNumber"
@@ -143,7 +143,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Данные для спецификации
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=10)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=10)
     With Button
         .Caption = "ДанныеСпецификации"
         .Tag = "ReNumber"
@@ -155,7 +155,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Настройки
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=11)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=11)
     With Button
         .Caption = "НастройкиПроекта"
         .Tag = "SettingsProject"
@@ -167,7 +167,7 @@ Private Sub AddButtons()
     End With
     
         '---Кнопка Блокировки выделенного объекта
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, ID:=1, Before:=12)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=12)
     With Button
         .Caption = "БлокировкаВыделенного"
         .Tag = "LockSelect"

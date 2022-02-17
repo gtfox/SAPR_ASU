@@ -136,7 +136,7 @@ Public Sub ReNumberShemy()
     Set List = New classListCxemy
     NLista = 0
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
             If NazvanieShemy <> NazvanieShemyOld Then
                 Set Cxema = New classCxema
@@ -357,7 +357,7 @@ Public Sub ReNumberFSA()
     Set List = New classListFSA
     NLista = 0
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             NazvanieFSA = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
             If NazvanieFSA <> NazvanieFSAOld Then
                 Set FSA = New classFSA
@@ -472,7 +472,7 @@ Sub Fill_cmbxNazvanieShemy()
     Dim i As Integer
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
             Exit For
         End If
@@ -493,7 +493,7 @@ Sub Fill_cmbxNazvanieFSA()
     Dim i As Integer
     PageName = cListNameFSA
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
             Exit For
         End If

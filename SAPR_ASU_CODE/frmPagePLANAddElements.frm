@@ -20,7 +20,7 @@ Sub Fill_cmbxNazvanieFSA()
     Dim i As Integer
     PageName = cListNameFSA
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
             Exit For
         End If

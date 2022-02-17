@@ -579,9 +579,9 @@ For r = 0 To SH1.RowCount(Section) - 1
     booAddRow = RowNameExists(Section, vsoCellF.RowName)
     
     If Not (booAddRow And Not ReplaceValue) Then
-        i = SH2.CellsRowIndex(vsoCellF.Name)
+        i = SH2.CellsRowIndex(vsoCellF.name)
         For j = 0 To SH2.RowsCellCount(Section, i) ' Перебор ячеек и запись значений в них
-            SH2.CellsSRC(Section, i, j).FormulaForceU = SH1.CellsSRC(Section, SH1.CellsRowIndex(vsoCellF.Name), j).FormulaU
+            SH2.CellsSRC(Section, i, j).FormulaForceU = SH1.CellsSRC(Section, SH1.CellsRowIndex(vsoCellF.name), j).FormulaU
         Next
     End If
 Next
@@ -747,7 +747,7 @@ Sub PrintDocNameIndex() ' Вспомогательная процедура
 Dim i As Integer
     With Application.Documents
         For i = 1 To .Count
-            Debug.Print .Item(i).Name & " - " & .Item(i).Index
+            Debug.Print .Item(i).name & " - " & .Item(i).Index
         Next
     End With
 End Sub
@@ -833,7 +833,7 @@ Sub PrintPageNameIndex() ' Вспомогательная процедура
 Dim i As Integer
     With ActiveDocument
         For i = 1 To .Pages.Count
-            Debug.Print .Pages.Item(i).Name & " - " & .Pages.Item(i).Index
+            Debug.Print .Pages.Item(i).name & " - " & .Pages.Item(i).Index
         Next
     End With
 End Sub

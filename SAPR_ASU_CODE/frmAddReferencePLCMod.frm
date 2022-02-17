@@ -108,8 +108,8 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
 
                     For Each vsoShp In shpParentPLC.Shapes
                         If ShapeSATypeIs(vsoShp, typePLCModParent) Then
-                            colShapes.Add vsoShp.ID
-                            colPages.Add vsoShp.ContainingPage.ID
+                            colShapes.Add vsoShp.id
+                            colPages.Add vsoShp.ContainingPage.id
                         End If
                     Next
                 Else
@@ -130,8 +130,8 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
                     
                     For Each vsoShp In shpParentPLCMod.Shapes
                         If ShapeSATypeIs(vsoShp, typePLCIOLParent) Or ShapeSATypeIs(vsoShp, typePLCIORParent) Then
-                            colShapes.Add vsoShp.ID
-                            colPages.Add vsoShp.ContainingPage.ID
+                            colShapes.Add vsoShp.id
+                            colPages.Add vsoShp.ContainingPage.id
                         End If
                     Next
                 Else
@@ -171,7 +171,7 @@ Private Sub lstvParent_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeade
 End Sub
 
 Sub Fill_lstvParent() ' заполнение списка родительских элементов схемы
-    Dim i, j, x, Y, N, k As Integer
+    Dim i, j, x, Y, n, k As Integer
     Dim itmx As ListItem
     Dim wires As String
     Dim vsoShape As Visio.Shape
@@ -185,8 +185,8 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     itmx.SubItems(1) = .Cells("Prop.Model").ResultStr(0)
                     'подсчет кол-ва связей модуля
                     k = 0
-                    For N = 1 To .Section(visSectionHyperlink).Count
-                        k = k + IIf(.CellsU("Hyperlink." & N & ".SubAddress").ResultStr(0) = "", 0, 1)
+                    For n = 1 To .Section(visSectionHyperlink).Count
+                        k = k + IIf(.CellsU("Hyperlink." & n & ".SubAddress").ResultStr(0) = "", 0, 1)
                     Next
                     itmx.SubItems(2) = k
                     itmx.SubItems(3) = .Cells("Prop.NIO").Result(0) & "  |  " & .Shapes.Count - 1
@@ -197,8 +197,8 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                             'подсчет кол-ва связанных входов
                             x = x + IIf(vsoShape.CellsU("Hyperlink.IO.SubAddress").ResultStr(0) <> "", 1, 0)
                             'подсчет кол-ва подключенных входов
-                            For N = 1 To 4
-                                If vsoShape.Cells("User.w" & N).Result(0) <> 0 Then
+                            For n = 1 To 4
+                                If vsoShape.Cells("User.w" & n).Result(0) <> 0 Then
                                     Y = Y + 1
                                     Exit For
                                 End If

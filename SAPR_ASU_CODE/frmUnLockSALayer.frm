@@ -31,8 +31,9 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     Fill_cmbxLayers
     cmbxLayers.style = fmStyleDropDownList
-    cmbxLayers.ListIndex = ActivePage.Layers("SA_LockedLayer").Index - 1
-
+    If ActivePage.Layers.Count > 0 Then
+        cmbxLayers.ListIndex = ActivePage.Layers("SA_LockedLayer").Index - 1
+    End If
 End Sub
 
 Private Sub cbDeleteFromLayer_Click()
@@ -45,18 +46,20 @@ Private Sub cbDeleteFromLayer_Click()
 End Sub
 
 Private Sub cbLockUnlockLayer_Click()
-    If ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).Result(0) = 1 Then
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "0"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "255"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
-        cbLockUnlockLayer.Caption = "Заблокировать"
-    Else
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "1"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "19"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
-        ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
-        cbLockUnlockLayer.Caption = "Разблокировать"
+    If cmbxLayers.Text <> "" Then
+        If ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).Result(0) = 1 Then
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "255"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
+            cbLockUnlockLayer.Caption = "Заблокировать"
+        Else
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "1"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "19"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
+            cbLockUnlockLayer.Caption = "Разблокировать"
+        End If
     End If
 End Sub
 
@@ -69,7 +72,7 @@ Sub Fill_cmbxLayers()
     Dim vsoLayer As Visio.Layer
     cmbxLayers.Clear
     For Each vsoLayer In ActivePage.Layers
-        cmbxLayers.AddItem vsoLayer.Name, vsoLayer.Index - 1
+        cmbxLayers.AddItem vsoLayer.name, vsoLayer.Index - 1
     Next
 End Sub
 
@@ -96,7 +99,7 @@ Private Sub FillCollection(vsoLayer As Visio.Layer)
     Set colShapes = New Collection
     For Each vsoShape In ActivePage.Shapes
         For i = 1 To vsoShape.LayerCount
-            If vsoShape.Layer(i).Name = vsoLayer.Name Then
+            If vsoShape.Layer(i).name = vsoLayer.name Then
                 colShapes.Add vsoShape
                 Exit For
             End If

@@ -47,7 +47,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
     
     If Not Application.ActiveWindow.Selection.Count = 0 Then
     
-        If InStr(1, Application.ActiveWindow.Selection.Item(1).Name, cListNameOD) > 0 Then
+        If InStr(1, Application.ActiveWindow.Selection.Item(1).name, cListNameOD) > 0 Then
             
             Set vsoCharacters1 = Application.ActiveWindow.Selection.Item(1).Characters
             
@@ -90,7 +90,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             DoEvents
      
             With wa.Selection.Font
-                .Name = "ISOCPEUR"
+                .name = "ISOCPEUR"
                 .Size = 14
                 .Bold = False
                 .Italic = True
@@ -191,7 +191,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
     
             'верх сраницы 1
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="1"
+            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="1"
             wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
             
             nStartPageNum = 1
@@ -209,7 +209,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             ActivePage.Shapes.Item("ОД").Cells("Geometry1.NoLine").Formula = 1
             
             'переходим в начало 2-го листа ворда
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:="2"
+            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="2"
             wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
             wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
             
@@ -223,7 +223,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             For CurPage = 2 To nPagesCount
                 'переходим на верх текущего листа
-                wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, Name:=CurPage
+                wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:=CurPage
     
                 If nPagesOst = 1 Or A4 Then 'последний лист или выбрано "все листы А4"
                 
@@ -417,7 +417,7 @@ Function AddNamedPageOD(pName As String) As Visio.Page
     Dim Ramka As Visio.Master
     Set aPage = ActiveDocument.Pages.Add
     On Error GoTo err
-    aPage.Name = pName
+    aPage.name = pName
     
     Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
     Set sh = ActivePage.Drop(Ramka, 0, 0)
@@ -439,7 +439,7 @@ Public Sub odDELL()
     Set colPage = New Collection
     'проходим все страницы и добавляем в коллекцию тока нужные (если удалять сразу тут же, то 3-я страница становится 2-й, а 2-ю for each уже пролистал :) сучара )
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.Name, cListNameOD & ".") > 0 Then
+        If InStr(1, dp.name, cListNameOD & ".") > 0 Then
             colPage.Add dp
         End If
     Next

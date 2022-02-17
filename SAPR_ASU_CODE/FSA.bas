@@ -59,7 +59,7 @@ Public Sub AddSensorsOnFSA(NazvanieShemy As String)
 
     'Берем все листы одной схемы
     For Each vsoPageCxema In ActiveDocument.Pages
-        If vsoPageCxema.Name Like cListNameCxema & "*" Then
+        If vsoPageCxema.name Like cListNameCxema & "*" Then
             If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
                 If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
                     colPagesCxema.Add vsoPageCxema

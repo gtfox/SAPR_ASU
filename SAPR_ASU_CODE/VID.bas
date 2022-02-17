@@ -287,7 +287,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShemy As String)
     Dim DropY As Double
     Dim dX As Double
     Dim dY As Double
-    Dim N As Integer
+    Dim n As Integer
     Dim ElementovVStroke As Integer 'Количество элементов в одной "строке" при вставке на ВИД
     
     If NazvanieShemy = "" Then
@@ -310,7 +310,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShemy As String)
     
     'Берем все листы одной схемы
     For Each vsoPageCxema In ActiveDocument.Pages
-        If vsoPageCxema.Name Like cListNameCxema & "*" Then
+        If vsoPageCxema.name Like cListNameCxema & "*" Then
             If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
                 If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
                     colPagesCxema.Add vsoPageCxema
@@ -500,12 +500,12 @@ Public Sub AddElementyCxemyOnVID(NazvanieShemy As String)
                 dX = 0
         End Select
         DropX = DropX + dX * 2
-        N = N + 1
-        If N = ElementovVStroke Then
+        n = n + 1
+        If n = ElementovVStroke Then
             DropY = DropY - dY * 2
             DropX = 0
             dY = 0
-            N = 0
+            n = 0
         End If
     Next
 

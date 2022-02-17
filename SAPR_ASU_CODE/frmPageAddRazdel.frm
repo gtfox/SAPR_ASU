@@ -73,23 +73,23 @@ Private Sub btnAddRazdel_Click()
     Set vsoPageSource = GetSAPageExist(PageName)
     If vsoPageSource Is Nothing Then
         Set vsoPageNew = ActiveDocument.Pages.Add
-        vsoPageNew.Name = PageName
+        vsoPageNew.name = PageName
     Else
         Set colPagesAll = New Collection
         For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.Name Like PageName & "*" Then
+            If vsoPage.name Like PageName & "*" Then
                 colPagesAll.Add vsoPage
                 If vsoPage.Index > Index Then Index = vsoPage.Index: Set vsoPageLast = vsoPage
             End If
         Next
-        PageNumber = GetPageNumber(vsoPageLast.Name)
+        PageNumber = GetPageNumber(vsoPageLast.name)
         'Находим максимальный номер страницы в NameU и Name
         MaxNpage = MaxMinPageNumber(colPagesAll, , , True)
         'Создаем страницу раздела с максимальным номером
         Set vsoPageNew = ActiveDocument.Pages.Add
-        vsoPageNew.Name = PageName & "." & CStr(MaxNpage + 1)
+        vsoPageNew.name = PageName & "." & CStr(MaxNpage + 1)
         'Переименовываем вставленный лист в нумерацию Name после последнего
-        vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
+        vsoPageNew.name = PageName & "." & CStr(PageNumber + 1)
         'Положение новой страницы сразу за последним
         vsoPageNew.Index = Index + 1
     End If
@@ -178,7 +178,7 @@ Sub Fill_cmbxNazvanieShemy()
     Dim i As Integer
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
             Exit For
         End If
@@ -199,7 +199,7 @@ Sub Fill_cmbxNazvanieFSA()
     Dim i As Integer
     PageName = cListNameFSA
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
             Exit For
         End If
@@ -243,7 +243,7 @@ Sub NazvanieShemyAdd()
     If cmbxNazvanieShemy.Text <> "" Then
         PageName = cListNameCxema
         For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.Name Like PageName & "*" Then
+            If vsoPage.name Like PageName & "*" Then
                 PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
                 vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieShemy.Text & """"
             End If
@@ -269,7 +269,7 @@ Sub NazvanieFSAAdd()
     If cmbxNazvanieFSA.Text <> "" Then
         PageName = cListNameFSA
         For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.Name Like PageName & "*" Then
+            If vsoPage.name Like PageName & "*" Then
                 PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
                 vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieFSA.Text & """"
             End If
@@ -302,7 +302,7 @@ Private Sub btnNazvanieShemyDel_Click()
             Next
             PageName = cListNameCxema
             For Each vsoPage In ActiveDocument.Pages
-                If vsoPage.Name Like PageName & "*" Then
+                If vsoPage.name Like PageName & "*" Then
                     vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & """"
                 End If
             Next
@@ -324,7 +324,7 @@ Private Sub btnNazvanieFSADel_Click()
             Next
             PageName = cListNameFSA
             For Each vsoPage In ActiveDocument.Pages
-                If vsoPage.Name Like PageName & "*" Then
+                If vsoPage.name Like PageName & "*" Then
                     vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
                 End If
             Next

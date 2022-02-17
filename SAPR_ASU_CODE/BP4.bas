@@ -32,7 +32,7 @@ Sub FillBP4(shpBP4 As Visio.Shape)
     For Each vsoPage In ActiveDocument.Pages
         On Error GoTo err
         Set shpRamka = vsoPage.Shapes("Рамка")
-        If shpRamka.Cells("prop.type").ResultStr(0) <> "" And _
+        If shpRamka.Shapes("FORMA3").Shapes("NaimenovLista").Characters.Text <> "" And _
            shpRamka.Cells("user.n").Result(0) = 3 And _
            Right(shpRamka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").ResultStr(""), 3) <> ".CO" _
         Then
@@ -42,7 +42,7 @@ err:
     Next
 
     For i = 1 To colRamki.Count
-        NazvanieRazdela = colRamki(i).Cells("prop.type").ResultStr(0)
+        NazvanieRazdela = colRamki(i).Shapes("FORMA3").Shapes("NaimenovLista").Characters.Text
         NachaloRazdela = colRamki(i).Cells("User.NomerLista").Result(0)
         If colRamki.Count >= (i + 1) Then
             KonecRazdela = colRamki(i + 1).Cells("User.NomerLista").Result(0) - 1

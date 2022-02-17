@@ -13,7 +13,7 @@ Public Sub UpdateZoneOnPage()
 '------------------------------------------------------------------------------------------------------------
     Dim vsoShape As Visio.Shape
     For Each vsoShape In ActivePage.Shapes
-        If vsoShape.Name Like "SETKA KOORD*" Then UpdateZoneBlocks vsoShape
+        If vsoShape.name Like "SETKA KOORD*" Then UpdateZoneBlocks vsoShape
     Next
 End Sub
 
@@ -25,7 +25,7 @@ Public Sub UpdateZoneInDoc()
     Dim vsoPage As Visio.Page
     For Each vsoPage In ActiveDocument.Pages
         For Each vsoShape In ActivePage.Shapes
-            If vsoShape.Name Like "SETKA KOORD*" Then UpdateZoneBlocks vsoShape
+            If vsoShape.name Like "SETKA KOORD*" Then UpdateZoneBlocks vsoShape
         Next
     Next
 End Sub
@@ -41,7 +41,7 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     Dim Ostalos As Double
     Dim ShirinaZony As Double
     Dim PageScale As Double
-    Dim Name As String
+    Dim name As String
     Dim i As Integer
     Dim colShapes As New Collection
     Set colShapes = New Collection
@@ -168,6 +168,7 @@ Public Sub LockSelected()
             vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
             vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
             vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
+            ActiveWindow.DeselectAll
         Else
             Exit Sub
         End If
@@ -217,7 +218,7 @@ Sub SaveProjectFileAs()
     Dim colWindows As Collection
     
     sPath = ActiveDocument.path
-    sName = Replace(ActiveDocument.Name, ".vsd", "")
+    sName = Replace(ActiveDocument.name, ".vsd", "")
     sTime = Format(Now(), "_yyyy.mm.dd_hh.mm.ss")
     If MsgBox("Сохранить копию проекта?" + vbNewLine + vbNewLine + sName, vbQuestion + vbOKCancel, "SaveAs") = vbOK Then
         'Сохраняем наборы элементов
@@ -360,7 +361,7 @@ Function AddSAPage(PageName As String) As Visio.Page
     Set colPages = New Collection
     
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             colPages.Add vsoPage
         End If
     Next
@@ -368,7 +369,7 @@ Function AddSAPage(PageName As String) As Visio.Page
     If colPages.Count = 0 Then
         'Создаем первую страницу
         Set vsoPage = ActiveDocument.Pages.Add
-        vsoPage.Name = PageName
+        vsoPage.name = PageName
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
         ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
@@ -379,16 +380,16 @@ Function AddSAPage(PageName As String) As Visio.Page
 
         If MaxNumber = 1 Then 'Создаем вторую страницу
             Set vsoPage = ActiveDocument.Pages.Add
-            vsoPage.Name = PageName & ".2"
+            vsoPage.name = PageName & ".2"
             
         Else 'Создаем последующие страницы
             'Находим максимальный номер страницы в NameU и Name
             MaxNpage = MaxMinPageNumber(colPages, , , True)
             'Создаем страницу раздела с максимальным номером
             Set vsoPage = ActiveDocument.Pages.Add
-            vsoPage.Name = PageName & "." & CStr(MaxNpage + 1)
+            vsoPage.name = PageName & "." & CStr(MaxNpage + 1)
             'Переименовываем вставленный лист в нумерацию Name после текущего
-            vsoPage.Name = PageName & "." & CStr(MaxNumber + 1)
+            vsoPage.name = PageName & "." & CStr(MaxNumber + 1)
         End If
         
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
@@ -443,15 +444,15 @@ Sub AddSAPageNext()
     Set Setka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("SETKA KOORD")
     Set vsoPageSource = ActivePage
     Index = vsoPageSource.Index
-    PageName = GetPageName(vsoPageSource.Name)
-    PageNumber = GetPageNumber(vsoPageSource.Name)
+    PageName = GetPageName(vsoPageSource.name)
+    PageNumber = GetPageNumber(vsoPageSource.name)
     Set shpRamkaSource = vsoPageSource.Shapes("Рамка")
 
     'Ищем страницы раздела больше текущей
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             colPagesAll.Add vsoPage
-            If GetPageNumber(vsoPage.Name) > PageNumber Then
+            If GetPageNumber(vsoPage.name) > PageNumber Then
                 colPagesAfter.Add vsoPage
             End If
         End If
@@ -463,16 +464,16 @@ Sub AddSAPageNext()
         ItemCol = FindPageMaxMinNumber(colPagesAfter)
         Set vsoPage = colPagesAfter.Item(ItemCol)
         colPagesAfter.Remove ItemCol
-        vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+        vsoPage.name = PageName & "." & CStr(GetPageNumber(vsoPage.name) + 1) & IIf(GetPageDesc(vsoPage.name) = "", "", "." & GetPageDesc(vsoPage.name))
     Wend
     
     'Находим максимальный номер страницы в NameU и Name
     MaxNpage = MaxMinPageNumber(colPagesAll, , , True)
     'Создаем страницу раздела с максимальным номером
     Set vsoPageNew = ActiveDocument.Pages.Add
-    vsoPageNew.Name = PageName & "." & CStr(MaxNpage + 1)
+    vsoPageNew.name = PageName & "." & CStr(MaxNpage + 1)
     'Переименовываем вставленный лист в нумерацию Name после текущего
-    vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
+    vsoPageNew.name = PageName & "." & CStr(PageNumber + 1)
     'Положение новой страницы сразу за текущей
     vsoPageNew.Index = Index + 1
     Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
@@ -517,10 +518,10 @@ Sub DelSAPage()
     Dim PageNumber As Integer
     Dim ItemCol As Integer
     
-    If MsgBox("Удалить лист: " & ActivePage.Name, vbYesNo + vbCritical, "Удаление листа") = vbYes Then
+    If MsgBox("Удалить лист: " & ActivePage.name, vbYesNo + vbCritical, "Удаление листа") = vbYes Then
     
         Set colPagesAfter = New Collection
-        NameActivePage = ActivePage.Name
+        NameActivePage = ActivePage.name
         PageName = GetPageName(NameActivePage)
         PageNumber = GetPageNumber(NameActivePage)
 
@@ -537,8 +538,8 @@ err:
         
         'Ищем страницы раздела больше текущей
         For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.Name Like PageName & "*" Then
-                If GetPageNumber(vsoPage.Name) > PageNumber Then
+            If vsoPage.name Like PageName & "*" Then
+                If GetPageNumber(vsoPage.name) > PageNumber Then
                     colPagesAfter.Add vsoPage
                 End If
             End If
@@ -550,7 +551,7 @@ err:
             ItemCol = FindPageMaxMinNumber(colPagesAfter, True)
             Set vsoPage = colPagesAfter.Item(ItemCol)
             colPagesAfter.Remove ItemCol
-            vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) - 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+            vsoPage.name = PageName & "." & CStr(GetPageNumber(vsoPage.name) - 1) & IIf(GetPageDesc(vsoPage.name) = "", "", "." & GetPageDesc(vsoPage.name))
         Wend
         
     End If
@@ -584,15 +585,15 @@ Sub CopySAPage()
     Set Setka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("SETKA KOORD")
     Set vsoPageSource = ActivePage
     Index = vsoPageSource.Index
-    PageName = GetPageName(vsoPageSource.Name)
-    PageNumber = GetPageNumber(vsoPageSource.Name)
+    PageName = GetPageName(vsoPageSource.name)
+    PageNumber = GetPageNumber(vsoPageSource.name)
     Set shpRamkaSource = vsoPageSource.Shapes("Рамка")
 
     'Ищем страницы раздела больше текущей
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             colPagesAll.Add vsoPage
-            If GetPageNumber(vsoPage.Name) > PageNumber Then
+            If GetPageNumber(vsoPage.name) > PageNumber Then
                 colPagesAfter.Add vsoPage
             End If
         End If
@@ -604,16 +605,16 @@ Sub CopySAPage()
         ItemCol = FindPageMaxMinNumber(colPagesAfter)
         Set vsoPage = colPagesAfter.Item(ItemCol)
         colPagesAfter.Remove ItemCol
-        vsoPage.Name = PageName & "." & CStr(GetPageNumber(vsoPage.Name) + 1) & IIf(GetPageDesc(vsoPage.Name) = "", "", "." & GetPageDesc(vsoPage.Name))
+        vsoPage.name = PageName & "." & CStr(GetPageNumber(vsoPage.name) + 1) & IIf(GetPageDesc(vsoPage.name) = "", "", "." & GetPageDesc(vsoPage.name))
     Wend
     
     'Находим максимальный номер страницы в NameU и Name
     MaxNpage = MaxMinPageNumber(colPagesAll, , , True)
     'Создаем страницу раздела с максимальным номером
     Set vsoPageNew = ActiveDocument.Pages.Add
-    vsoPageNew.Name = PageName & "." & CStr(MaxNpage + 1)
+    vsoPageNew.name = PageName & "." & CStr(MaxNpage + 1)
     'Переименовываем вставленный лист в нумерацию Name после текущего
-    vsoPageNew.Name = PageName & "." & CStr(PageNumber + 1)
+    vsoPageNew.name = PageName & "." & CStr(PageNumber + 1)
     'Положение новой страницы сразу за текущей
     vsoPageNew.Index = Index + 1
 '    Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
@@ -654,7 +655,7 @@ End Sub
 Sub SetPageAction(vsoPageNew As Visio.Page)
     Dim PageName As String
     
-    PageName = GetPageName(vsoPageNew.Name)
+    PageName = GetPageName(vsoPageNew.name)
     Select Case PageName
         Case cListNameOD ' "ОД" 'Общие указания
         Case cListNameFSA ' "ФСА" 'Схема функциональная автоматизации
@@ -742,7 +743,7 @@ Function FindPageMaxMinNumber(colPages As Collection, Optional Min As Boolean) A
     Dim ItemCol As Integer
     MinNumber = 32767
     For i = 1 To colPages.Count
-        Npage = GetPageNumber(colPages.Item(i).Name)
+        Npage = GetPageNumber(colPages.Item(i).name)
         If Min Then
             If Npage < MinNumber Then MinNumber = Npage: ItemCol = i
         Else
@@ -779,7 +780,7 @@ Function MaxMinPageNumber(colPages As Collection, Optional Min As Boolean, Optio
 SubFind:
     MinNumber = 32767
     For Each vsoPage In colPages
-        Npage = GetPageNumber(IIf(NameU, vsoPage.NameU, vsoPage.Name))
+        Npage = GetPageNumber(IIf(NameU, vsoPage.NameU, vsoPage.name))
         If Npage < MinNumber Then MinNumber = Npage
         If Npage > MaxNumber Then MaxNumber = Npage
     Next

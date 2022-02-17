@@ -257,7 +257,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     Dim DeltaY As Single
     Dim dN As Single 'смещение миниатюр по вертикали
     Dim i As Integer
-    Dim N As Integer 'число контактов в катушке
+    Dim n As Integer 'число контактов в катушке
     
     DeltaX = 0.295275590551181
     DeltaY = -0.246062992125984
@@ -281,16 +281,16 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                     'Заполняем поля
                     shpThumb.Cells("User.LocType").FormulaU = typeCoil
                     shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!User.LocationParent"
-                    shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
+                    shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.id & Chr(34)
                     shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
                     shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & DeltaY & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
-                    shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
-                    shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
+                    shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinX))+Sheet." & vsoShape.id & "!PinX"
+                    shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinY))+Sheet." & vsoShape.id & "!PinY"
                 End If
                 
             Case typeCoil, typeParent 'Катушка реле
             
-                N = 0
+                n = 0
                 'Перебираем активные ссылки на контакты
                 For i = 1 To vsoShape.Section(visSectionScratch).Count 'Ищем строку в Scratch
                     If vsoShape.CellsU("Scratch.A" & i).ResultStr(0) <> "" Then 'не пустая строка
@@ -299,12 +299,12 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                         'Заполняем поля
                         shpThumb.Cells("User.LocType").FormulaU = vsoShape.NameU & "!Scratch.D" & i
                         shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!Scratch.C" & i
-                        shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.ID & Chr(34)
+                        shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.id & Chr(34)
                         shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
-                        shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + N * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
-                        shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinX))+Sheet." & vsoShape.ID & "!PinX"
-                        shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.ID & "!PinY))+Sheet." & vsoShape.ID & "!PinY"
-                        N = N + 1
+                        shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + n * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
+                        shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinX))+Sheet." & vsoShape.id & "!PinX"
+                        shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinY))+Sheet." & vsoShape.id & "!PinY"
+                        n = n + 1
                     End If
                 Next
         End Select
@@ -327,7 +327,7 @@ Sub ThumbDelete(shpDelete As Visio.Shape)
     For Each vsoShape In ActivePage.Shapes
         If ShapeSATypeIs(vsoShape, typeThumb) Then
             Set shpThumb = vsoShape
-            If shpThumb.Cells("User.AdrSource").ResultStr(0) = shpDelete.ContainingPage.ID & "/" & shpDelete.ID Then
+            If shpThumb.Cells("User.AdrSource").ResultStr(0) = shpDelete.ContainingPage.id & "/" & shpDelete.id Then
                 colThumb.Add shpThumb
             End If
         End If

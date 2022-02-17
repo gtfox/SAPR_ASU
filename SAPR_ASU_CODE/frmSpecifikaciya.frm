@@ -127,9 +127,9 @@ Public Sub FindElementShemyToExcel()
         NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
         Cxema.NameCxema = NazvanieShemy
         For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.Name Like PageName & "*" Then
+            If vsoPage.name Like PageName & "*" Then
                 If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
-                    Cxema.colListov.Add vsoPage, vsoPage.Name
+                    Cxema.colListov.Add vsoPage, vsoPage.name
                 End If
             End If
         Next
@@ -267,7 +267,7 @@ OutExcelNext:
     
     str = colStrokaSpecif.Count
     If obTekListCx Then
-        NameSheet = NazvanieShemy & "_" & vsoPage.Name
+        NameSheet = NazvanieShemy & "_" & vsoPage.name
     Else
         NameSheet = NazvanieShemy
     End If
@@ -279,7 +279,7 @@ OutExcelNext:
     'добавляем новый
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
     
-    apx.Sheets("СП (2)").Name = NameSheet
+    apx.Sheets("СП (2)").name = NameSheet
     
     lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlUp).Row
     apx.Application.CutCopyMode = False
@@ -383,7 +383,7 @@ Sub Fill_cmbxNazvanieShemy()
     Dim i As Integer
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
             Exit For
         End If
@@ -404,7 +404,7 @@ Sub Fill_cmbxNazvanieFSA()
     Dim i As Integer
     PageName = cListNameFSA
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
             Exit For
         End If

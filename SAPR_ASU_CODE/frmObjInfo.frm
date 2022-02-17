@@ -6,9 +6,9 @@ Sub run(vsoShape As Object)
     frmObjInfo.Height = 90
 '    tbCopyRight.Height = 0
     frameCopyRight.Visible = False
-    lblName.Caption = vsoShape.Name
+    lblName.Caption = vsoShape.name
     lblNameU.Caption = vsoShape.NameU
-    lblID.Caption = vsoShape.ID
+    lblID.Caption = vsoShape.id
     lblIndex.Caption = vsoShape.Index
     If vsoShape.Type <> visTypeForeground Then
         If vsoShape.Cells("Copyright").FormulaU <> """""" Then
@@ -26,7 +26,7 @@ End Sub
 
 
 Private Sub CommandButton1_Click()
-    vsoObject.NameU = vsoObject.Name
+    vsoObject.NameU = vsoObject.name
     lblNameU.Caption = vsoObject.NameU
 End Sub
 

@@ -22,7 +22,7 @@ Sub Fill_cmbxNazvanieShemy()
     Dim i As Integer
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.Name Like PageName & "*" Then
+        If vsoPage.name Like PageName & "*" Then
             PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
             Exit For
         End If
