@@ -457,7 +457,7 @@ End Sub
 
 Sub FindZombie(shpProvod As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : FindZombie - Ищем Дочерних которые ссылаются не нас - отцепляем
+' Macros        : FindZombie - Ищем Дочерних которые ссылаются не на нас - отцепляем
 '------------------------------------------------------------------------------------------------------------
     Dim DeletedConnect As Visio.connect
     Dim ConnectedShape As Visio.Shape
@@ -467,7 +467,7 @@ Sub FindZombie(shpProvod As Visio.Shape)
     
     AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
     
-    'Ищем Дочерних которые ссылаются не нас - отцепляем. Перебор FromConnects.
+    'Ищем Дочерних которые ссылаются не на нас - отцепляем. Перебор FromConnects.
     For i = 1 To shpProvod.FromConnects.Count
         If i > shpProvod.FromConnects.Count Then Exit For
         Set DeletedConnect = shpProvod.FromConnects(i)

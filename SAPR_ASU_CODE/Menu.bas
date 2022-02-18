@@ -63,19 +63,8 @@ Private Sub AddButtons()
         .FaceID = 521 '3
     End With
     
-        '---Кнопка Блокировки рамки
+                '---Кнопка Сохранить копию проекта
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
-    With Button
-        .Caption = "БлокРамки"
-        .Tag = "LockTitle"
-        .OnAction = "LockTitleBlock"
-        .TooltipText = "Блокировка рамки"
-        .FaceID = 894 '519
-        .BeginGroup = True
-    End With
-    
-            '---Кнопка Сохранить копию проекта
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
     With Button
         .Caption = "СохранитьПроект"
         .Tag = "SaveFileAs"
@@ -83,6 +72,17 @@ Private Sub AddButtons()
         .TooltipText = "Сохранить копию проекта"
         .FaceID = 3
 '        .BeginGroup = True
+    End With
+    
+        '---Кнопка Блокировки рамки
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
+    With Button
+        .Caption = "БлокРамки"
+        .Tag = "LockTitle"
+        .OnAction = "LockTitleBlock"
+        .TooltipText = "Блокировка рамки"
+        .FaceID = 894 '519
+        .BeginGroup = True
     End With
 
         '---Кнопка Добавить лист

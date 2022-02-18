@@ -9,7 +9,7 @@
 
 
 
-Public Sub RouteCable(shpSensorFSA As Visio.Shape)
+Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : RouteCable - Прокладывает кабель по ближайшему лотку
                 'Определяет ближайший лоток и прокладывает кабель до шкафа
@@ -75,8 +75,18 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     Dim n As Integer
     Dim MultiCable As Boolean
     
-    'Dim UndoScopeID1 As Long
-
+    Dim shpSensorFSA As Visio.Shape
+    Dim colSensorFSA As Collection
+    
+    
+    
+    
+    Dim clsShapePoint As classShapePoint
+    Dim colShapePoint As Collection
+    Dim Point As classPoint
+    Dim colPoints As Collection
+    Dim colShkafov As Collection
+    
     AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
     Set colLine = New Collection
@@ -87,6 +97,167 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     Set colCablesTemp = New Collection
     
     Set selSelection = ActiveWindow.Selection
+    
+    Set colPoints = New Collection
+    Set colShkafov = New Collection
+    Set colShapePoint = New Collection
+    Set colSensorFSA = New Collection
+    
+    'Находим шкафы и точки их подключения
+    For Each shpLotok In ActivePage.Shapes
+        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+            For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
+                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
+                    Set Point = New classPoint
+                    Set clsShapePoint = New classShapePoint
+                    Point.Number = colPoints.Count + 1
+                    Select Case shpLotok.Connects(i).FromPart
+                        Case visBegin
+                            Point.X = shpLotok.Cells("BeginX").Result(0)
+                            Point.Y = shpLotok.Cells("BeginY").Result(0)
+                        Case visEnd
+                            Point.X = shpLotok.Cells("EndX").Result(0)
+                            Point.Y = shpLotok.Cells("EndY").Result(0)
+                    End Select
+                    colPoints.Add Point, CStr(Point.Number)
+                    clsShapePoint.PointNumber = Point.Number
+                    Set clsShapePoint.ShapeOnFSA = shpLotok.Connects(i).ToSheet
+                    colShapePoint.Add clsShapePoint.ShapeOnFSA, clsShapePoint.ShapeOnFSA.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+                End If
+            Next
+        End If
+    Next
+
+    'Находим датчики и точки их подключения
+    For Each shpSensorFSA In ActivePage.Shapes
+        If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
+            Set Point = New classPoint
+            Set clsShapePoint = New classShapePoint
+            Point.Number = colPoints.Count + 1
+            Point.X = shpSensorFSA.Cells("PinX").Result(0)
+            Point.Y = shpSensorFSA.Cells("PinY").Result(0)
+            colPoints.Add Point, CStr(Point.Number)
+            clsShapePoint.PointNumber = Point.Number
+            Set clsShapePoint.ShapeOnFSA = shpSensorFSA
+            colShapePoint.Add clsShapePoint.ShapeOnFSA, clsShapePoint.ShapeOnFSA.Cells("User.Name").ResultStr(0)
+        End If
+    Next
+    
+    'Для каждого датчика находим кратчайшую линию
+    For Each shpSensorFSA In ActivePage.Shapes
+        If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
+        
+            SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
+            SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
+            PageWidth = shpSensorFSA.ContainingPage.PageSheet.Cells("PageWidth").Result(0)
+            PageHeight = shpSensorFSA.ContainingPage.PageSheet.Cells("PageHeight").Result(0)
+            
+            'UndoScopeID1 = Application.BeginUndoScope("Вспомогательные построения")
+            
+            'Рисуем линии во все стороны
+            Set shpLineUp = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, PageHeight)
+            Set shpLineDown = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, 0)
+            Set shpLineLeft = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, 0, SensorFSAPinY)
+            Set shpLineRight = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, PageWidth, SensorFSAPinY)
+            
+            'Находим все пересечения
+            Set selLineUp = shpLineUp.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+            Set selLineDown = shpLineDown.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+            Set selLineLeft = shpLineLeft.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+            Set selLineRight = shpLineRight.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+            
+            'Выбираем лотки и линии
+            AddLotokToCol shpLineUp, selLineUp, colLine, colLotok ', NazvanieShemy 'BoxNumber
+            AddLotokToCol shpLineDown, selLineDown, colLine, colLotok ', NazvanieShemy 'BoxNumber
+            AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok ', NazvanieShemy 'BoxNumber
+            AddLotokToCol shpLineRight, selLineRight, colLine, colLotok ', NazvanieShemy 'BoxNumber
+            If colLotok.Count = 0 Then 'нет лотков - выходим
+                'Чистим вспомогательную графику
+                shpLineUp.Delete
+                shpLineDown.Delete
+                shpLineLeft.Delete
+                shpLineRight.Delete
+                MsgBox "Нет лотков поблизости или не приклеен к ящику"
+                Exit Sub
+            End If
+        
+            'Выделяем их
+            selSelection.Select shpSensorFSA, visSelect
+            For Each vsoShape In colLine
+                selSelection.Select vsoShape, visSelect
+            Next
+            For Each vsoShape In colLotok
+                selSelection.Select vsoShape, visSelect
+            Next
+        
+            'Копируем и вставляем на временном слое
+            selSelection.Copy
+            Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
+            vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
+            Application.ActiveWindow.Page.Paste
+        
+             
+            'Находим смещение вставленного, относительно копированного
+            For Each vsoShape In ActiveWindow.Selection
+                If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+                    dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
+                    dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
+                    Set shpSensorFSATemp = vsoShape
+                End If
+                vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
+                vsoLayer.Add vsoShape, 0 'Добавляем все на временный слой
+            Next
+            'и сдвигаем на место
+            ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
+            
+            'разбиваем
+            shpSensorFSATemp.Delete 'убираем лишнее перед trim
+            ActiveWindow.Selection.Trim 'разбиваем
+        
+            'находим ближайшие линии
+            Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02 * AntiScale, 0)
+            For Each vsoShape In selLines
+                If vsoShape.LayerCount > 0 Then
+                    If vsoShape.Layer(1).name = vsoLayer.name Then
+                        colLineShort.Add vsoShape
+                    End If
+                End If
+            Next
+            
+            'находим самую короткую
+            Set shpShortLine = colLineShort.Item(1)
+            For i = 2 To colLineShort.Count
+                If colLineShort.Item(i).Cells("Width").Result(0) < shpShortLine.Cells("Width").Result(0) Then
+                    Set shpShortLine = colLineShort.Item(i)
+                End If
+            Next
+            
+            'Убираем ее с временного слоя
+             vsoLayer.Remove shpShortLine, 0
+             
+            'Чистим вспомогательную графику
+            shpLineUp.Delete
+            shpLineDown.Delete
+            shpLineLeft.Delete
+            shpLineRight.Delete
+            vsoLayer.Delete True
+            
+            
+            'Заполняем свойства кратчайшей линии: тип, длина, гофра
+        End If
+    Next
+    
+    
+    
+
+
+
+
+
+
+    'Dim UndoScopeID1 As Long
+
+
     Set shpSensor = ShapeByHyperLink(shpSensorFSA.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
     If Not shpSensor Is Nothing Then
         MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
@@ -121,56 +292,23 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
 '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
 '    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
     NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
-    
-    SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
-    SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
-    PageWidth = shpSensorFSA.ContainingPage.PageSheet.Cells("PageWidth").Result(0)
-    PageHeight = shpSensorFSA.ContainingPage.PageSheet.Cells("PageHeight").Result(0)
-    
-    'UndoScopeID1 = Application.BeginUndoScope("Вспомогательные построения")
-    
-    'Рисуем линии во все стороны
-    Set shpLineUp = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, PageHeight)
-    Set shpLineDown = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, 0)
-    Set shpLineLeft = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, 0, SensorFSAPinY)
-    Set shpLineRight = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, PageWidth, SensorFSAPinY)
-    
-    'Находим все пересечения
-    Set selLineUp = shpLineUp.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-    Set selLineDown = shpLineDown.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-    Set selLineLeft = shpLineLeft.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-    Set selLineRight = shpLineRight.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-    
-    'Выбираем лотки и линии
-    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok, NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok, NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok, NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok, NazvanieShemy 'BoxNumber
-    If colLotok.Count = 0 Then 'нет лотков - выходим
-        'Чистим вспомогательную графику
-        shpLineUp.Delete
-        shpLineDown.Delete
-        shpLineLeft.Delete
-        shpLineRight.Delete
-        MsgBox "Нет лотков поблизости или не приклеен к ящику"
-        Exit Sub
-    End If
 
-    'Выделяем их
+    
+    
+    
+    
+        'Выделяем лоток и кратчайшую линию до лотка
+    ActiveWindow.DeselectAll
+    Set selSelection = ActiveWindow.Selection
     selSelection.Select shpSensorFSA, visSelect
-    For Each vsoShape In colLine
-        selSelection.Select vsoShape, visSelect
-    Next
-    For Each vsoShape In colLotok
-        selSelection.Select vsoShape, visSelect
-    Next
-
+    selSelection.Select shpLotok, visSelect
+    selSelection.Select shpShortLine, visSelect
+    
     'Копируем и вставляем на временном слое
     selSelection.Copy
     Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
     vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
     Application.ActiveWindow.Page.Paste
-
      
     'Находим смещение вставленного, относительно копированного
     For Each vsoShape In ActiveWindow.Selection
@@ -188,34 +326,49 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     'разбиваем
     shpSensorFSATemp.Delete 'убираем лишнее перед trim
     ActiveWindow.Selection.Trim 'разбиваем
-
-    'находим ближайшие линии
-    Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02 * AntiScale, 0)
-    For Each vsoShape In selLines
-        If vsoShape.LayerCount > 0 Then
-            If vsoShape.Layer(1).name = vsoLayer.name Then
-                colLineShort.Add vsoShape
-            End If
-        End If
-    Next
     
-    'находим самую короткую
-    Set shpShortLine = colLineShort.Item(1)
-    For i = 2 To colLineShort.Count
-        If colLineShort.Item(i).Cells("Width").Result(0) < shpShortLine.Cells("Width").Result(0) Then
-            Set shpShortLine = colLineShort.Item(i)
-        End If
-    Next
+    'Берем все лотки
+    'Копируем на временный слой
+    'Разбиваем на части
+    'Находим линии приклеенные к шкафам/коробкам
     
-    'Убираем ее с временного слоя
-     vsoLayer.Remove shpShortLine, 0
-     
-    'Чистим вспомогательную графику
-    shpLineUp.Delete
-    shpLineDown.Delete
-    shpLineLeft.Delete
-    shpLineRight.Delete
-    vsoLayer.Delete True
+    'Берем первую линии (шкафные)
+    'Находим конец приклеенный к шкафу - это начальные точки для опредения маршрутной сети по лоткам
+    
+    'Берем точку из списка точек для обработки
+    'Сканируем лотки в этой точке (максимум 4(4 стороны света))
+    '-Если лоток именованный - то он обработан ранее, значит его вторая точка, со всеми маршрутами из нее, есть базе
+    'Для каждого лотка находим 2-ю точку(2 конец этого куска)
+    'Определяем координаты след точки, именуем ее №7, заносим ее в список точек для обработки, длину участка, тип лотка под ним, именуем шейп как маршрут 3-5(5-3)
+    'Заносим точку в базу алгоритма, обработанную точку удаляем из списка точек для обработки
+    '
+    '
+    '
+    '
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
     
@@ -229,7 +382,7 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
     'Находим лоток идущий в наш шкаф и которого касается кратчайшая линия
     Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0.02, 0)
     For Each vsoShape In selSelection 'Шейпы в выделении
-        If ShapeSATypeIs(vsoShape, typeDuctPlan) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
+        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then  'Нашли лоток
 '            'Находим координаты точки в которой лоток подключен к шкафу
 '            For i = 1 To vsoShape.Connects.Count 'Перебираем подключенные концы лотка
 '                If vsoShape.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
@@ -382,29 +535,22 @@ Public Sub RouteCable(shpSensorFSA As Visio.Shape)
 
 End Sub
 
-Public Sub AddRouteCablesOnPlan()
+Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection) ', NazvanieShemy As String)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : AddRouteCablesOnPlan - Прокладывает кабели по ближайшим лоткам для всех датчиков на плане
-                'Определяет ближайший лоток и прокладывает кабель до шкафа для всех датчиков на плане
+' Macros        : AddLotokToCol - Заполняет коллекции лотков и линий
 '------------------------------------------------------------------------------------------------------------
-    Dim shpSensorFSA As Visio.Shape
-    Dim colSensorFSA As Collection
+    Dim i As Integer
+    Dim vsoShape As Visio.Shape
+    Dim shpLotok As Visio.Shape
     
-    Set colSensorFSA = New Collection
-    
-    'Собираем датчики в коллецию (без коллеции захватываются временные шейпы)
-    For Each shpSensorFSA In ActivePage.Shapes
-        If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
-            colSensorFSA.Add shpSensorFSA
+    For Each vsoShape In selLine 'Шейпы в выделении
+        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then 'Нашли лоток
+            colLotok.Add vsoShape
         End If
     Next
-    'Прокладываем кабели
-    For Each shpSensorFSA In colSensorFSA
-        RouteCable shpSensorFSA
-        DoEvents
-    Next
-    Application.EventsEnabled = -1
-    ThisDocument.InitEvent
+    If colLotok.Count > 0 Then 'Линия пересекла лоток
+        colLine.Add shpLine
+    End If
 End Sub
 
 Public Sub PagePLANAddElementsFrm()
@@ -603,57 +749,6 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 End Sub
 
 
-
-
-Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection, NazvanieShemy As String)
-'------------------------------------------------------------------------------------------------------------
-' Macros        : AddLotokToCol - Заполняет коллекции лотков и линий
-'------------------------------------------------------------------------------------------------------------
-    Dim i As Integer
-    Dim vsoShape As Visio.Shape
-    Dim shpLotok As Visio.Shape
-    
-    For Each vsoShape In selLine 'Шейпы в выделении
-        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then 'Нашли лоток
-            If (colLotok.Count = 0) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Первый в коллекции
-                colLotok.Add vsoShape
-                i = i + 1
-            Else
-                For Each shpLotok In colLotok 'Лотки в коллекции
-                    If vsoShape.name Like shpLotok.name Then 'Лоток уже есть в коллекции
-                        i = i + 1
-                        Exit For
-                    Else
-                        If LotokToBox(vsoShape, NazvanieShemy) Then
-                            colLotok.Add vsoShape
-                            i = i + 1
-                        End If
-                    End If
-                Next
-            End If
-        End If
-    Next
-    If i > 0 Then 'Линия пересекла лоток
-        colLine.Add shpLine
-    End If
-End Sub
-
-Function LotokToBox(shpLotok As Visio.Shape, NazvanieShemy As String) As Boolean
-'------------------------------------------------------------------------------------------------------------
-' Function        : LotokToBox - Проверяет что лоток приклеен к нужному шкафу на плане
-'------------------------------------------------------------------------------------------------------------
-    Dim i As Integer
-    
-            For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
-                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
-                    If shpLotok.Connects(i).ToSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then 'Сравниваем номер шкафа
-                        LotokToBox = True
-                        Exit Function
-                    End If
-                End If
-            Next
-            LotokToBox = False
-End Function
 
 
 Public Sub VynoskaPlan(Connects As IVConnects)
@@ -998,7 +1093,7 @@ Public Sub RouteCable_old(shpSensorFSA As Visio.Shape)
     'Находим лоток идущий в наш шкаф и которого касается кратчайшая линия
     Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0.02, 0)
     For Each vsoShape In selSelection 'Шейпы в выделении
-        If ShapeSATypeIs(vsoShape, typeDuctPlan) And (LotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
+        If ShapeSATypeIs(vsoShape, typeDuctPlan) And (PointLotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
 '            'Находим координаты точки в которой лоток подключен к шкафу
 '            For i = 1 To vsoShape.Connects.Count 'Перебираем подключенные концы лотка
 '                If vsoShape.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы

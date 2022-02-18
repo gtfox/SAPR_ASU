@@ -536,31 +536,31 @@ Private Sub obVydNaListeFSA_Change()
     cbPodFSA.Value = False
 End Sub
 
-Private Sub cbDatFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbDatFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObFSA.Value = True
 End Sub
 
-Private Sub cbPodFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbPodFSA_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObFSA.Value = True
 End Sub
 
-Private Sub cbElCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbElCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbProvCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbProvCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbKlemCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbKlemCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbKabCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbKabCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
-Private Sub cbDatCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal x As Single, ByVal Y As Single)
+Private Sub cbDatCx_MouseDown(ByVal Button As Integer, ByVal Shift As Integer, ByVal X As Single, ByVal Y As Single)
     obVybTipObCx.Value = True
 End Sub
 
