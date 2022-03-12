@@ -78,17 +78,42 @@ Sub SetElement() 'SetValueToSelSections
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
     
-Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
-
-SectionNumber = visSectionAction 'Action 240
-            arrRowName = Array("left", "Rigt", "55", "15", "LeftGrid")
-            arrRowValue = Array("SETF(GetRef(PinX),""(25 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Влево <--- к рамке""|""""|""154""|""10""|0|0|FALSE|FALSE|FALSE", _
-                            "SETF(GetRef(Controls.Line),""(ThePage!PageWidth-TheDoc!User.SA_FR_OffsetFrame-PinX)/ThePage!PageScale*ThePage!DrawingScale"")|""Вправо ---> к рамке""|""""|""157""|""30""|0|0|FALSE|FALSE|FALSE", _
-                            "SETF(GetRef(PinY),""(55 mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Вниз ?  55""|""""|""203""|""40""|0|0|FALSE|FALSE|FALSE", _
-                            "SETF(GetRef(PinY),""(15 mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Вниз v  15""|""""|""388""|""50""|0|0|FALSE|FALSE|FALSE", _
-                            "SETF(GetRef(PinX),""(29.164 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"")|""Влево <--- к сетке""|""""|""1017""|""20""|0|0|FALSE|FALSE|FALSE")
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
+            arrRowValue = Array("0|""""", _
+                            "170|", _
+                            "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
+                            "0|""""", _
+                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
+                            "0|""""", _
+                            "0|""Код позиции/Код производителя/Код единицы""")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("SymName", "Number", "AutoNum", "HideName", "HideNumber", "FullName", "Ac3", "NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+            arrRowValue = Array("""Название""|""Название""|0||""Лоток""|""10""|FALSE|FALSE|1049|0", _
+                            """Номер провода""|""Номер провода""|2|""""||""20""|TRUE|FALSE|1033|0", _
+                            """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1033|0", _
+                            """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1033|0", _
+                            """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1033|0", _
+                            """Имя лотка""|""Имя лотка""|0|""""|User.FullName|""91""|TRUE|FALSE|1033|0", _
+                            """Сечение""|""Сечение""|1|""50x50;50x100;80x80""|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
+                            """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
+                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
+                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1033|0", _
+                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
+                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionObject
+RowNumber = visRowLine 'Line Format
+            arrRowName = Array("")
+                    arrRowValue = Array("1|0.2 mm|0|0|0|0|0%|1|1|0 mm")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
 End Sub
 
 
@@ -108,8 +133,8 @@ Sub GetAllSSValueSplit()
     
 '    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
     
-'    Set vsoObject = ActivePage.Shapes.ItemFromID(48)
-    Set vsoObject = ActiveDocument.DocumentSheet
+    Set vsoObject = ActivePage.Shapes.ItemFromID(69)
+'    Set vsoObject = ActiveDocument.DocumentSheet
     
     strFile = ThisDocument.path & "tempValue.vb"
     

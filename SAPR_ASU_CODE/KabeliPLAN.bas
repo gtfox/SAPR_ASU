@@ -2,12 +2,10 @@
 '------------------------------------------------------------------------------------------------------------
 ' Module        : KabeliPLAN - Кабели на планах
 ' Author        : gtfox
-' Date          : 2020.10.09
+' Date          : 2020.10.09/2022.02.21
 ' Description   : Автопрокладка кабелей по лоткам, подсчет длины, выноски кабелей
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
-
-
 
 Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
@@ -35,6 +33,7 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     Dim vsoShapeTemp As Visio.Shape
     Dim vsoCollection As Collection
     
+    Dim shpLine As Visio.Shape
     Dim shpLineUp As Visio.Shape
     Dim shpLineDown As Visio.Shape
     Dim shpLineLeft As Visio.Shape
@@ -242,14 +241,136 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
             shpLineRight.Delete
             vsoLayer.Delete True
             
-            
-            'Заполняем свойства кратчайшей линии: тип, длина, гофра
+            'Создаем свойства для гофры в линии (тип как у лотка typeDuctPlan = 170)
+            SetGofra shpShortLine
         End If
     Next
     
+    'Берем все лотки и кратчайшие линии
+    ActiveWindow.DeselectAll
+    Set selSelection = ActiveWindow.Selection
     
+    For Each shpLotok In ActivePage.Shapes
+        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+            selSelection.Select shpLotok, visSelect
+        End If
+    Next
+    
+    'Добавляем туда 1 датчик для поиска смещения
+    For Each vsoShape In ActivePage.Shapes
+        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+            SensorFSAPinX = vsoShape.Cells("PinX").Result(0)
+            SensorFSAPinY = vsoShape.Cells("PinY").Result(0)
+            Set shpSensorFSA = vsoShape
+            Exit For
+        End If
+    Next
+    selSelection.Select shpSensorFSA, visSelect
+
+    'Копируем и вставляем на временном слое
+    selSelection.Copy
+    Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
+    vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
+    Application.ActiveWindow.Page.Paste
+     
+    'Находим смещение вставленного, относительно копированного
+    For Each vsoShape In ActiveWindow.Selection
+        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+            dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
+            dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
+            Set shpSensorFSATemp = vsoShape
+        End If
+        vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
+        vsoLayer.Add vsoShape, 0 'Добавляем все на временный слой
+    Next
+    'и сдвигаем на место
+    ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
+    
+    'разбиваем
+    shpSensorFSATemp.Delete 'убираем лишнее перед trim
+    ActiveWindow.Selection.Trim 'разбиваем
+    
+    'Создаем из линий маршруты
+    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer.name)
+    For Each shpLine In selSelection
+        SetRoute shpLine
+    Next
+    
+    
+    'Для всех именованых точек находим линии, превращаем их в маршруты, именуем.
+    'На другом конце находим точку, именуем и все по новой, пока не закончатся не именованые маршруты
     
 
+    
+    '-Если лоток именованный - то он обработан ранее, значит его вторая точка, со всеми маршрутами из нее, есть базе
+    'Для каждого лотка находим 2-ю точку(2 конец этого куска)
+    'Определяем координаты след точки, именуем ее №7, заносим ее в список точек для обработки, длину участка, тип лотка под ним, именуем шейп как маршрут 3-5(5-3)
+    'Заносим точку в базу алгоритма, обработанную точку удаляем из списка точек для обработки
+    
+    Set colLine = New Collection
+    'Берем точку из списка точек для обработки
+    For Each Point In colPoints
+        'Сканируем маршруты в этой точке (максимум 4(4 стороны света))находим ближайшие линии
+        Set selLines = ActivePage.SpatialSearch(Point.X, Point.Y, visSpatialTouching, 0.02 * AntiScale, 0)
+        For Each vsoShape In selLines
+            If vsoShape.LayerCount > 0 Then
+                If vsoShape.Layer(1).name = vsoLayer.name Then
+                    colLine.Add vsoShape
+                End If
+            End If
+        Next
+        'Перебираем маршруты
+        For Each shpLine In colLine
+        
+            'Нет именованных концов
+            If shpLine.Cells("Prop.Begin").Result(0) = 0 And shpLine.Cells("Prop.End").Result(0) = 0 Then
+                'Определяем 1-D или 2-D фигура
+                If shpLine.OneD Then
+                    'Именуем конец в этой точке
+                    If shpLine.Cells("BeginX").Result(0) = Point.X And shpLine.Cells("BeginY").Result(0) = Point.Y Then
+                        shpLine.Cells("Prop.Begin").Formula = Point.Number
+                    ElseIf shpLine.Cells("EndX").Result(0) = Point.X And shpLine.Cells("EndY").Result(0) = Point.Y Then
+                        shpLine.Cells("Prop.End").Formula = Point.Number
+                    End If
+                Else '2-D фигура
+                    'Находим точки начала и конца
+                    
+                End If
+                
+                
+                'Заполняем свойство длина
+                shpLine.Cells("Prop.Dlina").Formula = CableLength(shpLine)
+                
+                'Берем другой конец и создаем новую точку в этих координатах
+                If shpLine.Cells("Prop.Begin").Result(0) = 0 Then
+                    Set Point = New classPoint
+                    Point.Number = colPoints.Count + 1
+                    Point.X = shpLine.Cells("BeginX").Result(0)
+                    Point.Y = shpLine.Cells("BeginY").Result(0)
+                    colPoints.Add Point, CStr(Point.Number)
+                ElseIf shpLine.Cells("Prop.End").Result(0) = 0 Then
+                    Set Point = New classPoint
+                    Point.Number = colPoints.Count + 1
+                    Point.X = shpLine.Cells("EndX").Result(0)
+                    Point.Y = shpLine.Cells("EndY").Result(0)
+                    colPoints.Add Point, CStr(Point.Number)
+                End If
+
+            'Именован один конец
+            ElseIf shpLine.Cells("Prop.Begin").Result(0) = 0 Or shpLine.Cells("Prop.End").Result(0) = 0 Then
+                'Именуем другой конец
+                If shpLine.Cells("Prop.Begin").Result(0) = 0 Then
+                    shpLine.Cells("Prop.Begin").Formula = Point.Number
+                ElseIf shpLine.Cells("Prop.End").Result(0) = 0 Then
+                    shpLine.Cells("Prop.End").Formula = Point.Number
+                End If
+
+            'Именованы оба конца
+            ElseIf shpLine.Cells("Prop.Begin").Result(0) <> 0 And shpLine.Cells("Prop.End").Result(0) <> 0 Then
+                'Маршрут уже обработан полностью (с двух концов)
+            End If
+        Next
+    Next
 
 
 
@@ -297,55 +418,8 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     
     
     
-        'Выделяем лоток и кратчайшую линию до лотка
-    ActiveWindow.DeselectAll
-    Set selSelection = ActiveWindow.Selection
-    selSelection.Select shpSensorFSA, visSelect
-    selSelection.Select shpLotok, visSelect
-    selSelection.Select shpShortLine, visSelect
     
-    'Копируем и вставляем на временном слое
-    selSelection.Copy
-    Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
-    vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
-    Application.ActiveWindow.Page.Paste
-     
-    'Находим смещение вставленного, относительно копированного
-    For Each vsoShape In ActiveWindow.Selection
-        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
-            dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
-            dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
-            Set shpSensorFSATemp = vsoShape
-        End If
-        vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-        vsoLayer.Add vsoShape, 0 'Добавляем все на временный слой
-    Next
-    'и сдвигаем на место
-    ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
-    
-    'разбиваем
-    shpSensorFSATemp.Delete 'убираем лишнее перед trim
-    ActiveWindow.Selection.Trim 'разбиваем
-    
-    'Берем все лотки
-    'Копируем на временный слой
-    'Разбиваем на части
-    'Находим линии приклеенные к шкафам/коробкам
-    
-    'Берем первую линии (шкафные)
-    'Находим конец приклеенный к шкафу - это начальные точки для опредения маршрутной сети по лоткам
-    
-    'Берем точку из списка точек для обработки
-    'Сканируем лотки в этой точке (максимум 4(4 стороны света))
-    '-Если лоток именованный - то он обработан ранее, значит его вторая точка, со всеми маршрутами из нее, есть базе
-    'Для каждого лотка находим 2-ю точку(2 конец этого куска)
-    'Определяем координаты след точки, именуем ее №7, заносим ее в список точек для обработки, длину участка, тип лотка под ним, именуем шейп как маршрут 3-5(5-3)
-    'Заносим точку в базу алгоритма, обработанную точку удаляем из списка точек для обработки
-    '
-    '
-    '
-    '
-    
+
     
     
     
@@ -879,6 +953,74 @@ Sub FillNazvanieShemyInBox(vsoShape As Visio.Shape)
         End If
     Next
 End Sub
+
+Sub SetGofra(vsoObject As Object)
+'Делает из линии гофру
+    Dim mastshp As Visio.Shape
+    Dim arrRowValue()
+    Dim arrRowName()
+    Dim arrMast()
+    Dim SectionNumber As Long
+    Dim RowNumber As Long
+
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
+            arrRowValue = Array("0|""""", _
+                            "170|", _
+                            "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
+                            "0|""""", _
+                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
+                            "0|""""", _
+                            "0|""Код позиции/Код производителя/Код единицы""")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("SymName", "Number", "AutoNum", "HideName", "HideNumber", "FullName", "Ac3", "Dlina", "NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+            arrRowValue = Array("""Название""|""Название""|0||""Гофра""|""10""|FALSE|FALSE|1049|0", _
+                            """Номер провода""|""Номер провода""|2|""""||""20""|TRUE|FALSE|1033|0", _
+                            """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1033|0", _
+                            """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1033|0", _
+                            """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1033|0", _
+                            """Имя лотка""|""Имя лотка""|0|""""|User.FullName|""91""|TRUE|FALSE|1033|0", _
+                            """Сечение""|""Сечение""|1|""d16;d20;d25;d32""|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
+                            """Длина кабеля, м.""|""Длина кабеля, м.""|2|""""||""50""|TRUE|FALSE|1033|0", _
+                            """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
+                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
+                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1033|0", _
+                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
+                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionObject
+RowNumber = visRowLine 'Line Format
+            arrRowName = Array("")
+                    arrRowValue = Array("1|0.2 mm|0|0|0|0|0%|1|1|0 mm")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+End Sub
+
+Sub SetRoute(vsoObject As Object)
+'Делает из линии маршрут
+    Dim mastshp As Visio.Shape
+    Dim arrRowValue()
+    Dim arrRowName()
+    Dim arrMast()
+    Dim SectionNumber As Long
+    Dim RowNumber As Long
+
+SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("Begin", "End", "Dlina")
+            arrRowValue = Array("""""|""""|2|""""|0|""""|FALSE|FALSE|1049|0", _
+                            """""|""""|2|""""|0|""""|FALSE|FALSE|1049|0", _
+                            """""|""""|2|""""|0|""""|FALSE|FALSE|1049|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+vsoObject.Characters.AddCustomFieldU "Prop.Begin&""-""&Prop.End", visFmtNumGenNoUnits
+
+
+End Sub
+
 
 Public Sub RouteCable_old(shpSensorFSA As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
