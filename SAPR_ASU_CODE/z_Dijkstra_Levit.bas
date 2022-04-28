@@ -2,7 +2,7 @@
 ' Module        : Dijkstra_Levit - Нахождение кратчайших путей из одной точки в другую
 ' Author        : gtfox
 ' Date          : 2022.02.17
-' Description   : Автопрокладка кабелей по лоткам, подсчет длины, выноски кабелей
+' Description   : Автопрокладка кабелей по лоткам, подсчет длины, выноски кабелей (KabeliPLAN)
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
                 'на основе:
@@ -16,10 +16,9 @@
 Option Explicit
 
 Private Const INF As Double = 1E+100 'значение бесконечности
-Private Const maxEdge As Long = 20 'максимальное кол-во ребер для каждой вершины
+Const maxEdge As Long = 8 'максимальное кол-во ребер для каждой вершины
 
-Private Type Vertex 'тип для описания вершин
-    name As String 'наименование вершины
+Type Vertex 'тип для описания вершин
     d As Double 'дистанция до текущей вершины
     p As Long '"предок" до текущей вершины
     u As Boolean 'метка о прохождении вершины, используется в алгоритме Дейкстры
@@ -29,35 +28,20 @@ Private Type Vertex 'тип для описания вершин
     dGraph(1 To maxEdge) As Double 'массив дистанций до смежных вершин
 End Type
 
-Sub Main() 'алгоритмом Дейкстры
-    Dim out
-    out = MyDijkstra(Range("Graph"), Range("Vertex"), [b3].Value, [c3].Value)
-    Range("B6:E22").ClearContents
-    If IsArray(out) Then
-        Range("B6").ReSize(UBound(out), 4) = out
-    End If
+Sub Main() 'Дейкстра
+    MakeGraph g 'создаем граф
+    MyDijkstra g, rStart, rEnd 'Находим кратчайший маршрут
 End Sub
 
-Sub Main2() 'алгоритмом Левита
-    Dim out
-    out = MyLevit(Range("Graph"), Range("Vertex"), [b3].Value, [c3].Value)
-    Range("B6:E22").ClearContents
-    If IsArray(out) Then
-        Range("B6").ReSize(UBound(out), 4) = out
-    End If
+Sub Main2() 'Левит
+
 End Sub
 
-Function MyDijkstra(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
-    'реализовано в виде функции, возвращающей массив
-    'rngGraph - исходный граф
-    'rngVertex - перечень вершин
+Sub MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
     's1 - начальная вершина
     's2 - конечная вершина
     
-    Dim g() As Vertex
     Dim n As Long, i As Long, j As Long, v As Long, t As Long, d As Double
-    
-    Call MakeGraph(g, rngGraph, rngVertex) 'создаем граф
     n = UBound(g) 'количество вершин
     g(s1).d = 0 'дистанция до начальной точки равна нулю
     g(s1).p = s1 'предок отсутствует
@@ -102,7 +86,7 @@ Function MyDijkstra(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Lon
         Next j
         MyDijkstra = out
     End If
-End Function
+End Sub
 
 Function MyLevit(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
     'реализовано в виде функции, возвращающей массив
@@ -172,23 +156,37 @@ Function MyLevit(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
     End If
 End Function
 
-Sub MakeGraph(graph() As Vertex, rngGraph As Range, rngVertex As Range) 'процедура создания графа
-    Dim DataGraph, DataVertex, i As Long, j As Long, k As Long
+Sub MakeGraph(graph() As Vertex) 'процедура создания графа
+    Dim selSelection As Visio.Selection
+    Dim shpRoute As Visio.Shape
+    Dim i As Long
+    Dim k As Long
+    Dim MaxPoint As Integer
     
-    DataGraph = rngGraph.Value 'двумерный массив с путями
-    DataVertex = rngVertex.Value 'массив с наименованием вершин
+    'Выбираем все маршруты
+    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, "temp") ' "{Слои отсутствуют}"
+    'Находим максимальное количество точек машрутов на графе
+    For Each shpRoute In selSelection
+        If MaxPoint < shpRoute.Cells("Prop.Begin").Result(0) Then MaxPoint = shpRoute.Cells("Prop.Begin").Result(0)
+        If MaxPoint < shpRoute.Cells("Prop.End").Result(0) Then MaxPoint = shpRoute.Cells("Prop.End").Result(0)
+    Next
+    ReDim graph(1 To MaxPoint) As Vertex
     
-    ReDim graph(1 To UBound(DataVertex)) As Vertex
-    For i = 1 To UBound(DataGraph)
-        If i <= UBound(DataVertex) Then graph(i).name = DataVertex(i, 1)
-        graph(i).d = INF
-        k = 0
-        For j = 1 To UBound(DataGraph, 2)
-            If DataGraph(i, j) > 0 Then
+    'Заполняем граф
+    For i = 1 To MaxPoint
+        For Each shpRoute In selSelection
+            If shpRoute.Cells("Prop.Begin").Result(0) = i Then
                 k = k + 1
                 graph(i).edgeCount = k
-                graph(i).nGraph(k) = j
-                graph(i).dGraph(k) = DataGraph(i, j)
+                graph(i).nGraph(k) = shpRoute.Cells("Prop.End").Result(0)
+                graph(i).dGraph(k) = shpRoute.Cells("Prop.Dlina").Result(0)
+            ElseIf shpRoute.Cells("Prop.End").Result(0) = i Then
+                k = k + 1
+                graph(i).edgeCount = k
+                graph(i).nGraph(k) = shpRoute.Cells("Prop.Begin").Result(0)
+                graph(i).dGraph(k) = shpRoute.Cells("Prop.Dlina").Result(0)
             End If
-    Next j, i
+        Next
+        graph(i).d = INF
+    Next
 End Sub
