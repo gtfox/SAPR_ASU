@@ -19,6 +19,7 @@ Private Const INF As Double = 1E+100 'значение бесконечност�
 Const maxEdge As Long = 8 'максимальное кол-во ребер для каждой вершины
 
 Type Vertex 'тип для описания вершин
+    name As Integer 'Имя вершины
     d As Double 'дистанция до текущей вершины
     p As Long '"предок" до текущей вершины
     u As Boolean 'метка о прохождении вершины, используется в алгоритме Дейкстры
@@ -37,10 +38,10 @@ Sub Main2() 'Левит
 
 End Sub
 
-Sub MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
+Function MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
     's1 - начальная вершина
     's2 - конечная вершина
-    
+    Dim out()
     Dim n As Long, i As Long, j As Long, v As Long, t As Long, d As Double
     n = UBound(g) 'количество вершин
     g(s1).d = 0 'дистанция до начальной точки равна нулю
@@ -64,29 +65,20 @@ Sub MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
     Next i
     
     If g(s2).p <> 0 Then 'если путь найден
-        ReDim tmp(1 To n, 1 To 3)
+        ReDim out(1 To n, 1 To 3)
         j = s2
         i = 0
         Do 'заносим элементы пути во временный массив
            i = i + 1
-           tmp(i, 1) = g(g(j).p).name
-           tmp(i, 2) = g(j).name
-           tmp(i, 3) = g(j).d
+           out(i, 1) = g(g(j).p).name
+           out(i, 2) = g(j).name
+           out(i, 3) = g(j).d
            j = g(j).p
         Loop While j <> s1
         
-        ReDim out(1 To i, 1 To 4) 'создаем выходной массив, переворачивая временный
-        d = 0
-        For j = 1 To i
-            out(j, 1) = tmp(i - j + 1, 1)
-            out(j, 2) = tmp(i - j + 1, 2)
-            out(j, 4) = tmp(i - j + 1, 3)
-            out(j, 3) = out(j, 4) - d
-            d = d + out(j, 3)
-        Next j
         MyDijkstra = out
     End If
-End Sub
+End Function
 
 Function MyLevit(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
     'реализовано в виде функции, возвращающей массив
@@ -132,31 +124,22 @@ Function MyLevit(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
     Wend
         
     If g(s2).p <> 0 Then 'если путь найден
-        ReDim tmp(1 To n, 1 To 3)
+        ReDim out(1 To n, 1 To 3)
         j = s2
         i = 0
-        Do 'заносим элементы пути во временный массив
+        Do 'заносим элементы пути в массив
            i = i + 1
-           tmp(i, 1) = g(g(j).p).name
-           tmp(i, 2) = g(j).name
-           tmp(i, 3) = g(j).d
+           out(i, 1) = g(g(j).p).name
+           out(i, 2) = g(j).name
+           out(i, 3) = g(j).d
            j = g(j).p
         Loop While j <> s1
         
-        ReDim out(1 To i, 1 To 4) 'создаем выходной массив, переворачивая временный
-        d = 0
-        For j = 1 To i
-            out(j, 1) = tmp(i - j + 1, 1)
-            out(j, 2) = tmp(i - j + 1, 2)
-            out(j, 4) = tmp(i - j + 1, 3)
-            out(j, 3) = out(j, 4) - d
-            d = d + out(j, 3)
-        Next j
         MyLevit = out
     End If
 End Function
 
-Sub MakeGraph(graph() As Vertex) 'процедура создания графа
+Sub MakeGraph(graph() As Vertex, vsoLayer As Visio.Layer) 'процедура создания графа
     Dim selSelection As Visio.Selection
     Dim shpRoute As Visio.Shape
     Dim i As Long
@@ -164,7 +147,7 @@ Sub MakeGraph(graph() As Vertex) 'процедура создания графа
     Dim MaxPoint As Integer
     
     'Выбираем все маршруты
-    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, "temp") ' "{Слои отсутствуют}"
+    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer.name) ' "{Слои отсутствуют}"
     'Находим максимальное количество точек машрутов на графе
     For Each shpRoute In selSelection
         If MaxPoint < shpRoute.Cells("Prop.Begin").Result(0) Then MaxPoint = shpRoute.Cells("Prop.Begin").Result(0)
@@ -187,6 +170,7 @@ Sub MakeGraph(graph() As Vertex) 'процедура создания графа
                 graph(i).dGraph(k) = shpRoute.Cells("Prop.Dlina").Result(0)
             End If
         Next
+        graph(i).name = i
         graph(i).d = INF
     Next
 End Sub

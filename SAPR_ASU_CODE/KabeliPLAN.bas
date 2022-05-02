@@ -12,6 +12,7 @@ Dim vsoShape As Visio.Shape
 Dim vsoLayer As Visio.Layer
 Dim colShapePoints As Collection
 Dim PointNumber As Integer
+Const kRound = 4 'Округление коорданат (число цифр после запятой)
 
 
 Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
@@ -57,6 +58,8 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     Dim colLotok As Collection
     Dim colLineShort As Collection
     
+    Dim StartRoute As Integer
+    Dim EndRoute As Integer
     
     Dim vsoShapeLayer As Visio.Layer
     
@@ -83,11 +86,14 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     
     Dim shpSensorFSA As Visio.Shape
     Dim colSensorFSA As Collection
+    Dim colShkafov As Collection
 
     Dim LastPointNumber As Integer
+    Dim clsShapePoint As classShapePoint
     Dim clsShpPnt As classShapePoint
 
-    Dim colShkafov As Collection
+    Dim graph() As Vertex
+    Dim masRoute()
     
     AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
@@ -112,18 +118,18 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
         If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
             For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
                 If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
-                    Set clsShpPnt = New classShapePoint
-                    clsShpPnt.PointNumber = colShapePoints.Count + 1
+                    Set clsShapePoint = New classShapePoint
+                    clsShapePoint.PointNumber = colShapePoints.Count + 1
                     Select Case shpLotok.Connects(i).FromPart
                         Case visBegin
-                            clsShpPnt.X = Round(shpLotok.Cells("BeginX").Result(0), 14)
-                            clsShpPnt.Y = Round(shpLotok.Cells("BeginY").Result(0), 14)
+                            clsShapePoint.X = Round(shpLotok.Cells("BeginX").Result(0), kRound)
+                            clsShapePoint.Y = Round(shpLotok.Cells("BeginY").Result(0), kRound)
                         Case visEnd
-                            clsShpPnt.X = Round(shpLotok.Cells("EndX").Result(0), 14)
-                            clsShpPnt.Y = Round(shpLotok.Cells("EndY").Result(0), 14)
+                            clsShapePoint.X = Round(shpLotok.Cells("EndX").Result(0), kRound)
+                            clsShapePoint.Y = Round(shpLotok.Cells("EndY").Result(0), kRound)
                     End Select
-                    Set clsShpPnt.ShapeOnFSA = shpLotok.Connects(i).ToSheet
-                    colShapePoints.Add clsShpPnt, CStr(clsShpPnt.PointNumber)
+                    Set clsShapePoint.ShapeOnFSA = shpLotok.Connects(i).ToSheet
+                    colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
                 End If
             Next
         End If
@@ -132,12 +138,12 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     'Находим датчики и точки их подключения
     For Each shpSensorFSA In ActivePage.Shapes
         If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
-            Set clsShpPnt = New classShapePoint
-            clsShpPnt.PointNumber = colShapePoints.Count + 1
-            clsShpPnt.X = Round(shpSensorFSA.Cells("PinX").Result(0), 14)
-            clsShpPnt.Y = Round(shpSensorFSA.Cells("PinY").Result(0), 14)
-            Set clsShpPnt.ShapeOnFSA = shpSensorFSA
-            colShapePoints.Add clsShpPnt, CStr(clsShpPnt.PointNumber)
+            Set clsShapePoint = New classShapePoint
+            clsShapePoint.PointNumber = colShapePoints.Count + 1
+            clsShapePoint.X = Round(shpSensorFSA.Cells("PinX").Result(0), kRound)
+            clsShapePoint.Y = Round(shpSensorFSA.Cells("PinY").Result(0), kRound)
+            Set clsShapePoint.ShapeOnFSA = shpSensorFSA
+            colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
         End If
     Next
     
@@ -304,24 +310,31 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
     For Each vsoShape In selLines
         If vsoShape.LayerCount > 0 Then
             If vsoShape.Layer(1).name = vsoLayer.name Then
-                'Именуем начало
+                'Находим точки начала и конца
                 If vsoShape.OneD Then '1-D фигура
                     'Находим точки начала и конца линии в 1D фигуре
-                    BeginX = Round(vsoShape.Cells("BeginX").Result(0), 14)
-                    BeginY = Round(vsoShape.Cells("BeginY").Result(0), 14)
-                    EndX = Round(vsoShape.Cells("EndX").Result(0), 14)
-                    EndY = Round(vsoShape.Cells("EndY").Result(0), 14)
+                    BeginX = Round(vsoShape.Cells("BeginX").Result(0), kRound)
+                    BeginY = Round(vsoShape.Cells("BeginY").Result(0), kRound)
+                    EndX = Round(vsoShape.Cells("EndX").Result(0), kRound)
+                    EndY = Round(vsoShape.Cells("EndY").Result(0), kRound)
                 Else '2-D фигура
                     'Находим точки начала и конца линии в 2D фигуре
-                    BeginX = Round(vsoShape.Cells("PinX").Result(0) - vsoShape.Cells("Width").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), 14)
-                    BeginY = Round(vsoShape.Cells("PinY").Result(0) - vsoShape.Cells("Height").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), 14)
-                    EndX = Round(vsoShape.Cells("PinX").Result(0) - vsoShape.Cells("Width").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), 14)
-                    EndY = Round(vsoShape.Cells("PinY").Result(0) - vsoShape.Cells("Height").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), 14)
+                    BeginX = Round(vsoShape.Cells("PinX").Result(0) - vsoShape.Cells("Width").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), kRound)
+                    BeginY = Round(vsoShape.Cells("PinY").Result(0) - vsoShape.Cells("Height").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), kRound)
+                    EndX = Round(vsoShape.Cells("PinX").Result(0) - vsoShape.Cells("Width").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), kRound)
+                    EndY = Round(vsoShape.Cells("PinY").Result(0) - vsoShape.Cells("Height").Result(0) * 0.5 + vsoShape.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), kRound)
                 End If
                 
-                'Именуем конец в этой точке
+                vsoShape.Cells("User.BeginX").Formula = BeginX
+                vsoShape.Cells("User.BeginY").Formula = BeginY
+                vsoShape.Cells("User.EndX").Formula = EndX
+                vsoShape.Cells("User.EndY").Formula = EndY
+                
+                'Именуем начало
                 If BeginX = colShapePoints(1).X And BeginY = colShapePoints(1).Y Then
                     vsoShape.Cells("Prop.Begin").Formula = PointNumber
+                
+                'Именуем конец в этой точке
                 ElseIf EndX = colShapePoints(1).X And EndY = colShapePoints(1).Y Then
                     vsoShape.Cells("Prop.End").Formula = PointNumber
                 End If
@@ -335,62 +348,103 @@ Public Sub RouteCable() '(shpSensorFSA As Visio.Shape)
         End If
     Next
 
-
-'----------------------------------------------------------------------------
 Exit Sub
+'----------------------------------------------------------------------------
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    'Dim UndoScopeID1 As Long
-
-
-    Set shpSensor = ShapeByHyperLink(shpSensorFSA.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
-    If Not shpSensor Is Nothing Then
-        MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
-    Else
-        MsgBox "Датчик не связан"
-        Exit Sub
-    End If
-    
-    'Находим кабели на плане (чтобы не проложить повторно)
-    For Each shpKabel In shpSensorFSA.ContainingPage.Shapes 'Перебираем все кабели
-        If ShapeSATypeIs(shpKabel, typeCablePL) Then
-            colCablesTemp.Add shpKabel, CStr(shpKabel.Cells("Prop.Number").ResultStr(0))
-        End If
-    Next
-    
-    'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
-    For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
-        If ShapeSATypeIs(vsoShape, typeSensorIO) Then
-            'Находим подключенные провода
-            Set vsoCollection = FillColWires(vsoShape)
-            nCount = colCablesTemp.Count
-            On Error Resume Next
-            colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").ResultStr(0)))
-            If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                colCables.Add vsoCollection.Item(1).Parent
-                nCount = colCablesTemp.Count
+    'Датчикам и шкафам присваиваем номера точек маршрутов
+    For Each clsShapePoint In colShapePoints
+        Set selLines = ActivePage.SpatialSearch(clsShapePoint.X, clsShapePoint.Y, visSpatialTouching, 0.02 * AntiScale, 0)
+        
+        'Перебираем маршруты
+        For Each shpRoute In selLines
+            If shpRoute.LayerCount > 0 Then
+                If shpRoute.Layer(1).name = vsoLayer.name Then
+                    If shpRoute.Cells("User.BeginX").Result(0) = clsShapePoint.X And shpRoute.Cells("User.BeginY").Result(0) = clsShapePoint.Y Then
+                        clsShapePoint.PointNumber = shpRoute.Cells("Prop.Begin").Result(0)
+                    ElseIf shpRoute.Cells("User.EndX").Result(0) = clsShapePoint.X And shpRoute.Cells("User.EndY").Result(0) = clsShapePoint.Y Then
+                        clsShapePoint.PointNumber = shpRoute.Cells("Prop.End").Result(0)
+                    End If
+                End If
             End If
-        End If
+        Next
     Next
-    If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "Info": Exit Sub
-    'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
-'    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
-'    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-    NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
+    
+    'Создаем граф маршрутов
+    MakeGraph graph, vsoLayer
+
+    'Перебираем датчики на ФСА
+    For Each clsShapePoint In colShapePoints
+        If ShapeSATypeIs(clsShapePoint.ShapeOnFSA, typeFSASensor) Then
+            Set shpSensorFSA = clsShapePoint.ShapeOnFSA
+            
+            'Находим датчик на схеме
+            Set shpSensor = ShapeByHyperLink(shpSensorFSA.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
+            If Not shpSensor Is Nothing Then
+                MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
+            Else
+                MsgBox "Датчик не связан"
+                Exit Sub
+            End If
+            
+            'Находим кабели на плане (чтобы не проложить повторно)
+            For Each shpKabel In shpSensorFSA.ContainingPage.Shapes 'Перебираем все кабели
+                If ShapeSATypeIs(shpKabel, typeCablePL) Then
+                    colCablesTemp.Add shpKabel, CStr(shpKabel.Cells("Prop.Number").ResultStr(0))
+                End If
+            Next
+            
+            'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
+            For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
+                If ShapeSATypeIs(vsoShape, typeSensorIO) Then
+                    'Находим подключенные провода
+                    Set vsoCollection = FillColWires(vsoShape)
+                    nCount = colCablesTemp.Count
+                    On Error Resume Next
+                    colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").ResultStr(0)))
+                    If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                        colCables.Add vsoCollection.Item(1).Parent
+                        nCount = colCablesTemp.Count
+                    End If
+                End If
+            Next
+            If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "Info": Exit Sub
+            'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
+        '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
+        '    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+            NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
+            
+            'Номер точки начала машрута
+            StartRoute = clsShapePoint.PointNumber
+            
+            'Находим шкаф по названию схемы
+            For Each clsShpPnt In colShapePoints
+                If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typeBox) Then
+                    If clsShpPnt.ShapeOnFSA.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
+                        EndRoute = clsShpPnt.PointNumber 'Номер точки конца машрута
+                        Exit For
+                    End If
+                End If
+            Next
+        End If
+        
+        'Находим кратчайший маршрут по алгоритму Дейкстры
+        masRoute = MyDijkstra(graph, StartRoute, EndRoute)
+        
+        'Выделяем куски маршрута
+        selLines.DeselectAll
+        For i = 1 To UBound(masRoute, 1)
+            Set shpRoute = ActivePage.Shapes(masRoute(i, 1) & "-" & masRoute(i, 2))
+            'Надо собирать куски лотков для СП, и их последовательность для КЖ
+            '*-*-*-*-*-*-*-*
+            selLines.Select shpRoute, visSelect
+        Next
+        
+        
+        
+    Next
+
+    
+
 
     
     
@@ -603,17 +657,22 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape)
 
     If shpRouteToPoint.OneD Then '1-D фигура
         'Находим точки начала и конца линии в 1D фигуре
-        BeginX = Round(shpRouteToPoint.Cells("BeginX").Result(0), 14)
-        BeginY = Round(shpRouteToPoint.Cells("BeginY").Result(0), 14)
-        EndX = Round(shpRouteToPoint.Cells("EndX").Result(0), 14)
-        EndY = Round(shpRouteToPoint.Cells("EndY").Result(0), 14)
+        BeginX = Round(shpRouteToPoint.Cells("BeginX").Result(0), kRound)
+        BeginY = Round(shpRouteToPoint.Cells("BeginY").Result(0), kRound)
+        EndX = Round(shpRouteToPoint.Cells("EndX").Result(0), kRound)
+        EndY = Round(shpRouteToPoint.Cells("EndY").Result(0), kRound)
     Else '2-D фигура
         'Находим точки начала и конца линии в 2D фигуре
-        BeginX = Round(shpRouteToPoint.Cells("PinX").Result(0) - shpRouteToPoint.Cells("Width").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), 14)
-        BeginY = Round(shpRouteToPoint.Cells("PinY").Result(0) - shpRouteToPoint.Cells("Height").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), 14)
-        EndX = Round(shpRouteToPoint.Cells("PinX").Result(0) - shpRouteToPoint.Cells("Width").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), 14)
-        EndY = Round(shpRouteToPoint.Cells("PinY").Result(0) - shpRouteToPoint.Cells("Height").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), 14)
+        BeginX = Round(shpRouteToPoint.Cells("PinX").Result(0) - shpRouteToPoint.Cells("Width").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), kRound)
+        BeginY = Round(shpRouteToPoint.Cells("PinY").Result(0) - shpRouteToPoint.Cells("Height").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), kRound)
+        EndX = Round(shpRouteToPoint.Cells("PinX").Result(0) - shpRouteToPoint.Cells("Width").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), kRound)
+        EndY = Round(shpRouteToPoint.Cells("PinY").Result(0) - shpRouteToPoint.Cells("Height").Result(0) * 0.5 + shpRouteToPoint.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), kRound)
     End If
+    
+    shpRouteToPoint.Cells("User.BeginX").Formula = BeginX
+    shpRouteToPoint.Cells("User.BeginY").Formula = BeginY
+    shpRouteToPoint.Cells("User.EndX").Formula = EndX
+    shpRouteToPoint.Cells("User.EndY").Formula = EndY
     
     If shpRouteToPoint.Cells("Prop.Begin").Result(0) = 0 Or shpRouteToPoint.Cells("Prop.End").Result(0) = 0 Then
         'Находим точку на другом конце
@@ -632,7 +691,7 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape)
         Exit Sub
     End If
     
-    'Сканируем маршруты в этой точке (максимум 4(4 стороны света))находим ближайшие линии
+    'Сканируем маршруты в этой точке (максимум 8(4 стороны света +45 градусов))находим ближайшие линии
     Set selLines = ActivePage.SpatialSearch(clsPoint.X, clsPoint.Y, visSpatialTouching, 0.02 * AntiScale, 0)
 
     Set colRoute = New Collection
@@ -650,10 +709,15 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape)
         If shpRoute.OneD Then '1-D фигура
         
             'Находим точки начала и конца линии в 1D фигуре
-            BeginX = Round(shpRoute.Cells("BeginX").Result(0), 14)
-            BeginY = Round(shpRoute.Cells("BeginY").Result(0), 14)
-            EndX = Round(shpRoute.Cells("EndX").Result(0), 14)
-            EndY = Round(shpRoute.Cells("EndY").Result(0), 14)
+            BeginX = Round(shpRoute.Cells("BeginX").Result(0), kRound)
+            BeginY = Round(shpRoute.Cells("BeginY").Result(0), kRound)
+            EndX = Round(shpRoute.Cells("EndX").Result(0), kRound)
+            EndY = Round(shpRoute.Cells("EndY").Result(0), kRound)
+            
+            shpRoute.Cells("User.BeginX").Formula = BeginX
+            shpRoute.Cells("User.BeginY").Formula = BeginY
+            shpRoute.Cells("User.EndX").Formula = EndX
+            shpRoute.Cells("User.EndY").Formula = EndY
 
             'Нет именованных концов
             If shpRoute.Cells("Prop.Begin").Result(0) = 0 And shpRoute.Cells("Prop.End").Result(0) = 0 Then
@@ -696,10 +760,15 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape)
         Else '2-D фигура
         
             'Находим точки начала и конца линии в 2D фигуре
-            BeginX = Round(shpRoute.Cells("PinX").Result(0) - shpRoute.Cells("Width").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), 14)
-            BeginY = Round(shpRoute.Cells("PinY").Result(0) - shpRoute.Cells("Height").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), 14)
-            EndX = Round(shpRoute.Cells("PinX").Result(0) - shpRoute.Cells("Width").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), 14)
-            EndY = Round(shpRoute.Cells("PinY").Result(0) - shpRoute.Cells("Height").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), 14)
+            BeginX = Round(shpRoute.Cells("PinX").Result(0) - shpRoute.Cells("Width").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), kRound)
+            BeginY = Round(shpRoute.Cells("PinY").Result(0) - shpRoute.Cells("Height").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), kRound)
+            EndX = Round(shpRoute.Cells("PinX").Result(0) - shpRoute.Cells("Width").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), kRound)
+            EndY = Round(shpRoute.Cells("PinY").Result(0) - shpRoute.Cells("Height").Result(0) * 0.5 + shpRoute.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), kRound)
+
+            shpRoute.Cells("User.BeginX").Formula = BeginX
+            shpRoute.Cells("User.BeginY").Formula = BeginY
+            shpRoute.Cells("User.EndX").Formula = EndX
+            shpRoute.Cells("User.EndY").Formula = EndY
 
             'Нет именованных концов
             If shpRoute.Cells("Prop.Begin").Result(0) = 0 And shpRoute.Cells("Prop.End").Result(0) = 0 Then
@@ -1145,6 +1214,15 @@ Sub SetRoute(vsoObject As Object)
     Dim arrMast()
     Dim SectionNumber As Long
     Dim RowNumber As Long
+    
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("BeginX", "BeginY", "EndX", "EndY")
+            arrRowValue = Array("0|""""", _
+                            "0|""""", _
+                            "0|""""", _
+                            "0|""""")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 SectionNumber = visSectionProp 'Prop 243
             arrRowName = Array("Begin", "End", "Dlina")
@@ -1557,10 +1635,10 @@ End Sub
 '        If shpWay.OneD Then '1-D фигура
 '
 '            'Находим точки начала и конца линии в 2D фигуре
-'            BeginX = Round(shpWay.Cells("BeginX").Result(0), 14)
-'            BeginY = Round(shpWay.Cells("BeginY").Result(0), 14)
-'            EndX = Round(shpWay.Cells("EndX").Result(0), 14)
-'            EndY = Round(shpWay.Cells("EndY").Result(0), 14)
+'            BeginX = Round(shpWay.Cells("BeginX").Result(0), kRound)
+'            BeginY = Round(shpWay.Cells("BeginY").Result(0), kRound)
+'            EndX = Round(shpWay.Cells("EndX").Result(0), kRound)
+'            EndY = Round(shpWay.Cells("EndY").Result(0), kRound)
 '
 '            'Нет именованных концов
 '            If shpWay.Cells("Prop.Begin").Result(0) = 0 And shpWay.Cells("Prop.End").Result(0) = 0 Then
@@ -1621,10 +1699,10 @@ End Sub
 '        Else '2-D фигура
 '
 '            'Находим точки начала и конца линии в 2D фигуре
-'            BeginX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), 14)
-'            BeginY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), 14)
-'            EndX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), 14)
-'            EndY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), 14)
+'            BeginX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), kRound)
+'            BeginY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), kRound)
+'            EndX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), kRound)
+'            EndY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), kRound)
 '
 '            'Нет именованных концов
 '            If shpWay.Cells("Prop.Begin").Result(0) = 0 And shpWay.Cells("Prop.End").Result(0) = 0 Then
