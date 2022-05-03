@@ -29,14 +29,6 @@ Type Vertex 'тип для описания вершин
     dGraph(1 To maxEdge) As Double 'массив дистанций до смежных вершин
 End Type
 
-Sub Main() 'Дейкстра
-    MakeGraph g 'создаем граф
-    MyDijkstra g, rStart, rEnd 'Находим кратчайший маршрут
-End Sub
-
-Sub Main2() 'Левит
-
-End Sub
 
 Function MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
     's1 - начальная вершина
@@ -80,18 +72,13 @@ Function MyDijkstra(g() As Vertex, s1 As Long, s2 As Long)
     End If
 End Function
 
-Function MyLevit(rngGraph As Range, rngVertex As Range, s1 As Long, s2 As Long)
-    'реализовано в виде функции, возвращающей массив
-    'rngGraph - исходный граф
-    'rngVertex - перечень вершин
+Function MyLevit(g() As Vertex, s1 As Long, s2 As Long)
     's1 - начальная вершина
     's2 - конечная вершина
-    
-    Dim g() As Vertex
+    Dim out()
     Dim n As Long, i As Long, j As Long, v As Long, t As Long, d As Double
     Dim qh As Long, qt As Long 'индексы в очереди
     
-    Call MakeGraph(g, rngGraph, rngVertex) 'создаем граф
     n = UBound(g) 'количество вершин
     ReDim q(1 To n) As Long 'массив индексов очереди
     g(s1).d = 0 'дистанция до начальной точки равна нулю
@@ -172,5 +159,6 @@ Sub MakeGraph(graph() As Vertex, vsoLayer As Visio.Layer) 'процедура с
         Next
         graph(i).name = i
         graph(i).d = INF
+        k = 0
     Next
 End Sub
