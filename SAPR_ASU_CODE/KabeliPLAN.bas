@@ -108,17 +108,16 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     
     AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
     
-    Set colLine = New Collection
-    Set colLotok = New Collection
-    Set colLineShort = New Collection
+
+    
     Set vsoCollection = New Collection
-    Set colCables = New Collection
-    Set colCablesTemp = New Collection
+    
+    
     
 
     
     
-    Set selSelection = ActiveWindow.Selection
+    
     
     Set colShkafov = New Collection
     Set colSensorFSA = New Collection
@@ -162,6 +161,12 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     For Each shpSensorFSA In ActivePage.Shapes
         If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
         
+            Set colLine = New Collection
+            Set colLotok = New Collection
+            Set colLineShort = New Collection
+            ActiveWindow.DeselectAll
+            Set selSelection = ActiveWindow.Selection
+    
             SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
             SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
             PageWidth = shpSensorFSA.ContainingPage.PageSheet.Cells("PageWidth").Result(0)
@@ -294,16 +299,15 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
         If ShapeSATypeIs(vsoShape, typeFSASensor) Then
             dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
             dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
-            Set shpSensorFSATemp = vsoShape
+            vsoShape.Delete 'убираем временный датчик
+            Exit For
         End If
-        vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-        vsoLayer1.Add vsoShape, 0 'Добавляем все на временный слой
     Next
+    
     'и сдвигаем на место
     ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
     
     'разбиваем
-    shpSensorFSATemp.Delete 'убираем лишнее перед trim
     ActiveWindow.Selection.Trim 'разбиваем
     
     'Создаем из линий маршруты
@@ -353,7 +357,7 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                 'Заполняем свойство длина
                 vsoShape.Cells("Prop.Dlina").Formula = CableLength(vsoShape)
                 
-                'Заполняет пути именами точек
+                'Заполняем пути именами точек
                 FillRoute vsoShape, vsoLayer1
             End If
         End If
@@ -383,6 +387,8 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     'Перебираем датчики на ФСА
     For Each clsShapePoint In colShapePoints
         If ShapeSATypeIs(clsShapePoint.ShapeOnFSA, typeFSASensor) Then
+            Set colCables = New Collection
+            Set colCablesTemp = New Collection
             Set shpSensorFSA = clsShapePoint.ShapeOnFSA
             
             'Находим датчик на схеме
@@ -437,6 +443,14 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                         Exit For
                     End If
                 End If
+            Next
+            
+            'Очищаем предыдущий маршрут
+            For i = 1 To UBound(graph, 1)
+                graph(i).d = INF
+                graph(i).p = 0
+                graph(i).id = 0
+                graph(i).u = False
             Next
             
             'Находим кратчайший маршрут по алгоритму Дейкстры
@@ -495,6 +509,10 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
             'Выделяем датчик для поиска смещения
             selLines.Select shpSensorFSA, visSelect
             
+            'Сохраняем координаты датчика
+            SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
+            SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
+                        
             'Копируем и вставляем на временном слое
             selLines.Copy
             Set vsoLayer2 = Application.ActiveWindow.Page.Layers.Add("temp2") 'Временный слой
@@ -506,20 +524,18 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                 If ShapeSATypeIs(vsoShape, typeFSASensor) Then
                     dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
                     dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
-                    Set shpSensorFSATemp = vsoShape
+                    vsoShape.Delete 'убираем временный датчик
+                    Exit For
                 End If
-                vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-                vsoLayer2.Add vsoShape, 0 'Добавляем все на временный слой
             Next
             ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY 'и сдвигаем на место
-            shpSensorFSATemp.Delete 'убираем лишнее
+
             'соединяем
             Application.ActiveWindow.Selection.Join
             Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer2) 'выделяем все в слое
             Set shpKabelPLPattern = selSelection.PrimaryItem 'Таки профит! Гребаный кабель случился!
-            'Убираем с временного слоя
-            vsoLayer2.Remove shpKabelPLPattern, 0
-            vsoLayer1.Remove shpKabelPLPattern, 0
+            'Убираем с временных слоёв
+            shpKabelPLPattern.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
             'Чистим вспомогательную графику
             vsoLayer2.Delete True
             
