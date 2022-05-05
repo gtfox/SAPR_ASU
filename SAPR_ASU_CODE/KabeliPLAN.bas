@@ -57,6 +57,7 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     Dim colLine As Collection
     Dim colLotok As Collection
     Dim colLineShort As Collection
+
     
     Dim StartRoute As Long
     Dim EndRoute As Long
@@ -70,6 +71,8 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     Dim vsoShapeLayer As Visio.Layer
     Dim vsoLayer1 As Visio.Layer
     Dim vsoLayer2 As Visio.Layer
+    Dim vsoLayer3 As Visio.Layer
+    Dim vsoLayer4 As Visio.Layer
     
     Dim SensorFSAPinX As Double
     Dim SensorFSAPinY As Double
@@ -111,6 +114,7 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
 
     
     Set vsoCollection = New Collection
+
     
     
     
@@ -122,7 +126,10 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     Set colShkafov = New Collection
     Set colSensorFSA = New Collection
     Set colShapePoints = New Collection
-
+    
+    Set vsoLayer3 = Application.ActiveWindow.Page.Layers.Add("temp3") 'слой для коротких линий(для удаления)
+    Set vsoLayer4 = Application.ActiveWindow.Page.Layers.Add("SA_Kabeli") 'слой для кабелей
+    
     'Находим шкафы и точки их подключения
     For Each shpLotok In ActivePage.Shapes
         If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
@@ -234,23 +241,36 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
             shpSensorFSATemp.Delete 'убираем лишнее перед trim
             ActiveWindow.Selection.Trim 'разбиваем
         
-            'находим ближайшие линии
+            'находим ближайшие линии которые касаются лотка
             Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02 * AntiScale, 0)
             For Each vsoShape In selLines
                 If vsoShape.LayerCount > 0 Then
                     If vsoShape.Layer(1).name = vsoLayer1.name Then
-                        colLineShort.Add vsoShape
+                        'Проверяем что линия касается лотка
+                        Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
+                        For Each vsoShapeTemp In selSelectionTemp
+                            If ShapeSATypeIs(vsoShapeTemp, typeDuctPlan) Then
+                                colLineShort.Add vsoShape
+                                Exit For
+                            End If
+                        Next
                     End If
                 End If
             Next
             
             'находим самую короткую
-            Set shpShortLine = colLineShort.Item(1)
-            For i = 2 To colLineShort.Count
-                If colLineShort.Item(i).Cells("Width").Result(0) < shpShortLine.Cells("Width").Result(0) Then
-                    Set shpShortLine = colLineShort.Item(i)
-                End If
-            Next
+            If colLineShort.Count = 0 Then
+                MsgBox "Нет лотков поблизости " & shpSensorFSA.NameID
+            ElseIf colLineShort.Count = 1 Then
+                Set shpShortLine = colLineShort.Item(1)
+            ElseIf colLineShort.Count > 1 Then
+                Set shpShortLine = colLineShort.Item(1)
+                For i = 2 To colLineShort.Count
+                    If colLineShort.Item(i).Cells("Width").Result(0) < shpShortLine.Cells("Width").Result(0) Then
+                        Set shpShortLine = colLineShort.Item(i)
+                    End If
+                Next
+            End If
             
             'Убираем ее с временного слоя
              vsoLayer1.Remove shpShortLine, 0
@@ -262,8 +282,31 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
             shpLineRight.Delete
             vsoLayer1.Delete True
             
-            'Создаем свойства для гофры в линии (тип как у лотка typeDuctPlan = 170)
-            SetGofra shpShortLine
+            'Создаем свойства для линии (тип как у лотка typeDuctPlan = 170)
+            With shpShortLine
+                .AddSection visSectionUser
+                .AddRow visSectionUser, visRowLast, visTagDefault
+                .CellsSRC(visSectionUser, visRowLast, visUserValue).RowNameU = "SAType"
+                .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = "170"
+                .AddSection visSectionProp
+                .AddRow visSectionProp, visRowLast, visTagDefault
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "SymName"
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Букв. обозначение"""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Букв. обозначение"""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "0"
+                .AddRow visSectionProp, visRowLast, visTagDefault
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Ac3"
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Номер кабеля"""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Номер кабеля"""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
+                .AddRow visSectionProp, visRowLast, visTagDefault
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Dlina"
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Длина кабеля, м."""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Длина кабеля, м."""
+                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
+            End With
+
+            vsoLayer3.Add shpShortLine, 0
         End If
     Next
     
@@ -541,31 +584,12 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
             
             'Считаем длину кабеля
             DlinaKabelya = CableLength(shpKabelPLPattern)
-    
+            
             'Создаем свойтва шаблона кабеля на плане
+            SetGofra shpKabelPLPattern
             With shpKabelPLPattern
                 .CellsSRC(visSectionObject, visRowLine, visLinePattern).FormulaU = 1 'Обычная линия
                 .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.2 mm"
-                .AddSection visSectionUser
-                .AddRow visSectionUser, visRowLast, visTagDefault
-                .CellsSRC(visSectionUser, visRowLast, visUserValue).RowNameU = "SAType"
-                .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = "90"
-                .AddSection visSectionProp
-                .AddRow visSectionProp, visRowLast, visTagDefault
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "SymName"
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Букв. обозначение"""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Букв. обозначение"""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "0"
-                .AddRow visSectionProp, visRowLast, visTagDefault
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Number"
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Номер кабеля"""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Номер кабеля"""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
-                .AddRow visSectionProp, visRowLast, visTagDefault
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Dlina"
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Длина кабеля, м."""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Длина кабеля, м."""
-                .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
             End With
             
             'Перебираем все кабели в датчике
@@ -583,6 +607,8 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                     .Cells("Prop.Number").Formula = shpKabel.Cells("Prop.Number").Result(0)
                     .Cells("Prop.Dlina").Formula = DlinaKabelya
                 End With
+                'Переносим на слой кабелей
+                vsoLayer4.Add shpKabelPL, 0
                 
                 'Заполняем длину кабеля на эл.схеме (длина кабеля СВП ссылается формулой на эл.сх.)
                 shpKabel.Cells("Prop.Dlina").FormulaU = "Pages[" + shpKabelPL.ContainingPage.NameU + "]!" + shpKabelPL.NameID + "!Prop.Dlina"
@@ -598,6 +624,7 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
     Next
     
     vsoLayer1.Delete True
+    vsoLayer3.Delete True
     
     Exit Sub
     
@@ -954,49 +981,6 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
     End With
 
-'    If vsoSelection.Count = 0 Then
-'        Exit Sub
-'    End If
-'    Set vsoGroup = vsoSelection.Group
-'    vsoSelection.DeselectAll
-'    vsoSelection.Select vsoGroup, visSelect
-'    For Each shpSensorOnPLAN In vsoSelection
-'       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = """"""
-'       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = """"""
-'    Next
-'    'Копируем на план что насобирали
-'    vsoSelection.Copy
-'    For Each shpSensorOnPLAN In vsoSelection
-'       shpSensorOnPLAN.CellsU("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
-'       shpSensorOnPLAN.CellsU("EventMultiDrop").FormulaU = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
-'    Next
-'    vsoSelection.Ungroup
-'    'Отключаем события автоматизации (чтобы не перенумеровалось все)
-'    DoEvents
-'    Application.EventsEnabled = 0
-'    'Вставляем на листе план
-'    ActiveWindow.Page = ActiveDocument.Pages(vsoPagePlan.Name)
-'    ActivePage.Paste
-'    ActiveWindow.Selection.Ungroup
-'    'Включаем пункт меню "Проложить кабель"
-'    For Each shpSensorOnPLAN In ActiveWindow.Selection
-'       shpSensorOnPLAN.Cells("Actions.Kabel.Invisible").Formula = 0
-'       shpSensorOnPLAN.Cells("Actions.AddReference.Invisible").Formula = 1
-'       shpSensorOnPLAN.Cells("Prop.KanalNumber").Formula = 0
-''       shpSensorOnPLAN.Cells("User.Dropped").Formula = 0
-'    Next
-'    With ActiveWindow.Selection
-'        'Выравниваем по горизонтали
-'        .Align visHorzAlignNone, visVertAlignMiddle, False
-'        'Распределяем по горизонтали
-'        .Distribute visDistHorzSpace, False
-'        DoEvents
-'        'Поднимаем вверх
-'        .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
-'
-'    End With
-'    'Включаем события автоматизации
-'    Application.EventsEnabled = -1
 End Sub
 
 
@@ -1035,6 +1019,7 @@ Public Sub VynoskaPlan(Connects As IVConnects)
             Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
             For Each shpTouchingShapes In vsoSelection
                 If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Then
+'                    strLotok=
                     colNum.Add shpTouchingShapes
                 ElseIf ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
                     strLotok = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
@@ -1144,7 +1129,7 @@ SectionNumber = visSectionUser 'User 242
 sSectionName = "User."
             arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
             arrRowValue = Array("0|""""", _
-                            "170|", _
+                            "90|", _
                             "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
                             "0|""""", _
                             "Prop.SymName&"" ""&Prop.Ac3|""""", _
@@ -1154,13 +1139,13 @@ SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumbe
 
 SectionNumber = visSectionProp 'Prop 243
             arrRowName = Array("SymName", "Number", "AutoNum", "HideName", "HideNumber", "FullName", "Ac3", "Dlina", "NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
-            arrRowValue = Array("""Название""|""Название""|0||""Гофра""|""10""|FALSE|FALSE|1049|0", _
-                            """Номер провода""|""Номер провода""|2|""""||""20""|TRUE|FALSE|1033|0", _
+            arrRowValue = Array("""Название""|""Название""|1|""Гофра;Металлорукав""|INDEX(0,Prop.SymName.Format)|""10""|FALSE|FALSE|1049|0", _
+                            """Номер кабеля""|""Номер кабеля""|2|""""||""20""|TRUE|FALSE|1033|0", _
                             """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1033|0", _
                             """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1033|0", _
                             """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1033|0", _
                             """Имя лотка""|""Имя лотка""|0|""""|User.FullName|""91""|TRUE|FALSE|1033|0", _
-                            """Сечение""|""Сечение""|1|""d16;d20;d25;d32""|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
+                            """Сечение""|""Сечение""|1|IF(LOOKUP(Prop.SymName,Prop.SymName.Format),""Р3-ЦХ-15;Р3-ЦХ-18;Р3-ЦХ-22;Р3-ЦХ-32"",""d16;d20;d25;d32"")|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
                             """Длина кабеля, м.""|""Длина кабеля, м.""|2|""""||""50""|TRUE|FALSE|1033|0", _
                             """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
                             """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
@@ -1168,6 +1153,19 @@ SectionNumber = visSectionProp 'Prop 243
                             """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
                             """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
+            arrRowValue = Array("0|""""", _
+                            "90|", _
+                            "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
+                            "0|""""", _
+                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
+                            "0|""""", _
+                            "0|""Код позиции/Код производителя/Код единицы""")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
 
 SectionNumber = visSectionObject
 RowNumber = visRowLine 'Line Format
@@ -1206,529 +1204,3 @@ vsoObject.Characters.AddCustomFieldU "Prop.Begin&""-""&Prop.End", visFmtNumGenNo
 
 
 End Sub
-
-
-'Public Sub RouteCable_old(shpSensorFSA As Visio.Shape)
-''------------------------------------------------------------------------------------------------------------
-'' Macros        : RouteCable - Прокладывает кабель по ближайшему лотку
-'                'Определяет ближайший лоток и прокладывает кабель до шкафа
-'                '
-'                'Устарел, т.к. используется чисто графический способ, который сильно ограничен
-''------------------------------------------------------------------------------------------------------------
-'
-'    Dim shpKabel As Visio.Shape
-'    Dim shpKabelPL As Visio.Shape
-'    Dim shpKabelPLPattern As Visio.Shape
-'
-'    Dim colWires As Collection
-'    Dim colWiresIO As Collection
-'    Dim colCables As Collection
-'    Dim colCablesTemp As Collection
-'    Dim vsoMaster As Visio.Master
-'
-'    Dim shpLotok As Visio.Shape
-'    Dim shpLotokTemp As Visio.Shape
-'    Dim shpSensor As Visio.Shape
-'    'Dim shpSensorFSA As Visio.Shape
-'    Dim shpSensorFSATemp As Visio.Shape
-'    Dim shpShortLine As Visio.Shape
-'    Dim vsoShape As Visio.Shape
-'    Dim vsoShapeTemp As Visio.Shape
-'    Dim vsoCollection As Collection
-'
-'    Dim shpLineUp As Visio.Shape
-'    Dim shpLineDown As Visio.Shape
-'    Dim shpLineLeft As Visio.Shape
-'    Dim shpLineRight As Visio.Shape
-'    Dim selLineUp As Visio.Selection
-'    Dim selLineDown As Visio.Selection
-'    Dim selLineLeft As Visio.Selection
-'    Dim selLineRight As Visio.Selection
-'    Dim selSelection As Visio.Selection
-'    Dim selSelectionTemp As Visio.Selection
-'    Dim selLines As Visio.Selection
-'
-'    Dim colLine As Collection
-'    Dim colLotok As Collection
-'    Dim colLineShort As Collection
-'
-'    Dim vsoLayer As Visio.Layer
-'    Dim vsoShapeLayer As Visio.Layer
-'
-'    Dim SensorFSAPinX As Double
-'    Dim SensorFSAPinY As Double
-'    Dim dXSensorFSAPinX As Double
-'    Dim dYSensorFSAPinY As Double
-''    Dim BoxX As Double
-''    Dim BoxY As Double
-''    Dim LineX As Double
-''    Dim LineY As Double
-'    Dim PageWidth As Double
-'    Dim PageHeight As Double
-'    Dim AntiScale As Double
-'
-'    Dim DlinaKabelya As Double
-'    Dim nCount As Double
-'
-'    Dim BoxNumber As Integer 'Номер шкафа к которому подключен кабель/датчик
-'    Dim NazvanieShemy As String 'Название схемы шкафа к которому подключен кабель/датчик
-'    Dim i As Integer
-'    Dim n As Integer
-'    Dim MultiCable As Boolean
-'
-'    'Dim UndoScopeID1 As Long
-'
-'    AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
-'
-'    Set colLine = New Collection
-'    Set colLotok = New Collection
-'    Set colLineShort = New Collection
-'    Set vsoCollection = New Collection
-'    Set colCables = New Collection
-'    Set colCablesTemp = New Collection
-'
-'    Set selSelection = ActiveWindow.Selection
-'    Set shpSensor = ShapeByHyperLink(shpSensorFSA.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
-'    If Not shpSensor Is Nothing Then
-'        MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
-'    Else
-'        MsgBox "Датчик не связан"
-'        Exit Sub
-'    End If
-'
-'    'Находим кабели на плане (чтобы не проложить повторно)
-'    For Each shpKabel In shpSensorFSA.ContainingPage.Shapes 'Перебираем все кабели
-'        If ShapeSATypeIs(shpKabel, typeCablePL) Then
-'            colCablesTemp.Add shpKabel, CStr(shpKabel.Cells("Prop.Number").ResultStr(0))
-'        End If
-'    Next
-'
-'    'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
-'    For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
-'        If ShapeSATypeIs(vsoShape, typeSensorIO) Then
-'            'Находим подключенные провода
-'            Set vsoCollection = FillColWires(vsoShape)
-'            nCount = colCablesTemp.Count
-'            On Error Resume Next
-'            colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").ResultStr(0)))
-'            If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-'                colCables.Add vsoCollection.Item(1).Parent
-'                nCount = colCablesTemp.Count
-'            End If
-'        End If
-'    Next
-'    If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "Info": Exit Sub
-'    'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
-''    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
-''    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-'    NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
-'
-'    SensorFSAPinX = shpSensorFSA.Cells("PinX").Result(0)
-'    SensorFSAPinY = shpSensorFSA.Cells("PinY").Result(0)
-'    PageWidth = shpSensorFSA.ContainingPage.PageSheet.Cells("PageWidth").Result(0)
-'    PageHeight = shpSensorFSA.ContainingPage.PageSheet.Cells("PageHeight").Result(0)
-'
-'    'UndoScopeID1 = Application.BeginUndoScope("Вспомогательные построения")
-'
-'    'Рисуем линии во все стороны
-'    Set shpLineUp = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, PageHeight)
-'    Set shpLineDown = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, 0)
-'    Set shpLineLeft = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, 0, SensorFSAPinY)
-'    Set shpLineRight = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, PageWidth, SensorFSAPinY)
-'
-'    'Находим все пересечения
-'    Set selLineUp = shpLineUp.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-'    Set selLineDown = shpLineDown.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-'    Set selLineLeft = shpLineLeft.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-'    Set selLineRight = shpLineRight.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
-'
-'    'Выбираем лотки и линии
-'    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok, NazvanieShemy 'BoxNumber
-'    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok, NazvanieShemy 'BoxNumber
-'    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok, NazvanieShemy 'BoxNumber
-'    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok, NazvanieShemy 'BoxNumber
-'    If colLotok.Count = 0 Then 'нет лотков - выходим
-'        'Чистим вспомогательную графику
-'        shpLineUp.Delete
-'        shpLineDown.Delete
-'        shpLineLeft.Delete
-'        shpLineRight.Delete
-'        MsgBox "Нет лотков поблизости или не приклеен к ящику"
-'        Exit Sub
-'    End If
-'
-'    'Выделяем их
-'    selSelection.Select shpSensorFSA, visSelect
-'    For Each vsoShape In colLine
-'        selSelection.Select vsoShape, visSelect
-'    Next
-'    For Each vsoShape In colLotok
-'        selSelection.Select vsoShape, visSelect
-'    Next
-'
-'    'Копируем и вставляем на временном слое
-'    selSelection.Copy
-'    Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
-'    vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
-'    Application.ActiveWindow.Page.Paste
-'
-'
-'    'Находим смещение вставленного, относительно копированного
-'    For Each vsoShape In ActiveWindow.Selection
-'        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
-'            dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
-'            dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
-'            Set shpSensorFSATemp = vsoShape
-'        End If
-'        vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-'        vsoLayer.Add vsoShape, 0 'Добавляем все на временный слой
-'    Next
-'    'и сдвигаем на место
-'    ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
-'
-'    'разбиваем
-'    shpSensorFSATemp.Delete 'убираем лишнее перед trim
-'    ActiveWindow.Selection.Trim 'разбиваем
-'
-'    'находим ближайшие линии
-'    Set selLines = ActivePage.SpatialSearch(SensorFSAPinX, SensorFSAPinY, visSpatialTouching, 0.02 * AntiScale, 0)
-'    For Each vsoShape In selLines
-'        If vsoShape.LayerCount > 0 Then
-'            If vsoShape.Layer(1).name = vsoLayer.name Then
-'                colLineShort.Add vsoShape
-'            End If
-'        End If
-'    Next
-'
-'    'находим самую короткую
-'    Set shpShortLine = colLineShort.Item(1)
-'    For i = 2 To colLineShort.Count
-'        If colLineShort.Item(i).Cells("Width").Result(0) < shpShortLine.Cells("Width").Result(0) Then
-'            Set shpShortLine = colLineShort.Item(i)
-'        End If
-'    Next
-'
-'    'Убираем ее с временного слоя
-'     vsoLayer.Remove shpShortLine, 0
-'
-'    'Чистим вспомогательную графику
-'    shpLineUp.Delete
-'    shpLineDown.Delete
-'    shpLineLeft.Delete
-'    shpLineRight.Delete
-'    vsoLayer.Delete True
-'
-'    'Находим лоток идущий в наш шкаф и которого касается кратчайшая линия
-'    Set selSelection = shpShortLine.SpatialNeighbors(visSpatialTouching, 0.02, 0)
-'    For Each vsoShape In selSelection 'Шейпы в выделении
-'        If ShapeSATypeIs(vsoShape, typeDuctPlan) And (PointLotokToBox(vsoShape, NazvanieShemy)) Then 'Нашли лоток
-''            'Находим координаты точки в которой лоток подключен к шкафу
-''            For i = 1 To vsoShape.Connects.Count 'Перебираем подключенные концы лотка
-''                If vsoShape.Connects(i).ToSheet.Name Like "Box*" Then 'Выбираем только шкафы
-''                    If vsoShape.Connects(i).FromCell.Name Like "Begin*" Then
-''                        BoxX = vsoShape.Connects(i).FromSheet.Cells("BeginX").Result(0)
-''                        BoxY = vsoShape.Connects(i).FromSheet.Cells("BeginY").Result(0)
-''                    ElseIf vsoShape.Connects(i).FromCell.Name Like "End*" Then
-''                        BoxX = vsoShape.Connects(i).FromSheet.Cells("EndX").Result(0)
-''                        BoxY = vsoShape.Connects(i).FromSheet.Cells("EndY").Result(0)
-''                    End If
-''                End If
-''            Next
-'            Set shpLotok = vsoShape
-'            Exit For
-'        End If
-'    Next
-'
-''    'Находим координаты точки в которой лоток пересекается с кратчайшей линией
-''    If shpShortLine.Cells("BeginX").Result(0) = SensorFSAPinX Then
-''        LineX = shpShortLine.Cells("EndX").Result(0)
-''        LineY = shpShortLine.Cells("EndY").Result(0)
-''    ElseIf shpShortLine.Cells("EndX").Result(0) = SensorFSAPinX Then
-''        LineX = shpShortLine.Cells("BeginX").Result(0)
-''        LineY = shpShortLine.Cells("BeginY").Result(0)
-''    End If
-'
-'    'Выделяем лоток и кратчайшую линию до лотка
-'    ActiveWindow.DeselectAll
-'    Set selSelection = ActiveWindow.Selection
-'    selSelection.Select shpSensorFSA, visSelect
-'    selSelection.Select shpLotok, visSelect
-'    selSelection.Select shpShortLine, visSelect
-'
-'    'Копируем и вставляем на временном слое
-'    selSelection.Copy
-'    Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'новый слой
-'    vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
-'    Application.ActiveWindow.Page.Paste
-'
-'    'Находим смещение вставленного, относительно копированного
-'    For Each vsoShape In ActiveWindow.Selection
-'        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
-'            dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
-'            dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
-'            Set shpSensorFSATemp = vsoShape
-'        End If
-'        vsoShape.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-'        vsoLayer.Add vsoShape, 0 'Добавляем все на временный слой
-'    Next
-'    'и сдвигаем на место
-'    ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
-'
-'    'разбиваем
-'    shpSensorFSATemp.Delete 'убираем лишнее перед trim
-'    ActiveWindow.Selection.Trim 'разбиваем
-'
-'    'Находим ту часть разбитого лотка которая идет от кратчайшей линии до шкафа
-'    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer) 'выделяем все в слое
-'    'Для каждого делаем спатиал и ищем шкаф
-'    For Each vsoShape In selSelection
-'        Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0.02 * AntiScale, 0)
-'        For Each vsoShapeTemp In selSelectionTemp
-'            If ShapeSATypeIs(vsoShapeTemp, typeBox) Then
-'                If vsoShapeTemp.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
-'                    Set shpLotokTemp = vsoShape
-'                End If
-'            End If
-'        Next
-'    Next
-'
-'    'Убираем его с временного слоя
-'    vsoLayer.Remove shpLotokTemp, 0
-'    'Чистим вспомогательную графику
-'    vsoLayer.Delete True
-'
-'    'Соединяем найденный кусок с кратчайшей линией
-'    Set vsoLayer = Application.ActiveWindow.Page.Layers.Add("temp") 'Временный слой
-'    vsoLayer.CellsC(visLayerActive).FormulaU = "1" 'активируем
-'    shpLotokTemp.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-'    shpShortLine.Cells("LayerMember").FormulaU = "" 'Чистим старые слои
-'    vsoLayer.Add shpLotokTemp, 0 'Добавляем на временный слой
-'    vsoLayer.Add shpShortLine, 0 'Добавляем на временный слой
-'    ActiveWindow.DeselectAll
-'    ActiveWindow.Select shpLotokTemp, visSelect
-'    ActiveWindow.Select shpShortLine, visSelect
-'    Application.ActiveWindow.Selection.Join 'соединяем
-'    Set selSelection = Application.ActiveWindow.Page.CreateSelection(visSelTypeByLayer, visSelModeSkipSuper, vsoLayer) 'выделяем все в слое
-'    Set shpKabelPLPattern = selSelection.PrimaryItem 'Таки профит! Гребаный кабель случился!
-'    'Убираем с временного слоя
-'    vsoLayer.Remove shpKabelPLPattern, 0
-'    'Чистим вспомогательную графику
-'    vsoLayer.Delete True
-'
-'    'Считаем длину кабеля
-'    DlinaKabelya = CableLength(shpKabelPLPattern)
-'
-'    'Создаем свойтва шаблона кабеля на плане
-'    With shpKabelPLPattern
-'        .CellsSRC(visSectionObject, visRowLine, visLinePattern).FormulaU = 1 'Обычная линия
-'        .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.2 mm"
-'        .AddSection visSectionUser
-'        .AddRow visSectionUser, visRowLast, visTagDefault
-'        .CellsSRC(visSectionUser, visRowLast, visUserValue).RowNameU = "SAType"
-'        .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = "90"
-'        .AddSection visSectionProp
-'        .AddRow visSectionProp, visRowLast, visTagDefault
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "SymName"
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Букв. обозначение"""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Букв. обозначение"""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "0"
-'        .AddRow visSectionProp, visRowLast, visTagDefault
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Number"
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Номер кабеля"""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Номер кабеля"""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
-'        .AddRow visSectionProp, visRowLast, visTagDefault
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "Dlina"
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsLabel).FormulaForceU = """Длина кабеля, м."""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Длина кабеля, м."""
-'        .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
-'
-'    End With
-'
-'    'Перебираем все кабели в датчике
-'    For Each shpKabel In colCables
-'        Set shpKabelPL = shpKabelPLPattern.Duplicate
-'        'Сдвигаем на место
-'        shpKabelPL.Cells("PinX").Formula = shpKabelPLPattern.Cells("PinX").Result(0)
-'        shpKabelPL.Cells("PinY").Formula = shpKabelPLPattern.Cells("PinY").Result(0)
-'        'На задний план
-'        Application.ActiveWindow.Selection.SendToBack
-'        'Переименовываем кабель на плане и заполняем свойства
-'        With shpKabelPL
-'            .name = "KabelPL." & .id
-'            .Cells("Prop.SymName").Formula = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), """" & shpKabel.Cells("Prop.SymName").ResultStr(0) & """", """""")
-'            .Cells("Prop.Number").Formula = shpKabel.Cells("Prop.Number").Result(0)
-'            .Cells("Prop.Dlina").Formula = DlinaKabelya
-'        End With
-'
-'        'Заполняем длину кабеля на эл.схеме (длина кабеля СВП ссылается формулой на эл.сх.)
-'        shpKabel.Cells("Prop.Dlina").FormulaU = "Pages[" + shpKabelPL.ContainingPage.NameU + "]!" + shpKabelPL.NameID + "!Prop.Dlina"
-'    Next
-'
-'    'Удаляем шаблон кабеля
-'    shpKabelPLPattern.Delete
-'
-'    Application.ActiveWindow.DeselectAll
-'
-''    'Application.EndUndoScope UndoScopeID1, True
-'
-'End Sub
-'
-'Sub FillWay_OLD(ByVal clsShapePoint As classShapePoint)
-''------------------------------------------------------------------------------------------------------------
-'' Macros        : FillWay - Заполняет пути именами точек и длиной (рекурсивная)
-''------------------------------------------------------------------------------------------------------------
-'    Dim shpWay As Visio.Shape
-'    Dim colWay As Collection
-'    Dim BeginX As Double
-'    Dim BeginY As Double
-'    Dim EndX As Double
-'    Dim EndY As Double
-'
-'
-'    'Если это новая точка (не именованая) - именуем
-'    If clsShapePoint.PointNumber = 0 Then clsShapePoint.PointNumber = colShapePoints.Count + 1
-'    'Сканируем маршруты в этой точке (максимум 4(4 стороны света))находим ближайшие линии
-'    Set selLines = ActivePage.SpatialSearch(clsShapePoint.X, clsShapePoint.Y, visSpatialTouching, 0.02 * AntiScale, 0)
-'    Set colWay = New Collection
-'    For Each vsoShape In selLines
-'        If vsoShape.LayerCount > 0 Then
-'            If vsoShape.Layer(1).name = vsoLayer.name Then
-'                colWay.Add vsoShape
-'            End If
-'        End If
-'    Next
-'
-'    'Перебираем маршруты
-'    For Each shpWay In colWay
-'
-'
-'        If shpWay.OneD Then '1-D фигура
-'
-'            'Находим точки начала и конца линии в 2D фигуре
-'            BeginX = Round(shpWay.Cells("BeginX").Result(0), kRound)
-'            BeginY = Round(shpWay.Cells("BeginY").Result(0), kRound)
-'            EndX = Round(shpWay.Cells("EndX").Result(0), kRound)
-'            EndY = Round(shpWay.Cells("EndY").Result(0), kRound)
-'
-'            'Нет именованных концов
-'            If shpWay.Cells("Prop.Begin").Result(0) = 0 And shpWay.Cells("Prop.End").Result(0) = 0 Then
-'
-'                'Именуем конец в этой точке
-'                If BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y Then
-'                    shpWay.Cells("Prop.Begin").Formula = clsShapePoint.PointNumber
-'                ElseIf EndX = clsShapePoint.X And EndY = clsShapePoint.Y Then
-'                    shpWay.Cells("Prop.End").Formula = clsShapePoint.PointNumber
-'                End If
-'
-'                'Заполняем свойство длина
-'                shpWay.Cells("Prop.Dlina").Formula = CableLength(shpWay)
-'
-'                'Берем другой конец и создаем новую точку в этих координатах
-'                If shpWay.Cells("Prop.Begin").Result(0) = 0 Then
-'                    Set clsShapePoint = New classShapePoint
-'                    clsShapePoint.PointNumber = colShapePoints.Count + 1
-'                    clsShapePoint.X = BeginX
-'                    clsShapePoint.Y = BeginY
-'                    colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
-'                ElseIf shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                    Set clsShapePoint = New classShapePoint
-'                    clsShapePoint.PointNumber = colShapePoints.Count + 1
-'                    clsShapePoint.X = EndX
-'                    clsShapePoint.Y = EndY
-'                    colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
-'                End If
-'
-'                'Рекурсия
-'                FillWay colShapePoints(clsShapePoint.PointNumber)
-'
-'            'Именован один конец
-'            ElseIf shpWay.Cells("Prop.Begin").Result(0) = 0 Or shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                'Именован другой конец - именуем наш, другой не трогаем
-'                'Именуем конец в этой точке
-'                If BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y And shpWay.Cells("Prop.Begin").Result(0) = 0 Then
-'                    shpWay.Cells("Prop.Begin").Formula = clsShapePoint.PointNumber
-'                ElseIf EndX = clsShapePoint.X And EndY = clsShapePoint.Y And shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                    shpWay.Cells("Prop.End").Formula = clsShapePoint.PointNumber
-'
-'                'Именован наш конец - исключение (мы не должны попасть в точку в которой есть именованные концы)
-'                ElseIf BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y And shpWay.Cells("Prop.Begin").Result(0) <> 0 Then
-'                    MsgBox "Именованый конец в точке: " & clsShapePoint.PointNumber & ". Конец: " & shpWay.Cells("Prop.Begin").Result(0) & ". Маршрут: " & shpWay.Cells("Prop.Begin").Result(0) & " - " & shpWay.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
-'                    Exit Sub
-'                ElseIf shpWay.Cells("EndX").Result(0) = clsShapePoint.X And shpWay.Cells("EndY").Result(0) = clsShapePoint.Y And shpWay.Cells("Prop.End").Result(0) <> 0 Then
-'                    MsgBox "Именованый конец в точке: " & clsShapePoint.PointNumber & ". Конец: " & shpWay.Cells("Prop.End").Result(0) & ". Маршрут: " & shpWay.Cells("Prop.Begin").Result(0) & " - " & shpWay.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
-'                    Exit Sub
-'                End If
-'
-'            'Именованы оба конца
-'            ElseIf shpWay.Cells("Prop.Begin").Result(0) <> 0 And shpWay.Cells("Prop.End").Result(0) <> 0 Then
-'                'Маршрут уже обработан полностью (с двух концов)
-'            End If
-'
-'
-'
-'        Else '2-D фигура
-'
-'            'Находим точки начала и конца линии в 2D фигуре
-'            BeginX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 0).Result(0), kRound)
-'            BeginY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowFirst + 1, 1).Result(0), kRound)
-'            EndX = Round(shpWay.Cells("PinX").Result(0) - shpWay.Cells("Width").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 0).Result(0), kRound)
-'            EndY = Round(shpWay.Cells("PinY").Result(0) - shpWay.Cells("Height").Result(0) * 0.5 + shpWay.CellsSRC(visSectionFirstComponent, visRowLast, 1).Result(0), kRound)
-'
-'            'Нет именованных концов
-'            If shpWay.Cells("Prop.Begin").Result(0) = 0 And shpWay.Cells("Prop.End").Result(0) = 0 Then
-'
-'                'Именуем конец в этой точке
-'                If BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y Then
-'                    shpWay.Cells("Prop.Begin").Formula = clsShapePoint.PointNumber
-'                ElseIf EndX = clsShapePoint.X And EndY = clsShapePoint.Y Then
-'                    shpWay.Cells("Prop.End").Formula = clsShapePoint.PointNumber
-'                End If
-'
-'                'Заполняем свойство длина
-'                shpWay.Cells("Prop.Dlina").Formula = CableLength(shpWay)
-'
-'                'Берем другой конец и создаем новую точку в этих координатах
-'                If shpWay.Cells("Prop.Begin").Result(0) = 0 Then
-'                    Set clsShapePoint = New classShapePoint
-'                    clsShapePoint.PointNumber = colShapePoints.Count + 1
-'                    clsShapePoint.X = BeginX
-'                    clsShapePoint.Y = BeginY
-'                    colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
-'                ElseIf shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                    Set clsShapePoint = New classShapePoint
-'                    clsShapePoint.PointNumber = colShapePoints.Count + 1
-'                    clsShapePoint.X = EndX
-'                    clsShapePoint.Y = EndY
-'                    colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
-'                End If
-'
-'                'Рекурсия
-'                FillWay colShapePoints(clsShapePoint.PointNumber)
-'
-'            'Именован один конец
-'            ElseIf shpWay.Cells("Prop.Begin").Result(0) = 0 Or shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                'Именован другой конец - именуем наш, другой не трогаем
-'                'Именуем конец в этой точке
-'                If BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y And shpWay.Cells("Prop.Begin").Result(0) = 0 Then
-'                    shpWay.Cells("Prop.Begin").Formula = clsShapePoint.PointNumber
-'                ElseIf EndX = clsShapePoint.X And EndY = clsShapePoint.Y And shpWay.Cells("Prop.End").Result(0) = 0 Then
-'                    shpWay.Cells("Prop.End").Formula = clsShapePoint.PointNumber
-'
-'                'Именован наш конец - исключение (мы не должны попасть в точку в которой есть именованные концы)
-'                ElseIf BeginX = clsShapePoint.X And BeginY = clsShapePoint.Y And shpWay.Cells("Prop.Begin").Result(0) <> 0 Then
-'                    MsgBox "Именованый конец в точке: " & clsShapePoint.PointNumber & ". Конец: " & shpWay.Cells("Prop.Begin").Result(0) & ". Маршрут: " & shpWay.Cells("Prop.Begin").Result(0) & " - " & shpWay.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
-'                    Exit Sub
-'                ElseIf EndX = clsShapePoint.X And EndY = clsShapePoint.Y And shpWay.Cells("Prop.End").Result(0) <> 0 Then
-'                    MsgBox "Именованый конец в точке: " & clsShapePoint.PointNumber & ". Конец: " & shpWay.Cells("Prop.End").Result(0) & ". Маршрут: " & shpWay.Cells("Prop.Begin").Result(0) & " - " & shpWay.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
-'                    Exit Sub
-'                End If
-'
-'            'Именованы оба конца
-'            ElseIf shpWay.Cells("Prop.Begin").Result(0) <> 0 And shpWay.Cells("Prop.End").Result(0) <> 0 Then
-'                'Маршрут уже обработан полностью (с двух концов)
-'            End If
-'        End If
-'    Next
-'End Sub
-'
