@@ -305,6 +305,9 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                 .CellsSRC(visSectionProp, visRowLast, visCustPropsPrompt).FormulaForceU = """Длина кабеля, м."""
                 .CellsSRC(visSectionProp, visRowLast, visCustPropsType).FormulaForceU = "2"
             End With
+            
+            shpShortLine.Cells("Prop.SymName").Formula = """G"""
+            shpShortLine.Cells("Prop.Ac3").Formula = """1"""
 
             vsoLayer3.Add shpShortLine, 0
         End If
@@ -587,6 +590,9 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
             
             'Создаем свойтва шаблона кабеля на плане
             SetGofra shpKabelPLPattern
+            'Второй раз, чтобы записались перекрестные формулы в разделах User. и Prop.
+            SetGofra shpKabelPLPattern
+            
             With shpKabelPLPattern
                 .CellsSRC(visSectionObject, visRowLine, visLinePattern).FormulaU = 1 'Обычная линия
                 .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.2 mm"
@@ -607,6 +613,15 @@ Public Sub RouteCable(shpSensorFSA1 As Visio.Shape)
                     .Cells("Prop.Number").Formula = shpKabel.Cells("Prop.Number").Result(0)
                     .Cells("Prop.Dlina").Formula = DlinaKabelya
                 End With
+                
+                'Заполняем куски маршрута для КЖ
+                shpKabelPL.AddSection visSectionScratch
+                For i = 1 To colLotok.Count
+                    shpKabelPL.AddRow visSectionScratch, visRowLast, visTagDefault
+                    shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = """" & colLotok.Item(i).NameLotok & """"
+                    shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchB).FormulaU = """" & colLotok.Item(i).DlinaLotok & """"
+                Next
+                
                 'Переносим на слой кабелей
                 vsoLayer4.Add shpKabelPL, 0
                 
@@ -997,6 +1012,7 @@ Public Sub VynoskaPlan(Connects As IVConnects)
     Dim vsoSelection As Visio.Selection
     Dim strProvoda As String
     Dim strLotok As String
+    Dim strCablePL As String
     Dim colNum As Collection
     Dim masShape() As Visio.Shape
     Dim CabTemp As Visio.Shape
@@ -1019,7 +1035,7 @@ Public Sub VynoskaPlan(Connects As IVConnects)
             Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
             For Each shpTouchingShapes In vsoSelection
                 If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Then
-'                    strLotok=
+                    strCablePL = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
                     colNum.Add shpTouchingShapes
                 ElseIf ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
                     strLotok = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
@@ -1069,9 +1085,14 @@ ExitWhile:    Set masShape(i) = CabTemp
         strProvoda = ""
     End If
     
-    If colNum.Count > 0 And strLotok = "" Then strLotok = "Гофра d16"
+    If colNum.Count > 0 And strLotok = "" Then
+        shpVynoska.Cells("Prop.Lotok").FormulaU = """" & strCablePL & """"
+    ElseIf strLotok <> "" Then
+        shpVynoska.Cells("Prop.Lotok").FormulaU = """" & strLotok & """"
+    Else
+        shpVynoska.Cells("Prop.Lotok").FormulaU = """"""
+    End If
     
-    shpVynoska.Cells("Prop.Lotok").FormulaU = """" & strLotok & """"
     shpVynoska.Cells("Prop.Provoda").FormulaU = """" & strProvoda & """"
     
 End Sub
@@ -1132,40 +1153,27 @@ sSectionName = "User."
                             "90|", _
                             "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
                             "0|""""", _
-                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
+                            "Prop.FullName&"" ""&Prop.Ac3|""""", _
                             "0|""""", _
                             "0|""Код позиции/Код производителя/Код единицы""")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 SectionNumber = visSectionProp 'Prop 243
             arrRowName = Array("SymName", "Number", "AutoNum", "HideName", "HideNumber", "FullName", "Ac3", "Dlina", "NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
-            arrRowValue = Array("""Название""|""Название""|1|""Гофра;Металлорукав""|INDEX(0,Prop.SymName.Format)|""10""|FALSE|FALSE|1049|0", _
-                            """Номер кабеля""|""Номер кабеля""|2|""""||""20""|TRUE|FALSE|1033|0", _
-                            """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1033|0", _
-                            """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1033|0", _
-                            """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1033|0", _
-                            """Имя лотка""|""Имя лотка""|0|""""|User.FullName|""91""|TRUE|FALSE|1033|0", _
-                            """Сечение""|""Сечение""|1|IF(LOOKUP(Prop.SymName,Prop.SymName.Format),""Р3-ЦХ-15;Р3-ЦХ-18;Р3-ЦХ-22;Р3-ЦХ-32"",""d16;d20;d25;d32"")|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
-                            """Длина кабеля, м.""|""Длина кабеля, м.""|2|""""||""50""|TRUE|FALSE|1033|0", _
-                            """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
-                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
-                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1033|0", _
-                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
-                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
+            arrRowValue = Array("""Название""|""Название""|0|""""|""|""10""|FALSE|FALSE|1049|0", _
+                            """Номер кабеля""|""Номер кабеля""|2|""""||""20""|FALSE|FALSE|1049|0", _
+                            """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1049|0", _
+                            """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1049|0", _
+                            """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1049|0", _
+                            """Оболочка""|""Оболочка""|1|""Гофра;Металлорукав""|INDEX(0,Prop.FullName.Format)|""30""|FALSE|FALSE|1049|0", _
+                            """Тип""|""Тип""|1|IF(LOOKUP(Prop.FullName,Prop.FullName.Format),""Р3-ЦХ-15;Р3-ЦХ-18;Р3-ЦХ-22;Р3-ЦХ-32"",""d16;d20;d25;d32"")|INDEX(0,Prop.Ac3.Format)|""40""|||1049|", _
+                            """Длина кабеля, м.""|""Длина кабеля, м.""|2|""""||""50""|TRUE|FALSE|1049|0", _
+                            """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1049|0", _
+                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1049|0", _
+                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1049|0", _
+                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1049|0", _
+                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1049|0")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
-
-SectionNumber = visSectionUser 'User 242
-sSectionName = "User."
-            arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
-            arrRowValue = Array("0|""""", _
-                            "90|", _
-                            "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
-                            "0|""""", _
-                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
-                            "0|""""", _
-                            "0|""Код позиции/Код производителя/Код единицы""")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
-
 
 SectionNumber = visSectionObject
 RowNumber = visRowLine 'Line Format
