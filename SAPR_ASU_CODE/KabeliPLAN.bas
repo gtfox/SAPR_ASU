@@ -31,14 +31,14 @@ Sub AddRouteCablesOnPlan()
     Set colShapeFSA = New Collection
     'Находим датчики
     For Each shpSensorFSA In ActivePage.Shapes
-        If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
+        If ShapeSATypeIs(shpSensorFSA, typePlanSensor) Then
             colShapeFSA.Add shpSensorFSA
         End If
     Next
     
     'Находим датчики и прокладываем кабели
     For Each shpSensorFSA In colShapeFSA
-        If ShapeSATypeIs(shpSensorFSA, typeFSASensor) Then
+        If ShapeSATypeIs(shpSensorFSA, typePlanSensor) Then
             Set colCables = New Collection
             Set colCablesTemp = New Collection
 
@@ -255,7 +255,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
 
     'Находим смещение вставленного, относительно копированного
     For Each vsoShape In ActiveWindow.Selection
-        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+        If ShapeSATypeIs(vsoShape, typePlanSensor) Then
             dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
             dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
             Set shpSensorFSATemp = vsoShape
@@ -266,8 +266,12 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     'и сдвигаем на место
     ActiveWindow.Selection.Move dXSensorFSAPinX, dYSensorFSAPinY
     
-    'разбиваем
+    'Отключаем события автоматизации
+    Application.EventsEnabled = 0
     shpSensorFSATemp.Delete 'убираем лишнее перед trim
+    'Включаем события автоматизации
+    Application.EventsEnabled = -1
+    
     ActiveWindow.Selection.Trim 'разбиваем
 
     'находим ближайшие линии которые касаются лотка
@@ -363,10 +367,14 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
      
     'Находим смещение вставленного, относительно копированного
     For Each vsoShape In ActiveWindow.Selection
-        If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+        If ShapeSATypeIs(vsoShape, typePlanSensor) Then
             dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
             dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
+            'Отключаем события автоматизации
+            Application.EventsEnabled = 0
             vsoShape.Delete 'убираем временный датчик
+            'Включаем события автоматизации
+            Application.EventsEnabled = -1
             Exit For
         End If
     Next
@@ -449,7 +457,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
 
     'Находим датчик ФСА в коллекции
     For Each clsShapePoint In colShapePoints
-        If ShapeSATypeIs(clsShapePoint.ShapeOnFSA, typeFSASensor) Then
+        If ShapeSATypeIs(clsShapePoint.ShapeOnFSA, typePlanSensor) Then
             Set colCables = New Collection
             Set colCablesTemp = New Collection
             Set shpSensorFSATemp = clsShapePoint.ShapeOnFSA
@@ -459,6 +467,8 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             If Not shpSensor Is Nothing Then
                 MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
             Else
+                vsoLayer1.Delete True
+                vsoLayer3.Delete True
                 MsgBox "Датчик не связан"
                 Exit Sub
             End If
@@ -582,10 +592,14 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             
             'Находим смещение вставленного, относительно копированного
             For Each vsoShape In ActiveWindow.Selection
-                If ShapeSATypeIs(vsoShape, typeFSASensor) Then
+                If ShapeSATypeIs(vsoShape, typePlanSensor) Then
                     dXSensorFSAPinX = SensorFSAPinX - vsoShape.Cells("PinX").Result(0)
                     dYSensorFSAPinY = SensorFSAPinY - vsoShape.Cells("PinY").Result(0)
+                    'Отключаем события автоматизации
+                    Application.EventsEnabled = 0
                     vsoShape.Delete 'убираем временный датчик
+                    'Включаем события автоматизации
+                    Application.EventsEnabled = -1
                     Exit For
                 End If
             Next
@@ -629,7 +643,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                     .Cells("Prop.Dlina").Formula = DlinaKabelya
                 End With
                 
-                'Заполняем куски маршрута для КЖ
+                'Заполняем куски маршрута для КЖ на плане
                 shpKabelPL.AddSection visSectionScratch
                 For i = 1 To colLotok.Count
                     shpKabelPL.AddRow visSectionScratch, visRowLast, visTagDefault
@@ -642,6 +656,9 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 
                 'Заполняем длину кабеля на эл.схеме (длина кабеля СВП ссылается формулой на эл.сх.)
                 shpKabel.Cells("Prop.Dlina").FormulaU = "Pages[" + shpKabelPL.ContainingPage.NameU + "]!" + shpKabelPL.NameID + "!Prop.Dlina"
+                shpKabel.Cells("Hyperlink.Kabel.SubAddress").FormulaU = """" + shpKabelPL.ContainingPage.NameU + "/" + shpKabelPL.NameID + """"
+                shpKabel.Cells("Hyperlink.Kabel.ExtraInfo").FormulaU = """" + shpKabelPL.Cells("Prop.SymName").ResultStr(0) + CStr(shpKabelPL.Cells("Prop.Number").Result(0)) + """"
+                
                 vsoLayer1.Remove shpKabelPL, 0
             Next
             
@@ -911,7 +928,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 
     'Находим что уже есть на плане
     For Each shpSensorOnPLAN In vsoPagePlan.Shapes
-        If ShapeSATypeIs(shpSensorOnPLAN, typeFSASensor) Then
+        If ShapeSATypeIs(shpSensorOnPLAN, typePlanSensor) Then
             colSensorOnPLAN.Add shpSensorOnPLAN, shpSensorOnPLAN.Cells("User.Name").ResultStr(0) '& ";" & shpSensorOnPLAN.Cells("User.NameParent").ResultStr(0)
         End If
     Next
@@ -977,10 +994,12 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             .Cells("Prop.Kanal").Formula = 0
             .Cells("EventDblClick").Formula = ""
             .Cells("User.NameParent").Formula = AdrParent + "!User.NameParent"
-            .Cells("Hyperlink.Shema.ExtraInfo").Formula = AdrParent + "!Hyperlink.Shema.ExtraInfo"
-            .Cells("Hyperlink.FSA.ExtraInfo").Formula = AdrParent + "!Hyperlink.FSA.ExtraInfo"
             .Cells("Hyperlink.Shema.SubAddress").Formula = AdrParent + "!Hyperlink.Shema.SubAddress"
-            .Cells("Hyperlink.FSA.SubAddress").Formula = AdrParent + "!Hyperlink.FSA.SubAddress"
+            .Cells("Hyperlink.Shema.ExtraInfo").Formula = AdrParent + "!Hyperlink.Shema.ExtraInfo"
+            .Cells("Hyperlink.FSA.SubAddress").Formula = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
+            .Cells("Hyperlink.FSA.ExtraInfo").Formula = AdrParent + "!User.Location"
+            .Cells("Hyperlink.Plan.SubAddress").Formula = """"""
+            .Cells("Hyperlink.Plan.ExtraInfo").Formula = """"""
             .Cells("Prop.Place").Formula = AdrParent + "!Prop.Place"
             .Cells("Prop.AutoNum").Formula = 0
             .Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
@@ -991,6 +1010,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             .Cells("Prop.NameParent").Formula = AdrParent + "!Prop.NameParent"
             .Cells("Controls.Impuls").FormulaU = "BOUND(Width*0.5,0,FALSE,Width*-0.6667,Width*-0.6667,FALSE,Width*0.5,Width*0.5,FALSE,Width*1.6667,Width*1.6667)"
             .Cells("Controls.Impuls.Y").FormulaU = "BOUND(Height*0.5,0,FALSE,Height*-0.6667,Height*-0.6667,FALSE,Height*0.5,Height*0.5,FALSE,Height*1.6667,Height*1.6667)"
+            .Cells("User.SAType").FormulaU = typePlanSensor
             
         End With
         'Собираем в коллецию вставленные датчики

@@ -16,7 +16,7 @@ Public SelectionMoreOne As Boolean
 ''но уже с другим объектом, а предыдущее не завершилось...
 ''Или повторное вызывается для уже удаленного объекта...
 
-''НЕ ПОМОГЛО. Какаято хуйня творится во время удаления.
+''НЕ ПОМОГЛО. Какая-то х-ня творится во время удаления.
 
 'Private Sub vsoPagesEvent_BeforeSelectionDelete(ByVal Selection As IVSelection)
 '    Dim vsoShape As Visio.Shape
@@ -47,10 +47,10 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
                 DeleteWire vsoShape
             Case typeCableSH   'Кабель на эл. схеме
                 DeleteCableSH vsoShape
-            Case typeFSASensor   'Датчик ФСА
-                If Not (vsoShape.ContainingPage.NameU Like cListNamePlan & "*") Then
-                    DeleteSensorChild vsoShape
-                End If
+            Case typePlanSensor, typePlanActuator  'Датчик на ПЛАНЕ
+                DeleteSensorChildPlan vsoShape
+            Case typeFSASensor, typeFSAActuator  'Датчик ФСА
+                DeleteSensorChild vsoShape
             Case typeFSAPodval 'Подвал на ФСА
                 DeleteFSAPodvalChild vsoShape
             Case typeSensor, typeActuator   'Датчик/Привод на эл. схеме
