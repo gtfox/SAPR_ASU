@@ -56,7 +56,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             sFileName = "OD_2_Visio.doc"
             sFile = sPath & sFileName
             If Dir(sFile, 16) = "" Then
-                MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+                MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
                 Exit Sub
             End If
             
@@ -233,7 +233,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     'вставляем лист А4
                     Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                     If aPage Is Nothing Then
-                        MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "Ошибка"
+                        MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
                         wad.Close SaveChanges:=False
                         wa.Quit
                         Set wa = Nothing
@@ -287,7 +287,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         'вставляем лист А3
                         Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                         If aPage Is Nothing Then
-                            MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "Ошибка"
+                            MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
                             wad.Close SaveChanges:=False
                             wa.Quit
                             Set wa = Nothing
@@ -385,14 +385,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
             Application.EventsEnabled = -1
             ThisDocument.InitEvent
 
-            MsgBox "Текстовая часть ОД добавлена", vbInformation
+            MsgBox "Текстовая часть ОД добавлена", vbInformation, "САПР-АСУ: Info"
             Exit Sub
                             
         End If
 
     End If
     
-    MsgBox "Не выделен блок ОД", vbCritical, "Ошибка"
+    MsgBox "Не выделен блок ОД", vbCritical, "САПР-АСУ: Ошибка"
     
     Exit Sub
     
@@ -408,7 +408,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
 'Search.Select
 'wa.Selection.Find.Execute FindText:="известный текст", Forward:=True
 L1:
-        MsgBox "Файл " & sFile & " занят и не может быть удален", vbCritical, "Ошибка"
+        MsgBox "Файл " & sFile & " занят и не может быть удален", vbCritical, "САПР-АСУ: Ошибка"
 End Sub
 
 
@@ -449,7 +449,7 @@ Public Sub odDELL()
     Next
     Set colPage = Nothing
     Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameOD)
-    MsgBox "Листы ОД удалены", vbInformation
+    MsgBox "Листы ОД удалены", vbInformation, "САПР-АСУ: Info"
 End Sub
 
 Sub ReplacePageBreaks(wa As Word.Application)

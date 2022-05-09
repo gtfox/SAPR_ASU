@@ -80,7 +80,7 @@ End Sub
 Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "Удаление записи из Производителей") = vbYes Then
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
         DBName = DBNameIzbrannoe
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
@@ -95,7 +95,7 @@ End Sub
 Private Sub CommandButton6_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Категория: " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0), vbYesNo + vbCritical, "Удаление записи из Категорий") = vbYes Then
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Категория: " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Категорий") = vbYes Then
         DBName = DBNameIzbrannoe
         SQLQuery = "DELETE Категории.* " & _
                     "FROM Категории " & _
@@ -110,7 +110,7 @@ End Sub
 Private Sub CommandButton7_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Группа: " & cmbxGruppa.List(cmbxGruppa.ListIndex, 0), vbYesNo + vbCritical, "Удаление записи из Групп") = vbYes Then
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Группа: " & cmbxGruppa.List(cmbxGruppa.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Групп") = vbYes Then
         DBName = DBNameIzbrannoe
         SQLQuery = "DELETE Группы.* " & _
                     "FROM Группы " & _

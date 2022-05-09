@@ -113,7 +113,7 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
                         End If
                     Next
                 Else
-                    MsgBox "Не привязан ПЛК", vbOKOnly + vbExclamation, "Info"
+                    MsgBox "Не привязан ПЛК", vbOKOnly + vbExclamation, "САПР-АСУ: Info"
                     bError = True
                 End If
 
@@ -135,7 +135,7 @@ Private Sub FillCollection(vsoShape As Visio.Shape)
                         End If
                     Next
                 Else
-                    MsgBox "Не привязан модуль ПЛК", vbOKOnly + vbExclamation, "Info"
+                    MsgBox "Не привязан модуль ПЛК", vbOKOnly + vbExclamation, "САПР-АСУ: Info"
                     bError = True
                 End If
 

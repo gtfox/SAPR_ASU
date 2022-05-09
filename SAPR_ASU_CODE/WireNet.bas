@@ -98,23 +98,23 @@ Sub ConnectWire(Connects As IVConnects)
                     kogo = Connects.ToSheet.Cells("Prop.Number").Result(0) & ": " & Connects.ToSheet.Cells("Prop.SymName").ResultStr(0)
                     kem = shpProvod.Cells("Prop.Number").Result(0) & ": " & shpProvod.Cells("Prop.SymName").ResultStr(0)
 
-                    If MsgBox("Перезаписать провод" & vbCrLf & vbCrLf & kem & " -> " & kogo, vbOKCancel + vbExclamation, "Перезапись провода") = vbOK Then
+                    If MsgBox("Перезаписать провод" & vbCrLf & vbCrLf & kem & " -> " & kogo, vbOKCancel + vbExclamation, "САПР-АСУ: Перезапись провода") = vbOK Then
                     
                         If ShapeType = typeWireLinkR Then 'Нельзя перезаписать "приемник разрыва провода" (дочерний), т.к. номер ему присвоен от "источника разрыва провода" (родителя)
                         
-                            MsgBox "Нельзя перезаписать ""Приемник разрыва провода"" (дочерний), т.к. номер ему присвоен от ""Источника разрыва провода"" (родителя)" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "Перезапись провода"
+                            MsgBox "Нельзя перезаписать ""Приемник разрыва провода"" (дочерний), т.к. номер ему присвоен от ""Источника разрыва провода"" (родителя)" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
                             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
                             UnGlue Connects(1) 'Отклеиваем конец
 
                         ElseIf Connects.ToSheet.Cells("Prop.Number").Result(0) = shpProvod.Cells("Prop.Number").Result(0) Then 'Номера проводов совпадают
                         
-                            MsgBox "Номера проводов совпадают" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "Перезапись провода"
+                            MsgBox "Номера проводов совпадают" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
                             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
                             UnGlue Connects(1) 'Отклеиваем конец
 
                         ElseIf Connects.ToSheet.Cells("Prop.Number").FormulaU Like "*!*" Then 'Нельзя перезаписать номер провода полученный по ссылке от друго провода
                         
-                            MsgBox "Нельзя перезаписать номер провода полученный по ссылке от друго провода" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "Перезапись провода"
+                            MsgBox "Нельзя перезаписать номер провода полученный по ссылке от друго провода" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
                             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
                             UnGlue Connects(1) 'Отклеиваем конец
                        

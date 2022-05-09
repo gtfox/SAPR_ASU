@@ -291,7 +291,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShemy As String)
     Dim ElementovVStroke As Integer 'Количество элементов в одной "строке" при вставке на ВИД
     
     If NazvanieShemy = "" Then
-        MsgBox "Нет схем для вставки", vbExclamation, "Название схемы пустое"
+        MsgBox "Нет схем для вставки. Название схемы пустое", vbExclamation, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     

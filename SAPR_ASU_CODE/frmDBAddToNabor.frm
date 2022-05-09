@@ -125,7 +125,7 @@ End Sub
 Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "Удаление записи из Производителей") = vbYes Then
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
         DBName = DBNameIzbrannoe
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _

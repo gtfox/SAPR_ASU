@@ -36,7 +36,7 @@ Public Sub AddSensorsOnFSA(NazvanieShemy As String)
     Dim DropY As Double
     
     If NazvanieShemy = "" Then
-        MsgBox "Нет схем для вставки", vbExclamation, "Название схемы пустое"
+        MsgBox "Нет схем для вставки. Название схемы пустое", vbExclamation, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     

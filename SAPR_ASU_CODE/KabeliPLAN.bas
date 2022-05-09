@@ -234,7 +234,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
         shpLineDown.Delete
         shpLineLeft.Delete
         shpLineRight.Delete
-        MsgBox "Нет лотков поблизости или не приклеен к ящику"
+        MsgBox "Нет лотков поблизости или лоток не приклеен к ящику", vbCritical + vbOKOnly, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
 
@@ -293,7 +293,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     
     'находим самую короткую
     If colLineShort.Count = 0 Then
-        MsgBox "Нет лотков поблизости " & shpSensorFSA.NameID
+        MsgBox "Нет лотков поблизости от " & shpSensorFSA.Cells("User.NameParent").ResultStr(0) & " (" & shpSensorFSA.NameID & ")", vbExclamation, "САПР-АСУ: Ошибка"
     ElseIf colLineShort.Count = 1 Then
         Set shpShortLine = colLineShort.Item(1)
     ElseIf colLineShort.Count > 1 Then
@@ -469,7 +469,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             Else
                 vsoLayer1.Delete True
                 vsoLayer3.Delete True
-                MsgBox "Датчик не связан"
+                MsgBox "Датчик " & shpSensor.Cells("User.NameParent").ResultStr(0) & " (" & shpSensor.NameID & ") не связан", vbExclamation, "САПР-АСУ: Ошибка"
                 Exit Sub
             End If
             
@@ -499,7 +499,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             err.Clear
             On Error GoTo 0
             
-            If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "Info": Exit Sub
+            If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "САПР-АСУ: Info": Exit Sub
             'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
         '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
         '    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
@@ -517,6 +517,12 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                     End If
                 End If
             Next
+            If EndRoute = 0 Then
+                vsoLayer1.Delete True
+                vsoLayer3.Delete True
+                MsgBox "Нет шкафа " & NazvanieShemy & " для датчика " & clsShapePoint.ShapeOnFSA.Cells("User.NameParent").ResultStr(0) & " (" & clsShapePoint.ShapeOnFSA.NameID & ")", vbCritical + vbOKOnly, "САПР-АСУ: Ошибка"
+                Exit Sub
+            End If
             
             'Очищаем предыдущий маршрут
             For i = 1 To UBound(graph, 1)
@@ -647,7 +653,11 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 shpKabelPL.AddSection visSectionScratch
                 For i = 1 To colLotok.Count
                     shpKabelPL.AddRow visSectionScratch, visRowLast, visTagDefault
-                    shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = """" & colLotok.Item(i).NameLotok & """"
+                    If colLotok.Item(i).NameLotok = "G 1" Then
+                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = "User.FullName"
+                    Else
+                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = """" & colLotok.Item(i).NameLotok & """"
+                    End If
                     shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchB).FormulaU = """" & colLotok.Item(i).DlinaLotok & """"
                 Next
                 
@@ -904,7 +914,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
     Dim DropX As Double
     
     If NazvanieFSA = "" Then
-        MsgBox "Нет ФСА для вставки", vbExclamation, "Название ФСА пустое"
+        MsgBox "Нет ФСА для вставки. Название ФСА пустое", vbExclamation, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     

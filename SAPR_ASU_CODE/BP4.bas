@@ -57,7 +57,7 @@ err:
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     
-    MsgBox "ВРЧ обновлена", vbInformation
+    MsgBox "ВРЧ обновлена", vbInformation, "САПР-АСУ"
 End Sub
 
 Sub fff()

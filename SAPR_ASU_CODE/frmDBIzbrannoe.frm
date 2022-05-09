@@ -297,7 +297,7 @@ End Sub
 Private Sub btnFavDel_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "Удаление записи из Избранного") = vbYes Then
+    If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Избранного") = vbYes Then
         If mstrShpData(6) <> "" Then
             DBName = DBNameIzbrannoe
             SQLQuery = "DELETE Избранное.* " & _
@@ -313,7 +313,7 @@ End Sub
 Private Sub btnNabDel_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(3) & vbCrLf & "Название: " & mstrVybPozVNabore(2) & vbCrLf & "Цена: " & mstrVybPozVNabore(5) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "Удаление записи из Набора") = vbYes Then
+    If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(3) & vbCrLf & "Название: " & mstrVybPozVNabore(2) & vbCrLf & "Цена: " & mstrVybPozVNabore(5) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Набора") = vbYes Then
         If mstrVybPozVNabore(6) <> "" Then
             DBName = DBNameIzbrannoe
             SQLQuery = "DELETE Наборы.* " & _

@@ -421,7 +421,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
                 cellWireUp.GlueTo cellKlemmaShkafa
                 shpKabelSVP.Cells("Prop.WIRE" & WireNumber & "2").Formula = IIf(ShinaNumber, NumberKlemmaDatchika, WireNumber)
             Else
-                MsgBox "В кабеле больше " & WireNumber & " проводов", vbOKOnly + vbCritical, "Info"
+                MsgBox "В кабеле больше " & WireNumber & " проводов", vbOKOnly + vbCritical, "САПР-АСУ: Info"
                 Exit For
             End If
             

@@ -227,9 +227,9 @@ Sub Fill_cmbxNaimenovLista()
 End Sub
 
 Private Sub btnNazvanieShemyAdd_Click()
-    If MsgBox("Добавить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbInformation, "Добавить название схемы") = vbYes Then
+    If MsgBox("Добавить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название схемы") = vbYes Then
         If cmbxNazvanieShemy.Text = "" Then
-            MsgBox "Название схемы пустое" & vbNewLine & "Введите название схемы... ", vbExclamation, "Название схемы пустое"
+            MsgBox "Название схемы пустое" & vbNewLine & "Введите название схемы... ", vbExclamation, "САПР-АСУ: Название схемы пустое"
         Else
             NazvanieShemyAdd
         End If
@@ -253,9 +253,9 @@ Sub NazvanieShemyAdd()
 End Sub
 
 Private Sub btnNazvanieFSAAdd_Click()
-    If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "Добавить название ФСА") = vbYes Then
+    If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
         If cmbxNazvanieFSA.Text = "" Then
-            MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "Название ФСА пустое"
+            MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "САПР-АСУ: Название ФСА пустое"
         Else
             NazvanieFSAAdd
         End If
@@ -281,7 +281,7 @@ End Sub
 Private Sub btnNaimenovanieAdd2Master_Click()
     Dim Ramka As Visio.Shape
     Dim PropShapeSheet As String
-    If MsgBox("Добавить наименование листа в шаблон рамки: " & cmbxNaimenovLista.Text & vbNewLine & vbNewLine & "Это повлияет на все будущие рамки всех разделов!" & vbNewLine & "Запись попадет в рамку в наборе элементов SAPR_ASU_OFORM.vss" & vbNewLine & "Чтобы это произошло набор элементов должен быть переведен в режим редактирования (изменения)", vbYesNo + vbExclamation, "Добавить Наименование листа в Шаблон рамки") = vbYes Then
+    If MsgBox("Добавить наименование листа в шаблон рамки: " & cmbxNaimenovLista.Text & vbNewLine & vbNewLine & "Это повлияет на все будущие рамки всех разделов!" & vbNewLine & "Запись попадет в рамку в наборе элементов SAPR_ASU_OFORM.vss" & vbNewLine & "Чтобы это произошло набор элементов должен быть переведен в режим редактирования (изменения)", vbYesNo + vbExclamation, "САПР-АСУ: Добавить Наименование листа в Шаблон рамки") = vbYes Then
         Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка").Shapes("Рамка")
         PropShapeSheet = Ramka.Cells("Prop.Type.Format").ResultStr(0)
         Ramka.Cells("Prop.Type.Format").Formula = """" & PropShapeSheet & ";" & cmbxNaimenovLista.Text & """"
@@ -294,7 +294,7 @@ Private Sub btnNazvanieShemyDel_Click()
     Dim PageName As String
     Dim PropPageSheet As String
     Dim i As Integer
-    If MsgBox("Удалить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbCritical, "Удалить название схемы") = vbYes Then
+    If MsgBox("Удалить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название схемы") = vbYes Then
         If cmbxNazvanieShemy.ListIndex <> -1 Then
             cmbxNazvanieShemy.RemoveItem cmbxNazvanieShemy.ListIndex
             For i = 0 To cmbxNazvanieShemy.ListCount - 1
@@ -316,7 +316,7 @@ Private Sub btnNazvanieFSADel_Click()
     Dim PageName As String
     Dim PropPageSheet As String
     Dim i As Integer
-    If MsgBox("Удалить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbCritical, "Удалить название ФСА") = vbYes Then
+    If MsgBox("Удалить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название ФСА") = vbYes Then
         If cmbxNazvanieFSA.ListIndex <> -1 Then
             cmbxNazvanieFSA.RemoveItem cmbxNazvanieFSA.ListIndex
             For i = 0 To cmbxNazvanieFSA.ListCount - 1

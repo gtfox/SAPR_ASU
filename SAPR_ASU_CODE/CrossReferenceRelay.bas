@@ -91,7 +91,7 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
         End If
         'Ограничение числа контактов катушки/родительского элемента
         If i = Kontaktov Then
-            MsgBox "В элементе " & Kontaktov & " контакта, и все они задействованы" & vbCrLf, vbOKOnly + vbInformation, "Нет свободных контактов"
+            MsgBox "В элементе " & Kontaktov & " контакта, и все они задействованы" & vbCrLf, vbOKOnly + vbInformation, "САПР-АСУ: Нет свободных контактов"
             Exit For
         End If
     Next

@@ -157,7 +157,7 @@ Public Sub LockSelected()
     Dim vsoShape As Visio.Shape
     
     If Application.ActiveWindow.Selection.Count > 0 Then
-        If MsgBox("Заблокировать выделененые объекты: " & Application.ActiveWindow.Selection.Count & "шт.?", vbExclamation + vbOKCancel, "Блокировки выделенного объекта") = vbOK Then
+        If MsgBox("Заблокировать выделененые объекты: " & Application.ActiveWindow.Selection.Count & "шт.?", vbExclamation + vbOKCancel, "САПР-АСУ: Блокировки выделенного объекта") = vbOK Then
             'Создаем и блокруем слой
             Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("SA_LockedLayer")
 '            SetLayer Application.ActiveWindow.Selection(1), vsoLayer1
@@ -220,7 +220,7 @@ Sub SaveProjectFileAs()
     sPath = ActiveDocument.path
     sName = Replace(ActiveDocument.name, ".vsd", "")
     sTime = Format(Now(), "_yyyy.mm.dd_hh.mm.ss")
-    If MsgBox("Сохранить копию проекта?" + vbNewLine + vbNewLine + sName, vbQuestion + vbOKCancel, "SaveAs") = vbOK Then
+    If MsgBox("Сохранить копию проекта?" + vbNewLine + vbNewLine + sName, vbQuestion + vbOKCancel, "САПР-АСУ: SaveAs") = vbOK Then
         'Сохраняем наборы элементов
         For Each oDocument In Application.Documents
             If oDocument.Type = visTypeStencil Then
@@ -240,7 +240,7 @@ Sub SaveProjectFileAs()
         Next
         Application.ActiveDocument.SaveAsEx sPath + sName + sTime + ".vsd", visSaveAsWS + visSaveAsListInMRU
         Application.ActiveDocument.SaveAsEx sPath + sName + ".vsd", visSaveAsWS + visSaveAsListInMRU
-        MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime + ".vsd", vbInformation + vbOKOnly, "Info"
+        MsgBox "Файл сохранен!" + vbNewLine + vbNewLine + sName + sTime + ".vsd", vbInformation + vbOKOnly, "САПР-АСУ: Info"
     End If
 End Sub
 
@@ -518,7 +518,7 @@ Sub DelSAPage()
     Dim PageNumber As Integer
     Dim ItemCol As Integer
     
-    If MsgBox("Удалить лист: " & ActivePage.name, vbYesNo + vbCritical, "Удаление листа") = vbYes Then
+    If MsgBox("Удалить лист: " & ActivePage.name, vbYesNo + vbCritical, "САПР-АСУ: Удаление листа") = vbYes Then
     
         Set colPagesAfter = New Collection
         NameActivePage = ActivePage.name

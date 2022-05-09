@@ -47,7 +47,7 @@ Sub ShowSpecifikaciya()
 End Sub
 
 Public Sub spDEL()
-    If MsgBox("Удалить листы спецификации?", vbQuestion + vbOKCancel, "Удалить спецификацию") = vbOK Then
+    If MsgBox("Удалить листы спецификации?", vbQuestion + vbOKCancel, "САПР-АСУ: Удалить спецификацию") = vbOK Then
         del_sp
         'MsgBox "Старая версия спецификации удалена", vbInformation
     End If
@@ -63,7 +63,7 @@ Public Sub SP_Excel_2_Visio()
     If frmClose Then Exit Sub
     fill_table_SP
     Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
-    MsgBox "Спецификация добавлена", vbInformation
+    MsgBox "Спецификация добавлена", vbInformation, "САПР-АСУ: Info"
 End Sub
 
 Public Sub PE_Excel_2_Visio(PerechenElementov As Visio.Shape)
@@ -250,7 +250,7 @@ SubAddPage:
     Dim shpRow As Shape
 
     NRow = 1
-    If RowCountXls > 30 Then MsgBox "Строк на листе Excel больше, чем строк в таблице(30): " & RowCountXls & vbNewLine & vbNewLine & "Разбейте перечень на несколько таблиц", vbExclamation, "Перечень элементов": RowCountXls = 30
+    If RowCountXls > 30 Then MsgBox "Строк на листе Excel больше, чем строк в таблице(30): " & RowCountXls & vbNewLine & vbNewLine & "Разбейте перечень на несколько таблиц", vbExclamation, "САПР-АСУ: Перечень элементов": RowCountXls = 30
     For NStrokiXls = 1 To RowCountXls
         Set shpRow = PerechenElementov.Shapes.Item("row" & NRow)
         For ncell = 1 To 4 'ColoumnCountXls
@@ -368,7 +368,7 @@ Public Sub SP_EXP_2_XLS()
     
     
     If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     
@@ -414,7 +414,7 @@ Public Sub SP_EXP_2_XLS()
     WB.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
-    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист СП_EXP_2_XLS", vbInformation
+    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист СП_EXP_2_XLS", vbInformation, "САПР-АСУ: Info"
 End Sub
 
 Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень элементов - экспорт в EXCEL
@@ -445,7 +445,7 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape) 'Перечень эл
     
     
     If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     
@@ -689,7 +689,7 @@ Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Inte
                 On Error Resume Next
                 colStrokaSpecif.Add clsStrokaSpecif, strColKey
                 If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент
-                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & .Fields("Артикул").Value, vbExclamation, "Добавление набора в состав спецификации"
+                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & .Fields("Артикул").Value, vbExclamation, "САПР-АСУ: Добавление набора в состав спецификации"
                 Else
                     nCount = colStrokaSpecif.Count
                 End If

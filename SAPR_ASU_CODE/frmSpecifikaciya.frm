@@ -249,7 +249,7 @@ OutExcel:
     
     
     If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
-        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "Ошибка"
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     
@@ -356,7 +356,7 @@ OutList:
         End If
     Next
     str = colStrokaSpecif.Count
-    If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "Перечень элементов"
+    If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "САПР-АСУ: Перечень элементов"
     For NRow = 1 To str
         Set shpRow = shpPerechenElementov.Shapes("row" & NRow)
         shpRow.Shapes(NRow & ".1").Text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)
