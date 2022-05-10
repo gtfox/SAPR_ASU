@@ -70,4 +70,5 @@ Public Const cListNamePlan As String = "План" 'План расположен
 Public Const cListNameCxema As String = "Схема" 'Схема электрическая принципиальная
 Public Const cListNameVID As String = "ВИД" 'Чертеж внешнего вида шкафа
 Public Const cListNameSVP As String = "СВП" 'Схема соединения внешних проводок
+Public Const cListNameKJ As String = "КЖ" 'Кабельный журнал
 Public Const cListNameSpec As String = "С" 'Спецификация оборудования, изделий и материалов

@@ -483,6 +483,26 @@ Function FillColTerms(colWires As Collection) As Collection
     Set FillColTerms = colTerms
 End Function
 
+Function FindSensorFromKabel(shpKabel As Visio.Shape) As Visio.Shape
+'------------------------------------------------------------------------------------------------------------
+' Function        : FindSensorFromKabel - Находим датчик/привод подключенный кабелем
+'------------------------------------------------------------------------------------------------------------
+    Dim shpWire As Visio.Shape
+
+    For Each shpWire In shpKabel
+        If ShapeSATypeIs(shpWire, typeWire) Then
+            If shpWire.Connects.Count = 2 Then
+                For i = 1 To shpWire.Connects.Count
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensor) Or ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeActuator) Then
+                        Set FindSensorFromKabel = shpWire.Connects(i).ToSheet
+                        Exit Function
+                    End If
+                Next
+            End If
+        End If
+    Next
+End Function
+
 Public Sub PageSVPAddKabeliFrm()
     Load frmPageSVPAddKabeli
     frmPageSVPAddKabeli.Show

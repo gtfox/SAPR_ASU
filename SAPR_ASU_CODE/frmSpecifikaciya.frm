@@ -17,6 +17,13 @@ Private Sub btnExportFSA_Click()
     Unload Me
 End Sub
 
+Private Sub btnExportCxKJ_Click()
+    FindKabeliShemyToExcel
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
 Private Sub obTekListCx_Click()
     frameOutListCx.Visible = True
 End Sub
@@ -48,10 +55,12 @@ Private Sub UserForm_Initialize()
     
     cmbxNazvanieShemy.style = fmStyleDropDownList
     cmbxNazvanieFSA.style = fmStyleDropDownList
+    cmbxNazvanieShemyKJ.style = fmStyleDropDownList
     
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
         NazvanieShemy = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
         cmbxNazvanieShemy.Text = NazvanieShemy
+        cmbxNazvanieShemyKJ.Text = NazvanieShemy
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
@@ -68,6 +77,7 @@ Private Sub UserForm_Initialize()
 
     If NazvanieShemy <> "" Then
         obVybCx.Value = True
+        obVybCxKJ.Value = True
     End If
     If NazvanieFSA <> "" Then
         obVybFSA.Value = True
@@ -75,14 +85,12 @@ Private Sub UserForm_Initialize()
     
     obNaListFSA.Value = True
     obNaListCx.Value = True
+    obNaListCxKJ.Value = True
 End Sub
 
 Public Sub FindElementShemyToExcel()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : FindElementShemyToExcel - Поиск элементов схемы и заполнение полей спецификации
-
-                '
-                '
 '------------------------------------------------------------------------------------------------------------
     Dim clsStrokaSpecif As classStrokaSpecifikacii
     Dim colStrokaSpecif As Collection
@@ -314,7 +322,7 @@ OutExcelNext:
         'WB.Sheets(NameSheet).Cells(xx + 2, 8) = colStrokaSpecif(xx) '8 Масса единицы, кг
         'WB.Sheets(NameSheet).Cells(xx + 2, 9) = colStrokaSpecif(xx) '9 Примечание
         WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(colStrokaSpecif(xx).CenaDB)  'Цена
-        WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & xx + 2 & "*G" & xx + 2
+        WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & (xx + 2) & "*G" & (xx + 2)
         'wb.Sheets(NameSheet).Range("A" & (xx + 2)).Select 'для наглядности
     Next
 
@@ -374,6 +382,206 @@ Return
 
 End Sub
 
+Public Sub FindKabeliShemyToExcel()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : FindKabeliShemyToExcel - Поиск кабелей на схеме и заполнение полей кабельного журнала
+'------------------------------------------------------------------------------------------------------------
+    Dim clsStrokaKJ As classStrokaKabelnogoJurnala
+    Dim colStrokaKJ As Collection
+    Dim colCxem As Collection
+    Dim nCount As Double
+    Dim strColKey As String
+    Dim vsoPage As Visio.Page
+    Dim shpKabel As Visio.Shape
+    Dim shpKabelPL As Visio.Shape
+    Dim shpSensor As Visio.Shape
+    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
+    Dim PageName As String      'Имена листов где возможна нумерация
+    Dim i As Integer
+    Dim mNum() As String
+    Dim Cxema As classCxema
+    Dim xx As Integer
+    '-------Вывод EXCEL---------
+    Dim apx As Excel.Application
+    Dim WB As Excel.Workbook
+    Dim sht As Excel.Sheets
+    Dim en As String
+    Dim un As String
+    Dim sPath, sFile As String
+    Dim NameSheet As String
+    Dim str As Integer
+    Dim Mstr() As String
+    '-------Вывод на Лист-------
+    Dim shpPerechenElementov As Visio.Shape
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    Dim ncell As Integer
+    Dim NRow As Integer
+    
+    PageName = cListNameCxema  'Имена листов
+    
+    Set colCxem = New Collection
+    Set Cxema = New classCxema
+    Set Cxema.colListov = New Collection
+    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
+    Set colStrokaKJ = New Collection
+
+    For i = 1 To cmbxNazvanieShemyKJ.ListCount
+        NazvanieShemy = cmbxNazvanieShemyKJ.List(i - 1)
+        Cxema.NameCxema = NazvanieShemy
+        For Each vsoPage In ActiveDocument.Pages
+            If vsoPage.name Like PageName & "*" Then
+                If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
+                    Cxema.colListov.Add vsoPage, vsoPage.name
+                End If
+            End If
+        Next
+        If Cxema.colListov.Count > 0 Then
+            colCxem.Add Cxema, NazvanieShemy
+        End If
+        Set Cxema = New classCxema
+        Set Cxema.colListov = New Collection
+    Next
+    
+    i = 0
+    If obVseCxKJ Then
+        For Each Cxema In colCxem
+            NazvanieShemy = Cxema.NameCxema
+            For Each vsoPage In Cxema.colListov
+                GoSub FillcolStrokaKJ
+            Next
+            If obNaListCxKJ Then
+                ColToArray colStrokaKJ
+                fill_table_KJ
+            Else
+                If i > 0 Then
+                    GoSub OutExcelNextKJ
+                Else
+                    GoSub OutExcelKJ
+                End If
+                i = i + 1
+                WB.Save
+            End If
+        Next
+    ElseIf obVybCxKJ Then
+        NazvanieShemy = cmbxNazvanieShemyKJ.Text
+        For Each vsoPage In colCxem(NazvanieShemy).colListov
+            GoSub FillcolStrokaKJ
+        Next
+        If obNaListCxKJ Then
+            ColToArray colStrokaKJ
+            fill_table_KJ
+        Else
+            GoSub OutExcelKJ
+            WB.Save
+        End If
+    End If
+
+Exit Sub
+
+'-----------------------------------------------------------------------------------
+FillcolStrokaKJ:
+    For Each shpKabel In vsoPage.Shapes    'Перебираем все шейпы на листе
+        If ShapeSATypeIs(typeCableSH) Then    'Берем только кабели схемы
+            Set clsStrokaKJ = New classStrokaKabelnogoJurnala
+            Set shpSensor = FindSensorFromKabel(shpKabel)
+            Set shpKabelPL = ShapeByHyperLink(shpKabel.Cells("Hyperlink.Kabel.SubAddress").ResultStr(0))
+            clsStrokaKJ.Oboznach = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), shpKabel.Cells("Prop.Number").Result(0))
+            clsStrokaKJ.Nachalo = shpKabel.Cells("User.LinkToBox").ResultStr(0)
+            clsStrokaKJ.Konec = shpSensor.Cells("User.Name").ResultStr(0)
+            clsStrokaKJ.Trassa = GetTrassa(shpKabelPL)
+            clsStrokaKJ.Marka = shpKabel.Cells("Prop.TipKab").ResultStr(0)
+            clsStrokaKJ.Sechenie = shpKabel.Cells("Prop.WireCount").ResultStr(0) & "x" & shpKabel.Cells("Prop.mm2").ResultStr(0)
+            clsStrokaKJ.Dlina = shpKabel.Cells("Prop.Dlina").Result(0)
+
+            colStrokaKJ.Add clsStrokaKJ, clsStrokaKJ.Oboznach
+        End If
+    Next
+Return
+
+OutExcelKJ:
+    Set apx = CreateObject("Excel.Application")
+    sPath = Visio.ActiveDocument.path
+    sFileName = "SP_2_Visio.xls"
+    sFile = sPath & sFileName
+    
+    
+    If Dir(sFile, 16) = "" Then 'есть хотя бы один файл
+        MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
+        Exit Sub
+    End If
+    
+    Set WB = apx.Workbooks.Open(sFile)
+
+    'Set wb = apx.Workbooks.Add
+    'un = Format(Now(), "yyyy_mm_dd")
+    'pth = Visio.ActiveDocument.Path
+    'en = pth & "СП_" & un & ".xls"
+    apx.Visible = True
+
+OutExcelNextKJ:
+    str = colStrokaKJ.Count
+    NameSheet = NazvanieShemy & "_КЖ"
+    'удаляем старый лист
+    apx.DisplayAlerts = False
+    On Error Resume Next
+    apx.Sheets(NameSheet).Delete
+    apx.DisplayAlerts = True
+    'Отключаем On Error Resume Next
+    err.Clear
+    On Error GoTo 0
+    'добавляем новый
+    apx.Sheets("КЖ").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    
+    apx.Sheets("КЖ (2)").name = NameSheet
+    
+    lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlUp).Row
+    apx.Application.CutCopyMode = False
+    apx.Worksheets(NameSheet).Activate
+    apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
+    apx.ActiveSheet.Range("A4:J5").ClearContents
+
+    
+    WB.Activate
+    apx.ActiveSheet.Range("K3") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
+'    apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
+
+    
+    If str < 5 Then nstr = 5 Else nstr = str
+    apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+    For xx = 1 To str
+        WB.Sheets(NameSheet).Cells(xx + 3, 1) = colStrokaKJ(xx).Oboznach '1 Обозначение кабеля, провода
+        WB.Sheets(NameSheet).Cells(xx + 3, 2) = colStrokaKJ(xx).Nachalo '2 Трасса - Начало
+        WB.Sheets(NameSheet).Cells(xx + 3, 3) = colStrokaKJ(xx).Konec '3 Трасса - Конец
+        WB.Sheets(NameSheet).Cells(xx + 3, 4) = colStrokaKJ(xx).Trassa '4 Участок трассы кабеля, провода
+        WB.Sheets(NameSheet).Cells(xx + 3, 5) = colStrokaKJ(xx).Marka '5 Кабель, провод - по проекту - Марка
+        WB.Sheets(NameSheet).Cells(xx + 3, 6) = colStrokaKJ(xx).Sechenie '6 Кабель, провод - по проекту - Кол., число и сечение жил
+        WB.Sheets(NameSheet).Cells(xx + 3, 7) = colStrokaKJ(xx).Dlina '7 Кабель, провод - по проекту - Длина, м.
+        'wb.Sheets(NameSheet).Range("A" & (xx + 3)).Select 'для наглядности
+    Next
+
+'    WB.Sheets(NameSheet).Range("K2:L2").HorizontalAlignment = xlRight
+'    WB.Sheets(NameSheet).Range("K2:L2").VerticalAlignment = xlCenter
+    apx.ActiveSheet.Range("A4:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).WrapText = False
+    apx.ActiveSheet.Range("A4:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид
+'    apx.ActiveSheet.Range("B4:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
+'    apx.ActiveSheet.Range("K4:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).NumberFormat = "#,##0"
+'    For i = 7 To 12: Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
+'    apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
+'    apx.ActiveSheet.Range("J1").Select
+    
+    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
+    Set colStrokaKJ = New Collection
+    
+'    WB.Save
+'    WB.Close SaveChanges:=True
+'    apx.Quit
+'    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист " & NameSheet, vbInformation
+Return
+
+End Sub
 
 Sub Fill_cmbxNazvanieShemy()
     Dim vsoPage As Visio.Page
@@ -389,11 +597,14 @@ Sub Fill_cmbxNazvanieShemy()
         End If
     Next
     cmbxNazvanieShemy.Clear
+    cmbxNazvanieShemyKJ.Clear
     mstrPropPageSheet = Split(PropPageSheet, ";")
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieShemy.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShemyKJ.AddItem mstrPropPageSheet(i)
     Next
     cmbxNazvanieShemy.Text = ""
+    cmbxNazvanieShemyKJ.Text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -424,6 +635,12 @@ Private Sub btnCloseCx_Click()
 End Sub
 
 Private Sub btnCloseFSA_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
+Private Sub btnCloseCxKJ_Click()
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

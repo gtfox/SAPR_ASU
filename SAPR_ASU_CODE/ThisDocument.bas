@@ -116,16 +116,16 @@ Private Sub vsoPagesEvent_SelectionAdded(ByVal Selection As IVSelection)
 End Sub
 
 'Таскаем фируру за мышкой
-Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
+Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal x As Double, ByVal y As Double, CancelDefault As Boolean)
     If Not MouseClick Then
         On Error Resume Next
-        vsoShapePaste.Cells("PinX") = X
-        vsoShapePaste.Cells("PinY") = Y
+        vsoShapePaste.Cells("PinX") = x
+        vsoShapePaste.Cells("PinY") = y
     End If
 End Sub
 
 'Закончили таскать фигуру кликом мыши
-Private Sub vsoWindowEvent_MouseDown(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
+Private Sub vsoWindowEvent_MouseDown(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal x As Double, ByVal y As Double, CancelDefault As Boolean)
     MouseClick = True
     Set vsoWindowEvent = Nothing
 End Sub

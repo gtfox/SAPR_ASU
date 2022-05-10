@@ -177,11 +177,11 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                     clsShapePoint.PointNumber = colShapePoints.Count + 1
                     Select Case shpLotok.Connects(i).FromPart
                         Case visBegin
-                            clsShapePoint.X = Round(shpLotok.Cells("BeginX").Result(0), kRound)
-                            clsShapePoint.Y = Round(shpLotok.Cells("BeginY").Result(0), kRound)
+                            clsShapePoint.x = Round(shpLotok.Cells("BeginX").Result(0), kRound)
+                            clsShapePoint.y = Round(shpLotok.Cells("BeginY").Result(0), kRound)
                         Case visEnd
-                            clsShapePoint.X = Round(shpLotok.Cells("EndX").Result(0), kRound)
-                            clsShapePoint.Y = Round(shpLotok.Cells("EndY").Result(0), kRound)
+                            clsShapePoint.x = Round(shpLotok.Cells("EndX").Result(0), kRound)
+                            clsShapePoint.y = Round(shpLotok.Cells("EndY").Result(0), kRound)
                     End Select
                     Set clsShapePoint.ShapeOnFSA = shpLotok.Connects(i).ToSheet
                     colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
@@ -193,8 +193,8 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     'Находим точку подключения датчика
     Set clsShapePoint = New classShapePoint
     clsShapePoint.PointNumber = colShapePoints.Count + 1
-    clsShapePoint.X = Round(shpSensorFSA.Cells("PinX").Result(0), kRound)
-    clsShapePoint.Y = Round(shpSensorFSA.Cells("PinY").Result(0), kRound)
+    clsShapePoint.x = Round(shpSensorFSA.Cells("PinX").Result(0), kRound)
+    clsShapePoint.y = Round(shpSensorFSA.Cells("PinY").Result(0), kRound)
     Set clsShapePoint.ShapeOnFSA = shpSensorFSA
     colShapePoints.Add clsShapePoint, CStr(clsShapePoint.PointNumber)
 
@@ -392,7 +392,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     PointNumber = 1
 
     'Сканируем маршруты в этой точке (максимум 8(4 стороны света +45 градусов))находим ближайшие линии + Заполняем пути именами точек
-    Set selLines = ActivePage.SpatialSearch(colShapePoints(1).X, colShapePoints(1).Y, visSpatialTouching, 0.02 * AntiScale, 0)
+    Set selLines = ActivePage.SpatialSearch(colShapePoints(1).x, colShapePoints(1).y, visSpatialTouching, 0.02 * AntiScale, 0)
     For Each vsoShape In selLines
         If vsoShape.LayerCount > 0 Then
             If vsoShape.Layer(1).name = vsoLayer1.name Then
@@ -417,11 +417,11 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 vsoShape.Cells("User.EndY").Formula = EndY
                 
                 'Именуем начало или ...
-                If BeginX = colShapePoints(1).X And BeginY = colShapePoints(1).Y Then
+                If BeginX = colShapePoints(1).x And BeginY = colShapePoints(1).y Then
                     vsoShape.Cells("Prop.Begin").Formula = PointNumber
                 
                 '... именуем конец в этой точке
-                ElseIf EndX = colShapePoints(1).X And EndY = colShapePoints(1).Y Then
+                ElseIf EndX = colShapePoints(1).x And EndY = colShapePoints(1).y Then
                     vsoShape.Cells("Prop.End").Formula = PointNumber
                 End If
                 
@@ -436,15 +436,15 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
 
     'Датчику и шкафам присваиваем номера точек маршрутов
     For Each clsShapePoint In colShapePoints
-        Set selLines = ActivePage.SpatialSearch(clsShapePoint.X, clsShapePoint.Y, visSpatialTouching, 0.02 * AntiScale, 0)
+        Set selLines = ActivePage.SpatialSearch(clsShapePoint.x, clsShapePoint.y, visSpatialTouching, 0.02 * AntiScale, 0)
         
         'Перебираем маршруты
         For Each shpRoute In selLines
             If shpRoute.LayerCount > 0 Then
                 If shpRoute.Layer(1).name = vsoLayer1.name Then
-                    If shpRoute.Cells("User.BeginX").Result(0) = clsShapePoint.X And shpRoute.Cells("User.BeginY").Result(0) = clsShapePoint.Y Then
+                    If shpRoute.Cells("User.BeginX").Result(0) = clsShapePoint.x And shpRoute.Cells("User.BeginY").Result(0) = clsShapePoint.y Then
                         clsShapePoint.PointNumber = shpRoute.Cells("Prop.Begin").Result(0)
-                    ElseIf shpRoute.Cells("User.EndX").Result(0) = clsShapePoint.X And shpRoute.Cells("User.EndY").Result(0) = clsShapePoint.Y Then
+                    ElseIf shpRoute.Cells("User.EndX").Result(0) = clsShapePoint.x And shpRoute.Cells("User.EndY").Result(0) = clsShapePoint.y Then
                         clsShapePoint.PointNumber = shpRoute.Cells("Prop.End").Result(0)
                     End If
                 End If
@@ -732,12 +732,12 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
         PointNumber = PointNumber + 1
         clsPoint.PointNumber = PointNumber
         If shpRouteToPoint.Cells("Prop.Begin").Result(0) = 0 Then
-            clsPoint.X = BeginX
-            clsPoint.Y = BeginY
+            clsPoint.x = BeginX
+            clsPoint.y = BeginY
             shpRouteToPoint.Cells("Prop.Begin").Formula = clsPoint.PointNumber
         ElseIf shpRouteToPoint.Cells("Prop.End").Result(0) = 0 Then
-            clsPoint.X = EndX
-            clsPoint.Y = EndY
+            clsPoint.x = EndX
+            clsPoint.y = EndY
             shpRouteToPoint.Cells("Prop.End").Formula = clsPoint.PointNumber
         End If
         shpRouteToPoint.name = shpRouteToPoint.Cells("Prop.Begin").Result(0) & "-" & shpRouteToPoint.Cells("Prop.End").Result(0)
@@ -746,7 +746,7 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
     End If
     
     'Сканируем маршруты в этой точке (максимум 8(4 стороны света +45 градусов))находим ближайшие линии
-    Set selLines = ActivePage.SpatialSearch(clsPoint.X, clsPoint.Y, visSpatialTouching, 0.02 * AntiScale, 0)
+    Set selLines = ActivePage.SpatialSearch(clsPoint.x, clsPoint.y, visSpatialTouching, 0.02 * AntiScale, 0)
 
     Set colRoute = New Collection
     For Each vsoShape In selLines
@@ -777,9 +777,9 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
             If shpRoute.Cells("Prop.Begin").Result(0) = 0 And shpRoute.Cells("Prop.End").Result(0) = 0 Then
     
                 'Именуем конец в этой точке
-                If BeginX = clsPoint.X And BeginY = clsPoint.Y Then
+                If BeginX = clsPoint.x And BeginY = clsPoint.y Then
                     shpRoute.Cells("Prop.Begin").Formula = clsPoint.PointNumber
-                ElseIf EndX = clsPoint.X And EndY = clsPoint.Y Then
+                ElseIf EndX = clsPoint.x And EndY = clsPoint.y Then
                     shpRoute.Cells("Prop.End").Formula = clsPoint.PointNumber
                 End If
                 
@@ -790,18 +790,18 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
             ElseIf shpRoute.Cells("Prop.Begin").Result(0) = 0 Or shpRoute.Cells("Prop.End").Result(0) = 0 Then
                 'Именован другой конец - именуем наш, другой не трогаем
                 'Именуем конец в этой точке
-                If BeginX = clsPoint.X And BeginY = clsPoint.Y And shpRoute.Cells("Prop.Begin").Result(0) = 0 Then
+                If BeginX = clsPoint.x And BeginY = clsPoint.y And shpRoute.Cells("Prop.Begin").Result(0) = 0 Then
                     shpRoute.Cells("Prop.Begin").Formula = clsPoint.PointNumber
                     shpRoute.name = shpRoute.Cells("Prop.Begin").Result(0) & "-" & shpRoute.Cells("Prop.End").Result(0)
-                ElseIf EndX = clsPoint.X And EndY = clsPoint.Y And shpRoute.Cells("Prop.End").Result(0) = 0 Then
+                ElseIf EndX = clsPoint.x And EndY = clsPoint.y And shpRoute.Cells("Prop.End").Result(0) = 0 Then
                     shpRoute.Cells("Prop.End").Formula = clsPoint.PointNumber
                     shpRoute.name = shpRoute.Cells("Prop.Begin").Result(0) & "-" & shpRoute.Cells("Prop.End").Result(0)
     
                 'Именован наш конец - исключение (мы не должны попасть в точку в которой есть именованные концы)
-                ElseIf BeginX = clsPoint.X And BeginY = clsPoint.Y And shpRoute.Cells("Prop.Begin").Result(0) <> 0 Then
+                ElseIf BeginX = clsPoint.x And BeginY = clsPoint.y And shpRoute.Cells("Prop.Begin").Result(0) <> 0 Then
                     MsgBox "Именованый конец в точке: " & clsPoint.PointNumber & ". Конец: " & shpRoute.Cells("Prop.Begin").Result(0) & ". Маршрут: " & shpRoute.Cells("Prop.Begin").Result(0) & " - " & shpRoute.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
                     Exit Sub
-                ElseIf shpRoute.Cells("EndX").Result(0) = clsPoint.X And shpRoute.Cells("EndY").Result(0) = clsPoint.Y And shpRoute.Cells("Prop.End").Result(0) <> 0 Then
+                ElseIf shpRoute.Cells("EndX").Result(0) = clsPoint.x And shpRoute.Cells("EndY").Result(0) = clsPoint.y And shpRoute.Cells("Prop.End").Result(0) <> 0 Then
                     MsgBox "Именованый конец в точке: " & clsPoint.PointNumber & ". Конец: " & shpRoute.Cells("Prop.End").Result(0) & ". Маршрут: " & shpRoute.Cells("Prop.Begin").Result(0) & " - " & shpRoute.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
                     Exit Sub
                 End If
@@ -828,9 +828,9 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
             If shpRoute.Cells("Prop.Begin").Result(0) = 0 And shpRoute.Cells("Prop.End").Result(0) = 0 Then
     
                 'Именуем конец в этой точке
-                If BeginX = clsPoint.X And BeginY = clsPoint.Y Then
+                If BeginX = clsPoint.x And BeginY = clsPoint.y Then
                     shpRoute.Cells("Prop.Begin").Formula = clsPoint.PointNumber
-                ElseIf EndX = clsPoint.X And EndY = clsPoint.Y Then
+                ElseIf EndX = clsPoint.x And EndY = clsPoint.y Then
                     shpRoute.Cells("Prop.End").Formula = clsPoint.PointNumber
                 End If
                 
@@ -841,18 +841,18 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
             ElseIf shpRoute.Cells("Prop.Begin").Result(0) = 0 Or shpRoute.Cells("Prop.End").Result(0) = 0 Then
                 'Именован другой конец - именуем наш, другой не трогаем
                 'Именуем конец в этой точке
-                If BeginX = clsPoint.X And BeginY = clsPoint.Y And shpRoute.Cells("Prop.Begin").Result(0) = 0 Then
+                If BeginX = clsPoint.x And BeginY = clsPoint.y And shpRoute.Cells("Prop.Begin").Result(0) = 0 Then
                     shpRoute.Cells("Prop.Begin").Formula = clsPoint.PointNumber
                     shpRoute.name = shpRoute.Cells("Prop.Begin").Result(0) & "-" & shpRoute.Cells("Prop.End").Result(0)
-                ElseIf EndX = clsPoint.X And EndY = clsPoint.Y And shpRoute.Cells("Prop.End").Result(0) = 0 Then
+                ElseIf EndX = clsPoint.x And EndY = clsPoint.y And shpRoute.Cells("Prop.End").Result(0) = 0 Then
                     shpRoute.Cells("Prop.End").Formula = clsPoint.PointNumber
                     shpRoute.name = shpRoute.Cells("Prop.Begin").Result(0) & "-" & shpRoute.Cells("Prop.End").Result(0)
     
                 'Именован наш конец - исключение (мы не должны попасть в точку в которой есть именованные концы)
-                ElseIf BeginX = clsPoint.X And BeginY = clsPoint.Y And shpRoute.Cells("Prop.Begin").Result(0) <> 0 Then
+                ElseIf BeginX = clsPoint.x And BeginY = clsPoint.y And shpRoute.Cells("Prop.Begin").Result(0) <> 0 Then
                     MsgBox "Именованый конец в точке: " & clsPoint.PointNumber & ". Конец: " & shpRoute.Cells("Prop.Begin").Result(0) & ". Маршрут: " & shpRoute.Cells("Prop.Begin").Result(0) & " - " & shpRoute.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
                     Exit Sub
-                ElseIf EndX = clsPoint.X And EndY = clsPoint.Y And shpRoute.Cells("Prop.End").Result(0) <> 0 Then
+                ElseIf EndX = clsPoint.x And EndY = clsPoint.y And shpRoute.Cells("Prop.End").Result(0) <> 0 Then
                     MsgBox "Именованый конец в точке: " & clsPoint.PointNumber & ". Конец: " & shpRoute.Cells("Prop.End").Result(0) & ". Маршрут: " & shpRoute.Cells("Prop.Begin").Result(0) & " - " & shpRoute.Cells("Prop.End").Result(0), vbCritical, "Ошибка"
                     Exit Sub
                 End If
