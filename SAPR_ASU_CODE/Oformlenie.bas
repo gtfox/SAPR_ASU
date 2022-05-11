@@ -697,6 +697,20 @@ Sub SetPageAction(vsoPageNew As Visio.Page)
                 .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageSVPAddKabeliFrm"")"
                 .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
             End With
+        Case cListNameKJ  ' "КЖ" 'Кабельный журнал
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать кабельный журнал в Visio из Excel"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""KJ_Excel_2_Visio"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы кабельного журнала"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""kjDEL"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
+            End With
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction

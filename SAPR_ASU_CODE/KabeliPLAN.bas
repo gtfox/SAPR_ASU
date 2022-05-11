@@ -565,7 +565,8 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     
                 'Собираем куски лотков для КЖ и их длины
                 Set clsLotokFSA = New classLotokFSA
-                clsLotokFSA.NameLotok = shpLotok.Cells("Prop.SymName").ResultStr(0) & " " & shpLotok.Cells("Prop.Ac3").ResultStr(0)
+                clsLotokFSA.NameLotok = shpLotok.Cells("Prop.SymName").ResultStr(0)
+                clsLotokFSA.TypeLotok = shpLotok.Cells("Prop.Ac3").ResultStr(0)
                 clsLotokFSA.DlinaLotok = shpRoute.Cells("Prop.Dlina").Result(0)
                 Key = shpLotok.Cells("Prop.SymName").ResultStr(0) & shpLotok.Cells("Prop.Ac3").ResultStr(0)
                 nCount = colLotok.Count
@@ -653,12 +654,14 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 shpKabelPL.AddSection visSectionScratch
                 For i = 1 To colLotok.Count
                     shpKabelPL.AddRow visSectionScratch, visRowLast, visTagDefault
-                    If colLotok.Item(i).NameLotok = "G 1" Then
-                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = "User.FullName"
+                    If colLotok.Item(i).NameLotok = "G" Then
+                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = "Prop.FullName"
+                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchB).FormulaU = "Prop.Ac3"
                     Else
                         shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchA).FormulaU = """" & colLotok.Item(i).NameLotok & """"
+                        shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchB).FormulaU = """" & colLotok.Item(i).TypeLotok & """"
                     End If
-                    shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchB).FormulaU = """" & colLotok.Item(i).DlinaLotok & """"
+                    shpKabelPL.CellsSRC(visSectionScratch, visRowLast, visScratchC).FormulaU = """" & colLotok.Item(i).DlinaLotok & """"
                 Next
                 
                 'Переносим на слой кабелей

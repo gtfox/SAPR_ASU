@@ -13,6 +13,7 @@ Private Sub UserForm_Initialize()
     cmbxPageName.AddItem cListNameCxema '"Схема" 'Схема электрическая принципиальная
     cmbxPageName.AddItem cListNameVID '"ВИД" 'Чертеж внешнего вида шкафа
     cmbxPageName.AddItem cListNameSVP '"СВП" 'Схема соединения внешних проводок
+    cmbxPageName.AddItem cListNameKJ '"КЖ" 'Кабельный журнал
     cmbxPageName.AddItem cListNameSpec '"С" 'Спецификация оборудования, изделий и материалов
 '    cmbxPageName.ListIndex = 3
     cmbxPageName.style = fmStyleDropDownList
@@ -154,6 +155,7 @@ Private Sub btnAddRazdel_Click()
             vsoPageNew.Drop Setka, 0, 0
         Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
         Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
+        Case cListNameKJ  ' "КЖ" 'Кабельный журнал
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
         Case Else
     End Select

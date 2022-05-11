@@ -489,12 +489,12 @@ Function FindSensorFromKabel(shpKabel As Visio.Shape) As Visio.Shape
 '------------------------------------------------------------------------------------------------------------
     Dim shpWire As Visio.Shape
 
-    For Each shpWire In shpKabel
+    For Each shpWire In shpKabel.Shapes
         If ShapeSATypeIs(shpWire, typeWire) Then
             If shpWire.Connects.Count = 2 Then
                 For i = 1 To shpWire.Connects.Count
-                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensor) Or ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeActuator) Then
-                        Set FindSensorFromKabel = shpWire.Connects(i).ToSheet
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensorTerm) Then
+                        Set FindSensorFromKabel = shpWire.Connects(i).ToSheet.Parent.Parent
                         Exit Function
                     End If
                 Next

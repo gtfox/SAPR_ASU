@@ -42,6 +42,26 @@ Public Excel_imya_lista As String
 Public sp As Excel.Workbook
 Public frmClose As Boolean
 
+'------------------------------------------------------------------------------------------------------------
+'--------------------------------------Спецификация + перечень элементов-------------------------------------
+'------------------------------------------------------------------------------------------------------------
+'---------ShowSpecifikaciya
+'---------spDEL
+'---------del_sp
+'---------SP_Excel_2_Visio
+'---------PE_Excel_2_Visio
+'---------xls_query
+'---------fill_table_SP
+'---------fill_table_PE
+'---------AddPageSpecifikac
+'---------SP_EXP_2_XLS
+'---------PE_EXP_2_XLS
+'---------get_data
+'---------SortNumInString
+'---------ReplaceSequenceInString
+'---------PozNameInString
+'---------AddSostavNaboraIzBD
+
 Sub ShowSpecifikaciya()
     frmSpecifikaciya.Show
 End Sub
@@ -56,11 +76,34 @@ Public Sub spDEL()
     End If
 End Sub
 
+Private Sub del_sp()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : del_sp - Удаляет листы спецификации
+'------------------------------------------------------------------------------------------------------------
+    Dim dp As Page
+    Dim colPage As Collection
+    Set colPage = New Collection
+    'Спецификацию в колекцию
+    For Each dp In ActiveDocument.Pages
+        If InStr(1, dp.name, cListNameSpec & ".") > 0 Then
+            colPage.Add dp
+        End If
+    Next
+    'удаляем все страницы которые нашли выше
+    For Each dp In colPage
+        dp.Delete (1)
+    Next
+    On Error Resume Next
+    ActiveDocument.Pages.Item(cListNameSpec).Delete (1)
+    ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
+End Sub
+
+
 Public Sub SP_Excel_2_Visio()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : SP_Excel_2_Visio - Создает спецификацию из Excel в Visio
 '------------------------------------------------------------------------------------------------------------
-    xls_query
+    xls_query "A3:I"
     If frmClose Then Exit Sub
     fill_table_SP
     Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
@@ -71,12 +114,12 @@ Public Sub PE_Excel_2_Visio(PerechenElementov As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : PE_Excel_2_Visio - Создает перечень элементов из Excel в Visio
 '------------------------------------------------------------------------------------------------------------
-    xls_query
+    xls_query "A3:I"
     If frmClose Then Exit Sub
     fill_table_PE PerechenElementov
 End Sub
 
-Private Sub xls_query()
+Private Sub xls_query(strRange As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : xls_query - Заполняет массив данными из Excel
 '------------------------------------------------------------------------------------------------------------
@@ -143,7 +186,7 @@ Private Sub xls_query()
     'oExcel.GoTo Reference:=sp.Worksheets(1).Range("A2")
     'oExcel.ActiveCell.Select
     lLastRow = oExcel.Sheets(Excel_imya_lista).Cells(oExcel.Sheets(Excel_imya_lista).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = oExcel.Worksheets(Excel_imya_lista).Range("A3:I" & lLastRow) 'oExcel.InputBox _
+    Set UserRange = oExcel.Worksheets(Excel_imya_lista).Range(strRange & lLastRow) 'oExcel.InputBox _
     '(Prompt:="Выберите диапазон A3:Ix", _
     'Title:="Выбор диапазона", _
     'Type:=8)
@@ -296,23 +339,8 @@ Sub AddPageSpecifikac(pName As String)
             .Cells("PageHeight").Formula = "297 MM"
             .Cells("Paperkind").Formula = 8
             .Cells("PrintPageOrientation").Formula = 2
-            .AddSection visSectionAction
-'            .AddRow visSectionAction, visRowLast, visTagDefault
-'            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
-'            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
-'            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
-'            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
-            .AddRow visSectionAction, visRowLast, visTagDefault
-            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать спецификацию в Visio из Excel"""
-            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""SP_Excel_2_Visio"")"
-            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
-            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
-            .AddRow visSectionAction, visRowLast, visTagDefault
-            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы спецификации"""
-            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""spDEL"")"
-            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
-            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
         End With
+        SetPageAction aPage
         Set Mstr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
         Set Ramka = ActivePage.Drop(Mstr, 0, 0)
         LockTitleBlock
@@ -327,33 +355,10 @@ Sub AddPageSpecifikac(pName As String)
     Ramka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
     Ramka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
 '    Ramka.Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
-    If Len(pName) > 1 Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(8,Prop.CHAPTER.Format)"
+    If pName Like cListNameKJ & ".*" Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
     Ramka.Cells("Prop.cnum") = 0
     Ramka.Cells("Prop.tnum") = 0
 
-End Sub
-
-
-Private Sub del_sp()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : del_sp - Удаляет листы спецификации
-'------------------------------------------------------------------------------------------------------------
-    Dim dp As Page
-    Dim colPage As Collection
-    Set colPage = New Collection
-    'Спецификацию в колекцию
-    For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.name, cListNameSpec & ".") > 0 Then
-            colPage.Add dp
-        End If
-    Next
-    'удаляем все страницы которые нашли выше
-    For Each dp In colPage
-        dp.Delete (1)
-    Next
-    On Error Resume Next
-    ActiveDocument.Pages.Item(cListNameSpec).Delete (1)
-    ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
 End Sub
 
 Public Sub SP_EXP_2_XLS()
@@ -727,26 +732,26 @@ Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Inte
     Set rst = Nothing
 End Function
 
-
-
-
 '------------------------------------------------------------------------------------------------------------
 '----------------------------------------------Кабельный журнал----------------------------------------------
 '------------------------------------------------------------------------------------------------------------
 '---------KJ_Excel_2_Visio
-'---------
-'---------
-'---------
-'---------
+'---------kjDEL
+'---------del_kj
+'---------fill_table_KJ
+'---------AddPageKJ
+'---------KJ_EXP_2_XLS
+'---------GetTrassa
+'---------KJColToArray
 
 Public Sub KJ_Excel_2_Visio()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : KJ_Excel_2_Visio - Создает кабельный журнал из Excel в Visio
 '------------------------------------------------------------------------------------------------------------
-    xls_query
+    xls_query "A4:G"
     If frmClose Then Exit Sub
     fill_table_KJ
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameSpec)
+    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameKJ)
     MsgBox "Кабельный журнал добавлен", vbInformation, "САПР-АСУ: Info"
 End Sub
 
@@ -782,7 +787,7 @@ Private Sub del_kj()
 '    ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
 End Sub
 
-Private Sub fill_table_KJ()
+Public Sub fill_table_KJ()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : fill_table_KJ - Заполняет листы кабельного журнала данными из массива
 '------------------------------------------------------------------------------------------------------------
@@ -807,7 +812,7 @@ Private Sub fill_table_KJ()
     Set mastKJ = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("КЖ")
     ActivePage.Drop mastKJ, 0, 0
     Set shpKJ = ActivePage.Shapes.Item("КЖ")
-    For NStrokiXls = 1 To RowCountXls
+    For NStrokiXls = 1 To UBound(arr, 1)
         Set shpRow = shpKJ.Shapes.Item("row" & NRow)
         For ncell = 1 To 7 'ColoumnCountXls
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
@@ -880,23 +885,8 @@ Sub AddPageKJ(pName As String)
             .Cells("PageHeight").Formula = "297 MM"
             .Cells("Paperkind").Formula = 8
             .Cells("PrintPageOrientation").Formula = 2
-            .AddSection visSectionAction
-'            .AddRow visSectionAction, visRowLast, visTagDefault
-'            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Перечень оборудования со Схемы в Excel"""
-'            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PagePLANAddElementsFrm"")"
-'            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "263" '5897
-'            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """10"""
-            .AddRow visSectionAction, visRowLast, visTagDefault
-            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Создать кабельный журнал в Visio из Excel"""
-            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""KJ_Excel_2_Visio"")"
-            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "7076" '6224
-            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
-            .AddRow visSectionAction, visRowLast, visTagDefault
-            .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы кабельного журнала"""
-            .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""kjDEL"")"
-            .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
-            .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
         End With
+        SetPageAction aPage
         Set Mstr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
         Set Ramka = ActivePage.Drop(Mstr, 0, 0)
         LockTitleBlock
@@ -911,7 +901,7 @@ Sub AddPageKJ(pName As String)
 '    Ramka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
 '    Ramka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
 '    Ramka.Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
-    If Len(pName) > 1 Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(7,Prop.CHAPTER.Format)"
+    If pName Like cListNameKJ & ".*" Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
     Ramka.Cells("Prop.cnum") = 0
     Ramka.Cells("Prop.tnum") = 0
 
@@ -927,13 +917,19 @@ Public Sub KJ_EXP_2_XLS()
     Dim np As Page
     Dim pg As Page
     Dim n As Integer
+    Dim m As Integer
     pName = cListNameKJ
     str = 1
     opn = ActiveDocument.Pages.Item(pName).Index
     Application.ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameKJ)
     get_data ActivePage.Shapes.Item("КЖ"), 7
     'находим все листы кабельного журнала
-    For n = 2 To ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac")
+    For Each pg In ActiveDocument.Pages
+        If pg.name Like cListNameKJ & ".*" Then
+            m = m + 1
+        End If
+    Next
+    For n = 2 To m
         pName = cListNameKJ & "." & n
         Application.ActiveWindow.Page = ActiveDocument.Pages.Item(pName)
         get_data ActivePage.Shapes.Item("КЖ"), 7
@@ -974,18 +970,20 @@ Public Sub KJ_EXP_2_XLS()
     apx.Sheets("КЖ (2)").name = "КЖ_EXP_2_XLS"
     
     
-    lLastRow = apx.Sheets("КЖ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row
+    lLastRow = apx.Sheets("КЖ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlDown).Row
     apx.Application.CutCopyMode = False
     apx.Worksheets("КЖ_EXP_2_XLS").Activate
-    apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
-    apx.ActiveSheet.Range("A4:J5").ClearContents
-    apx.ActiveSheet.Rows("5:" & str).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
+    apx.ActiveSheet.Rows("7:" & lLastRow).Delete Shift:=xlUp
+    apx.ActiveSheet.Range("A4:J6").ClearContents
+'    str = UBound(tabl, 1)
+    If str < 5 Then nstr = 5 Else nstr = str
+    apx.ActiveSheet.Rows("5:" & nstr).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
     WB.Activate
         
-        For xx = 1 To str + 2
+        For xx = 1 To str
             For yx = 1 To 7
-                WB.Sheets("КЖ_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
+                WB.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = tabl(xx, yx)
                 'wb.Sheets("КЖ_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
@@ -997,24 +995,14 @@ Public Sub KJ_EXP_2_XLS()
     WB.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
-    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист КЖ_EXP_2_XLS", vbInformation, "САПР-АСУ: Info"
+    MsgBox "Кабельный журнал экспортирован в файл SP_2_Visio.xls на лист КЖ_EXP_2_XLS", vbInformation, "САПР-АСУ: Info"
 End Sub
 
-Public Function GetTrassa(shpKabelPL As Visio.Shape) As String
-'------------------------------------------------------------------------------------------------------------
-' Function      : GetTrassa - Возвращает строку с трассой прокладки кабеля на плане
-'------------------------------------------------------------------------------------------------------------
-    Dim i As Integer
-    
-    For i = 1 To shpKabelPL.Section(visSectionScratch).Count
-        GetTrassa = shpKabelPL.Cells("Scratch.A" & i).ResultStr(0) & " (" & shpKabelPL.Cells("Scratch.B" & i).ResultStr(0) & " м.),"
-    Next
-    GetTrassa = Left(GetTrassa, Len(GetTrassa) - 1)
-End Function
 
-Public Sub ColToArray(colCollection As Collection)
+
+Public Sub KJColToArray(colCollection As Collection)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : ColToArray - Заполняет массив данными из колекции
+' Macros        : KJColToArray - Заполняет массив данными из колекции
 '------------------------------------------------------------------------------------------------------------
     Dim i As Integer
     

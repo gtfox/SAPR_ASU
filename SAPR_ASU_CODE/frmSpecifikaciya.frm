@@ -36,12 +36,20 @@ Private Sub obVseCx_Click()
     frameOutListCx.Visible = False
 End Sub
 
+Private Sub obVseCxKJ_Click()
+    frameOutListCxKJ.Visible = False
+End Sub
+
 Private Sub obVseFSA_Click()
     frameOutListFSA.Visible = False
 End Sub
 
 Private Sub obVybCx_Click()
     frameOutListCx.Visible = False
+End Sub
+
+Private Sub obVybCxKJ_Click()
+    frameOutListCxKJ.Visible = True
 End Sub
 
 Private Sub obVybFSA_Click()
@@ -424,8 +432,8 @@ Public Sub FindKabeliShemyToExcel()
     Set colCxem = New Collection
     Set Cxema = New classCxema
     Set Cxema.colListov = New Collection
-    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
-    Set colStrokaKJ = New Collection
+'    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
+'    Set colStrokaKJ = New Collection
 
     For i = 1 To cmbxNazvanieShemyKJ.ListCount
         NazvanieShemy = cmbxNazvanieShemyKJ.List(i - 1)
@@ -447,14 +455,15 @@ Public Sub FindKabeliShemyToExcel()
     i = 0
     If obVseCxKJ Then
         For Each Cxema In colCxem
+            Set colStrokaKJ = New Collection
             NazvanieShemy = Cxema.NameCxema
             For Each vsoPage In Cxema.colListov
                 GoSub FillcolStrokaKJ
             Next
-            If obNaListCxKJ Then
-                ColToArray colStrokaKJ
-                fill_table_KJ
-            Else
+'            If obNaListCxKJ Then
+'                KJColToArray colStrokaKJ
+'                fill_table_KJ
+'            Else
                 If i > 0 Then
                     GoSub OutExcelNextKJ
                 Else
@@ -462,7 +471,7 @@ Public Sub FindKabeliShemyToExcel()
                 End If
                 i = i + 1
                 WB.Save
-            End If
+'            End If
         Next
     ElseIf obVybCxKJ Then
         NazvanieShemy = cmbxNazvanieShemyKJ.Text
@@ -470,7 +479,7 @@ Public Sub FindKabeliShemyToExcel()
             GoSub FillcolStrokaKJ
         Next
         If obNaListCxKJ Then
-            ColToArray colStrokaKJ
+            KJColToArray colStrokaKJ
             fill_table_KJ
         Else
             GoSub OutExcelKJ
@@ -483,7 +492,7 @@ Exit Sub
 '-----------------------------------------------------------------------------------
 FillcolStrokaKJ:
     For Each shpKabel In vsoPage.Shapes    'Перебираем все шейпы на листе
-        If ShapeSATypeIs(typeCableSH) Then    'Берем только кабели схемы
+        If ShapeSATypeIs(shpKabel, typeCableSH) Then    'Берем только кабели схемы
             Set clsStrokaKJ = New classStrokaKabelnogoJurnala
             Set shpSensor = FindSensorFromKabel(shpKabel)
             Set shpKabelPL = ShapeByHyperLink(shpKabel.Cells("Hyperlink.Kabel.SubAddress").ResultStr(0))
@@ -492,7 +501,7 @@ FillcolStrokaKJ:
             clsStrokaKJ.Konec = shpSensor.Cells("User.Name").ResultStr(0)
             clsStrokaKJ.Trassa = GetTrassa(shpKabelPL)
             clsStrokaKJ.Marka = shpKabel.Cells("Prop.TipKab").ResultStr(0)
-            clsStrokaKJ.Sechenie = shpKabel.Cells("Prop.WireCount").ResultStr(0) & "x" & shpKabel.Cells("Prop.mm2").ResultStr(0)
+            clsStrokaKJ.Sechenie = shpKabel.Cells("Prop.WireCount").Result(0) & "x" & shpKabel.Cells("Prop.mm2").ResultStr(0)
             clsStrokaKJ.Dlina = shpKabel.Cells("Prop.Dlina").Result(0)
 
             colStrokaKJ.Add clsStrokaKJ, clsStrokaKJ.Oboznach
@@ -536,11 +545,11 @@ OutExcelNextKJ:
     
     apx.Sheets("КЖ (2)").name = NameSheet
     
-    lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlUp).Row
+    lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlDown).Row
     apx.Application.CutCopyMode = False
     apx.Worksheets(NameSheet).Activate
-    apx.ActiveSheet.Rows("6:" & lLastRow).Delete Shift:=xlUp
-    apx.ActiveSheet.Range("A4:J5").ClearContents
+    apx.ActiveSheet.Rows("7:" & lLastRow).Delete Shift:=xlUp
+    apx.ActiveSheet.Range("A4:J6").ClearContents
 
     
     WB.Activate
@@ -572,7 +581,6 @@ OutExcelNextKJ:
 '    apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
 '    apx.ActiveSheet.Range("J1").Select
     
-    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
     Set colStrokaKJ = New Collection
     
 '    WB.Save
@@ -582,6 +590,30 @@ OutExcelNextKJ:
 Return
 
 End Sub
+
+Public Function GetTrassa(shpKabelPL As Visio.Shape) As String
+'------------------------------------------------------------------------------------------------------------
+' Function      : GetTrassa - Возвращает строку с трассой прокладки кабеля на плане
+'------------------------------------------------------------------------------------------------------------
+    Dim i As Integer
+    If Not shpKabelPL Is Nothing Then
+        For i = 1 To shpKabelPL.Section(visSectionScratch).Count
+            If cbShortName Then
+                Select Case shpKabelPL.Cells("Scratch.A" & i).ResultStr(0)
+                    Case "Лоток"
+                        GetTrassa = GetTrassa & "Л. " & shpKabelPL.Cells("Scratch.B" & i).ResultStr(0) & " (" & shpKabelPL.Cells("Scratch.C" & i).ResultStr(0) & "м.), "
+                    Case "Гофра"
+                        GetTrassa = GetTrassa & "Г. " & shpKabelPL.Cells("Scratch.B" & i).ResultStr(0) & " (" & shpKabelPL.Cells("Scratch.C" & i).ResultStr(0) & "м.), "
+                End Select
+            Else
+                GetTrassa = GetTrassa & shpKabelPL.Cells("Scratch.A" & i).ResultStr(0) & " " & shpKabelPL.Cells("Scratch.B" & i).ResultStr(0) & " (" & shpKabelPL.Cells("Scratch.C" & i).ResultStr(0) & "м.), "
+            End If
+        Next
+        GetTrassa = Left(GetTrassa, Len(GetTrassa) - 2)
+    Else
+        GetTrassa = ""
+    End If
+End Function
 
 Sub Fill_cmbxNazvanieShemy()
     Dim vsoPage As Visio.Page
