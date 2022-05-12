@@ -283,17 +283,22 @@ OutExcelNext:
     
     str = colStrokaSpecif.Count
     If obTekListCx Then
-        NameSheet = NazvanieShemy & "_" & vsoPage.name
+        NameSheet = NazvanieShemy & "_" & vsoPage.name & "_СП"
     Else
-        NameSheet = NazvanieShemy
+        NameSheet = NazvanieShemy & "_СП"
     End If
     'удаляем старый лист
     apx.DisplayAlerts = False
     On Error Resume Next
     apx.Sheets(NameSheet).Delete
     apx.DisplayAlerts = True
+    'Отключаем On Error Resume Next
+    err.Clear
+    On Error GoTo 0
     'добавляем новый
+    apx.Sheets("СП").Visible = True
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП").Visible = False
     
     apx.Sheets("СП (2)").name = NameSheet
     
@@ -329,7 +334,7 @@ OutExcelNext:
         WB.Sheets(NameSheet).Cells(xx + 2, 7) = colStrokaSpecif(xx).KolVo '7 Количество
         'WB.Sheets(NameSheet).Cells(xx + 2, 8) = colStrokaSpecif(xx) '8 Масса единицы, кг
         'WB.Sheets(NameSheet).Cells(xx + 2, 9) = colStrokaSpecif(xx) '9 Примечание
-        WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(colStrokaSpecif(xx).CenaDB)  'Цена
+        WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(IIf(colStrokaSpecif(xx).CenaDB = "", 0, colStrokaSpecif(xx).CenaDB)) 'Цена
         WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & (xx + 2) & "*G" & (xx + 2)
         'wb.Sheets(NameSheet).Range("A" & (xx + 2)).Select 'для наглядности
     Next
@@ -344,9 +349,10 @@ OutExcelNext:
     apx.ActiveSheet.Range("B3:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
     apx.ActiveSheet.Range("K3:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).NumberFormat = "#,##0"
     apx.ActiveSheet.Range("L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row + 1).FormulaLocal = "=СУММ(L3:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row & ")"
-    For i = 7 To 12: Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
+    For i = 7 To 12: apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
     apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
     apx.ActiveSheet.Range("J1").Select
+    
     
     Set clsStrokaSpecif = New classStrokaSpecifikacii
     Set colStrokaSpecif = New Collection
@@ -475,6 +481,7 @@ Public Sub FindKabeliShemyToExcel()
         Next
     ElseIf obVybCxKJ Then
         NazvanieShemy = cmbxNazvanieShemyKJ.Text
+        Set colStrokaKJ = New Collection
         For Each vsoPage In colCxem(NazvanieShemy).colListov
             GoSub FillcolStrokaKJ
         Next
@@ -541,8 +548,9 @@ OutExcelNextKJ:
     err.Clear
     On Error GoTo 0
     'добавляем новый
+    apx.Sheets("КЖ").Visible = True
     apx.Sheets("КЖ").Copy After:=apx.Sheets(apx.Worksheets.Count)
-    
+    apx.Sheets("КЖ").Visible = False
     apx.Sheets("КЖ (2)").name = NameSheet
     
     lLastRow = apx.Sheets(NameSheet).Cells(apx.Rows.Count, 1).End(xlDown).Row
@@ -577,9 +585,10 @@ OutExcelNextKJ:
     apx.ActiveSheet.Range("A4:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид
 '    apx.ActiveSheet.Range("B4:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
 '    apx.ActiveSheet.Range("K4:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).NumberFormat = "#,##0"
-'    For i = 7 To 12: Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
+'    For i = 7 To 12: apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
 '    apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
 '    apx.ActiveSheet.Range("J1").Select
+
     
     Set colStrokaKJ = New Collection
     

@@ -414,8 +414,13 @@ Public Sub SP_EXP_2_XLS()
     On Error Resume Next
     apx.Sheets("СП_EXP_2_XLS").Delete
     apx.DisplayAlerts = True
+    'Отключаем On Error Resume Next
+    err.Clear
+    On Error GoTo 0
     'добавляем новый
+    apx.Sheets("СП").Visible = True
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП").Visible = False
     apx.Sheets("СП (2)").name = "СП_EXP_2_XLS"
     
     
@@ -492,8 +497,13 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape)
     On Error Resume Next
     apx.Sheets(NameListExcel).Delete
     apx.DisplayAlerts = True
+    'Отключаем On Error Resume Next
+    err.Clear
+    On Error GoTo 0
     'добавляем новый
+    apx.Sheets("СП").Visible = True
     apx.Sheets("СП").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("СП").Visible = False
     apx.Sheets("СП (2)").name = NameListExcel
     
     
@@ -965,8 +975,13 @@ Public Sub KJ_EXP_2_XLS()
     On Error Resume Next
     apx.Sheets("КЖ_EXP_2_XLS").Delete
     apx.DisplayAlerts = True
+    'Отключаем On Error Resume Next
+    err.Clear
+    On Error GoTo 0
     'добавляем новый
+    apx.Sheets("КЖ").Visible = True
     apx.Sheets("КЖ").Copy After:=apx.Sheets(apx.Worksheets.Count)
+    apx.Sheets("КЖ").Visible = False
     apx.Sheets("КЖ (2)").name = "КЖ_EXP_2_XLS"
     
     
