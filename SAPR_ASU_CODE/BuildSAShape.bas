@@ -71,48 +71,57 @@ Sub SetElement() 'SetValueToSelSections
     Dim arrMast()
     Dim SectionNumber As Long
     Dim RowNumber As Long
-    
 
-    
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
     
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
+arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ", "UZ1P", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor")
+
+For i = 0 To UBound(arrMast)
+Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+    
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
+
+'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
+    
 SectionNumber = visSectionUser 'User 242
 sSectionName = "User."
-            arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
-            arrRowValue = Array("0|""""", _
-                            "170|", _
-                            "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
-                            "0|""""", _
-                            "Prop.SymName&"" ""&Prop.Ac3|""""", _
-                            "0|""""", _
-                            "0|""Код позиции/Код производителя/Код единицы""")
+            arrRowName = Array("Name", "Shkaf", "Mesto")
+            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number|", _
+                            """""|""""", _
+                            """""|""""")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("SymName", "Number", "AutoNum", "HideName", "HideNumber", "FullName", "Ac3", "NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
-            arrRowValue = Array("""Название""|""Название""|0||""Лоток""|""10""|FALSE|FALSE|1049|0", _
-                            """Номер провода""|""Номер провода""|2|""""||""20""|TRUE|FALSE|1033|0", _
-                            """Автонумерация""|""Автонумерация""|3|""""|FALSE|""50""|TRUE|FALSE|1033|0", _
-                            """Скрыть название""|""Скрыть название провода""|3|""""|TRUE|""30""|TRUE|FALSE|1033|0", _
-                            """Скрыть номер""|""Скрыть номер провода""|3|""""|TRUE|""40""|TRUE|FALSE|1033|0", _
-                            """Имя лотка""|""Имя лотка""|0|""""|User.FullName|""91""|TRUE|FALSE|1033|0", _
-                            """Сечение""|""Сечение""|1|""50x50;50x100;80x80""|INDEX(0,Prop.Ac3.Format)|""40""|||1033|", _
-                            """Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
-                            """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
-                            """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1033|0", _
-                            """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
-                            """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
+            arrRowName = Array("PerenosOboz")
+            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-SectionNumber = visSectionObject
-RowNumber = visRowLine 'Line Format
-            arrRowName = Array("")
-                    arrRowValue = Array("1|0.2 mm|0|0|0|0|0%|1|1|0 mm")
+Next
+
+
+
+arrMast = Array("PLCParent", "TRM")
+
+For i = 0 To UBound(arrMast)
+Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("Name", "Shkaf", "Mesto")
+            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number|", _
+                            """""|""""", _
+                            """""|""""")
 SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+SectionNumber = visSectionProp 'Prop 243
+            arrRowName = Array("PerenosOboz")
+            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+Next
 
 End Sub
 
@@ -133,8 +142,8 @@ Sub GetAllSSValueSplit()
     
 '    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
     
-    Set vsoObject = ActivePage.Shapes.ItemFromID(69)
-'    Set vsoObject = ActiveDocument.DocumentSheet
+'    Set vsoObject = ActivePage.Shapes.ItemFromID(160)
+    Set vsoObject = ActiveDocument.DocumentSheet
     
     strFile = ThisDocument.path & "tempValue.vb"
     
