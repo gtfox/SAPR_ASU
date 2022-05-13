@@ -1,5 +1,7 @@
 
 
+
+
 Private Sub UserForm_Initialize()
     Reload_cmbx
     With ActiveDocument.DocumentSheet
@@ -21,6 +23,7 @@ Private Sub UserForm_Initialize()
         tbSA_ElementSxemy = .Cells("User.SA_ElementSxemy").ResultStr(0)
         tbSA_NazvanieShkafa = .Cells("User.SA_NazvanieShkafa").ResultStr(0)
         tbSA_MestoUstanovka = .Cells("User.SA_MestoUstanovka").ResultStr(0)
+        cbISO = .Cells("User.SA_ISO").Result(0)
     End With
     MultiPage1.Value = 0
 End Sub
@@ -190,4 +193,7 @@ Private Sub CommandButton35_Click()
 End Sub
 Private Sub CommandButton36_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_MestoUstanovka").Formula = """" + tbSA_MestoUstanovka + """"
+End Sub
+Private Sub cbISO_Click()
+    ActiveDocument.DocumentSheet.Cells("User.SA_ISO").Formula = cbISO
 End Sub
