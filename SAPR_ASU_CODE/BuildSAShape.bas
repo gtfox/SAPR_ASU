@@ -78,7 +78,9 @@ Sub SetElement() 'SetValueToSelSections
     
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
-arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ", "UZ1P", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor")
+'arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ3P", "UZ", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor")
+arrMast = Array("Term", "TermC")
+
 
 For i = 0 To UBound(arrMast)
 Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
@@ -86,42 +88,48 @@ Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(ar
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
-    
-SectionNumber = visSectionUser 'User 242
-sSectionName = "User."
-            arrRowName = Array("Name", "Shkaf", "Mesto")
-            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number|", _
-                            """""|""""", _
-                            """""|""""")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
-SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("PerenosOboz")
-            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+vsoObject.Cells("User.FullName").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&User.KlemmnikName&"":""&Prop.Number"
+vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.Number"
 
-Next
-
-
-
-arrMast = Array("PLCParent", "TRM")
-
-For i = 0 To UBound(arrMast)
-Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
-SectionNumber = visSectionUser 'User 242
-sSectionName = "User."
-            arrRowName = Array("Name", "Shkaf", "Mesto")
-            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number|", _
-                            """""|""""", _
-                            """""|""""")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
-
-SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("PerenosOboz")
-            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'SectionNumber = visSectionUser 'User 242
+'sSectionName = "User."
+'            arrRowName = Array("Name", "Shkaf", "Mesto")
+'            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number", _
+'                            """""|""""", _
+'                            """""|""""")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'
+'SectionNumber = visSectionProp 'Prop 243
+'            arrRowName = Array("PerenosOboz")
+'            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 
 Next
+
+
+
+'arrMast = Array("PLCParent", "TRM")
+'
+'For i = 0 To UBound(arrMast)
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+'
+'vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number"
+'
+'SectionNumber = visSectionUser 'User 242
+'sSectionName = "User."
+'            arrRowName = Array("Name", "Shkaf", "Mesto")
+'            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number", _
+'                            """""|""""", _
+'                            """""|""""")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'
+'SectionNumber = visSectionProp 'Prop 243
+'            arrRowName = Array("PerenosOboz")
+'            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'
+'Next
 
 End Sub
 
