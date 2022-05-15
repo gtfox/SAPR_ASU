@@ -223,7 +223,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     lstvPages.ListItems.Clear
     
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
+        If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShkafa", 0) Then
             Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
         End If
     Next

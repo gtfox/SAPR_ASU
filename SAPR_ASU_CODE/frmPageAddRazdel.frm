@@ -25,7 +25,7 @@ Private Sub UserForm_Initialize()
     frameNaim.Top = 30
     Me.Height = frameNaim.Top + frameNaim.Height + 24
     
-    Fill_cmbxNazvanieShemy
+    Fill_cmbxNazvanieShkafa
     Fill_cmbxNazvanieFSA
     Fill_cmbxNaimenovLista
     
@@ -141,16 +141,16 @@ Private Sub btnAddRazdel_Click()
             End If
         Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
         Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
-            SetNazvanieShemy vsoPageNew.PageSheet
-            If cmbxNazvanieShemy.ListIndex = -1 Then NazvanieShemyAdd
-            For i = 0 To cmbxNazvanieShemy.ListCount - 1
-                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShemy.List(i) = "", "", cmbxNazvanieShemy.List(i) & IIf(i = cmbxNazvanieShemy.ListCount - 1, "", ";"))
+            SetNazvanieShkafa vsoPageNew.PageSheet
+            If cmbxNazvanieShkafa.ListIndex = -1 Then NazvanieShkafaAdd
+            For i = 0 To cmbxNazvanieShkafa.ListCount - 1
+                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShkafa.List(i) = "", "", cmbxNazvanieShkafa.List(i) & IIf(i = cmbxNazvanieShkafa.ListCount - 1, "", ";"))
             Next
-            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & """"
-            If cmbxNazvanieShemy.ListIndex <> -1 Then
-                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListIndex & ",Prop.SA_NazvanieShemy.Format)"
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & """"
+            If cmbxNazvanieShkafa.ListIndex <> -1 Then
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").FormulaU = "INDEX(" & cmbxNazvanieShkafa.ListIndex & ",Prop.SA_NazvanieShkafa.Format)"
             Else
-                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").FormulaU = "INDEX(" & cmbxNazvanieShemy.ListCount - 1 & ",Prop.SA_NazvanieShemy.Format)"
+                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").FormulaU = "INDEX(" & cmbxNazvanieShkafa.ListCount - 1 & ",Prop.SA_NazvanieShkafa.Format)"
             End If
             vsoPageNew.Drop Setka, 0, 0
         Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
@@ -172,7 +172,7 @@ Private Sub btnAddRazdel_Click()
 
 End Sub
 
-Sub Fill_cmbxNazvanieShemy()
+Sub Fill_cmbxNazvanieShkafa()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
@@ -181,16 +181,16 @@ Sub Fill_cmbxNazvanieShemy()
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
+            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
             Exit For
         End If
     Next
-    cmbxNazvanieShemy.Clear
+    cmbxNazvanieShkafa.Clear
     mstrPropPageSheet = Split(PropPageSheet, ";")
     For i = 0 To UBound(mstrPropPageSheet)
-        cmbxNazvanieShemy.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShemy.Text = ""
+    cmbxNazvanieShkafa.Text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -228,37 +228,37 @@ Sub Fill_cmbxNaimenovLista()
     Next
 End Sub
 
-Private Sub btnNazvanieShemyAdd_Click()
-    If MsgBox("Добавить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название схемы") = vbYes Then
-        If cmbxNazvanieShemy.Text = "" Then
-            MsgBox "Название схемы пустое" & vbNewLine & "Введите название схемы... ", vbExclamation, "САПР-АСУ: Название схемы пустое"
-        Else
-            NazvanieShemyAdd
+Private Sub btnNazvanieShkafaAdd_Click()
+    If cmbxNazvanieShkafa.Text = "" Then
+        MsgBox "Название шкафа пустое" & vbNewLine & "Введите название шкафа... ", vbExclamation, "САПР-АСУ: Название шкафа пустое"
+    Else
+        If MsgBox("Добавить шкаф: " & cmbxNazvanieShkafa.Text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название шкафа") = vbYes Then
+            NazvanieShkafaAdd
         End If
     End If
 End Sub
 
-Sub NazvanieShemyAdd()
+Sub NazvanieShkafaAdd()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
-    If cmbxNazvanieShemy.Text <> "" Then
+    If cmbxNazvanieShkafa.Text <> "" Then
         PageName = cListNameCxema
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like PageName & "*" Then
-                PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
-                vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieShemy.Text & """"
+                PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
+                vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieShkafa.Text & """"
             End If
         Next
-        Fill_cmbxNazvanieShemy
+        Fill_cmbxNazvanieShkafa
     End If
 End Sub
 
 Private Sub btnNazvanieFSAAdd_Click()
-    If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
-        If cmbxNazvanieFSA.Text = "" Then
-            MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "САПР-АСУ: Название ФСА пустое"
-        Else
+    If cmbxNazvanieFSA.Text = "" Then
+        MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "САПР-АСУ: Название ФСА пустое"
+    Else
+        If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
             NazvanieFSAAdd
         End If
     End If
@@ -291,24 +291,24 @@ Private Sub btnNaimenovanieAdd2Master_Click()
     End If
 End Sub
 
-Private Sub btnNazvanieShemyDel_Click()
+Private Sub btnNazvanieShkafaDel_Click()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
     Dim i As Integer
-    If MsgBox("Удалить схему: " & cmbxNazvanieShemy.Text & vbNewLine & vbNewLine & "Это повлияет на все схемы в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название схемы") = vbYes Then
-        If cmbxNazvanieShemy.ListIndex <> -1 Then
-            cmbxNazvanieShemy.RemoveItem cmbxNazvanieShemy.ListIndex
-            For i = 0 To cmbxNazvanieShemy.ListCount - 1
-                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShemy.List(i) = "", "", cmbxNazvanieShemy.List(i) & IIf(i = cmbxNazvanieShemy.ListCount - 1, "", ";"))
+    If MsgBox("Удалить шкаф: " & cmbxNazvanieShkafa.Text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название шкафа") = vbYes Then
+        If cmbxNazvanieShkafa.ListIndex <> -1 Then
+            cmbxNazvanieShkafa.RemoveItem cmbxNazvanieShkafa.ListIndex
+            For i = 0 To cmbxNazvanieShkafa.ListCount - 1
+                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieShkafa.List(i) = "", "", cmbxNazvanieShkafa.List(i) & IIf(i = cmbxNazvanieShkafa.ListCount - 1, "", ";"))
             Next
             PageName = cListNameCxema
             For Each vsoPage In ActiveDocument.Pages
                 If vsoPage.name Like PageName & "*" Then
-                    vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & PropPageSheet & """"
+                    vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & """"
                 End If
             Next
-            Fill_cmbxNazvanieShemy
+            Fill_cmbxNazvanieShkafa
         End If
     End If
 End Sub

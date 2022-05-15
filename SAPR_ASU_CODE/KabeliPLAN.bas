@@ -145,7 +145,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     Dim Key As String
     
     Dim BoxNumber As Integer 'Номер шкафа к которому подключен кабель/датчик
-    Dim NazvanieShemy As String 'Название схемы шкафа к которому подключен кабель/датчик
+    Dim NazvanieShkafa As String 'Название шкафа к которому подключен кабель/датчик
     Dim i As Integer
     Dim n As Integer
     Dim MultiCable As Boolean
@@ -224,10 +224,10 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
     Set selLineRight = shpLineRight.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
     
     'Выбираем лотки и линии
-    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok ', NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok ', NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok ', NazvanieShemy 'BoxNumber
-    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok ', NazvanieShemy 'BoxNumber
+    AddLotokToCol shpLineUp, selLineUp, colLine, colLotok ', NazvanieShkafa 'BoxNumber
+    AddLotokToCol shpLineDown, selLineDown, colLine, colLotok ', NazvanieShkafa 'BoxNumber
+    AddLotokToCol shpLineLeft, selLineLeft, colLine, colLotok ', NazvanieShkafa 'BoxNumber
+    AddLotokToCol shpLineRight, selLineRight, colLine, colLotok ', NazvanieShkafa 'BoxNumber
     If colLotok.Count = 0 Then 'нет лотков - выходим
         'Чистим вспомогательную графику
         shpLineUp.Delete
@@ -502,8 +502,8 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "САПР-АСУ: Info": Exit Sub
             'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
         '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
-        '    NazvanieShemy = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-            NazvanieShemy = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
+        '    NazvanieShkafa = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+            NazvanieShkafa = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
             
             'Номер точки начала машрута
             StartRoute = clsShapePoint.PointNumber
@@ -511,7 +511,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             'Находим шкаф по названию схемы
             For Each clsShpPnt In colShapePoints
                 If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typeBox) Then
-                    If clsShpPnt.ShapeOnFSA.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
+                    If clsShpPnt.ShapeOnFSA.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
                         EndRoute = clsShpPnt.PointNumber 'Номер точки конца машрута
                         Exit For
                     End If
@@ -520,7 +520,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             If EndRoute = 0 Then
                 vsoLayer1.Delete True
                 vsoLayer3.Delete True
-                MsgBox "Нет шкафа " & NazvanieShemy & " для датчика " & clsShapePoint.ShapeOnFSA.Cells("User.NameParent").ResultStr(0) & " (" & clsShapePoint.ShapeOnFSA.NameID & ")", vbCritical + vbOKOnly, "САПР-АСУ: Ошибка"
+                MsgBox "Нет шкафа " & NazvanieShkafa & " для датчика " & clsShapePoint.ShapeOnFSA.Cells("User.NameParent").ResultStr(0) & " (" & clsShapePoint.ShapeOnFSA.NameID & ")", vbCritical + vbOKOnly, "САПР-АСУ: Ошибка"
                 Exit Sub
             End If
             
@@ -874,7 +874,7 @@ Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
 End Sub
 
 
-Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection) ', NazvanieShemy As String)
+Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colLine As Collection, ByRef colLotok As Collection) ', NazvanieShkafa As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddLotokToCol - Заполняет коллекции лотков и линий
 '------------------------------------------------------------------------------------------------------------
@@ -1171,16 +1171,16 @@ Function CableLength(shpCable As Shape) As Double
     
 End Function
 
-Sub FillNazvanieShemyInBox(vsoShape As Visio.Shape)
+Sub FillNazvanieShkafaInBox(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : FillNazvanieShemyInBox - Заполняет Prop.SA_NazvanieShemy в шейпе шкафа/коробки на плане
+' Macros        : FillNazvanieShkafaInBox - Заполняет Prop.SA_NazvanieShkafa в шейпе шкафа/коробки на плане
 '------------------------------------------------------------------------------------------------------------
     Dim vsoPage As Visio.Page
     Dim PageName As String
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            vsoShape.Cells("Prop.SA_NazvanieShemy.Format").Formula = """" & vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0) & """"
+            vsoShape.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0) & """"
             Exit Sub
         End If
     Next

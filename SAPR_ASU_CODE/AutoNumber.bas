@@ -37,7 +37,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     
     Dim SymName As String       'Буквенная часть нумерации
-    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim ThePage As Visio.Shape
     Dim vsoShapeOnPage As Visio.Shape
@@ -45,7 +45,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     Dim PageName As String
     
     Set ThePage = ActivePage.PageSheet
-    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
+    If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
     PageName = cListNameCxema  'Имена листов где возможна нумерация
     'Узнаем тип и буквенное обозначение элемента, который вставили на схему
     UserType = ShapeSAType(vsoShape)
@@ -60,7 +60,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     'Цикл поиска максимального номера существующих элементов схемы
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then    'Берем все схемы с именем той, на которую вставляем элемент
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все схемы с именем той, на которую вставляем элемент
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
                         If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
@@ -348,7 +348,7 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
     
     PageName = cListNameCxema  'Имена листов где возможна нумерация
     'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер. По умолчанию = 1
-    If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+    If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
     
     'Цикл поиска проводов и скрытия номера
     For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе

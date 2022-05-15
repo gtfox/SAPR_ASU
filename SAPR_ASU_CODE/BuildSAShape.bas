@@ -78,19 +78,39 @@ Sub SetElement() 'SetValueToSelSections
     
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
-'arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ3P", "UZ", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor")
-arrMast = Array("Term", "TermC")
+arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ3P", "UZ", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor", "Term", "TermC")
+'arrMast = Array("Term", "TermC")
 
 
 For i = 0 To UBound(arrMast)
 Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
     
-'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
+'
+'vsoObject.Cells("User.FullName").FormulaU = "IF(and(TheDoc!User.SA_ISO,Prop.Oboz_ISO),IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&User.KlemmnikName&"":""&Prop.Number"
+'vsoObject.Cells("User.Name").FormulaU = "IF(and(TheDoc!User.SA_ISO,Prop.Oboz_ISO),IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.Number"
 
-'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
 
-vsoObject.Cells("User.FullName").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&User.KlemmnikName&"":""&Prop.Number"
-vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.Number"
+
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).PageSheet
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("TRM").PageSheet
+'SectionNumber = visSectionProp 'Prop 243
+'            arrRowName = Array("SA_NazvanieShkafa", "SA_NazvanieMesta")
+'            arrRowValue = Array("""Название Шкафа""|""Нумерация элементов идет в пределах одного шкафа""|1|""""|INDEX(0,Prop.SA_NazvanieShkafa.Format)|""""|FALSE|FALSE|1049|0", _
+'                            """Название Места""|""Название места расположения или название установки""|0|""""|""""|""""|FALSE|FALSE|1049|0")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
+
+'
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+'SectionNumber = visSectionUser 'User 242
+'sSectionName = "User."
+'            arrRowName = Array("Shkaf", "Mesto")
+'            arrRowValue = Array("ThePage!Prop.SA_NazvanieShkafa|""""", _
+'                            "ThePage!Prop.SA_NazvanieMesta|""""")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'
+
+
 
 'SectionNumber = visSectionUser 'User 242
 'sSectionName = "User."
@@ -107,27 +127,14 @@ vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.M
 
 Next
 
-
-
+'
+'
 'arrMast = Array("PLCParent", "TRM")
 '
 'For i = 0 To UBound(arrMast)
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
 '
 'vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number"
-'
-'SectionNumber = visSectionUser 'User 242
-'sSectionName = "User."
-'            arrRowName = Array("Name", "Shkaf", "Mesto")
-'            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number", _
-'                            """""|""""", _
-'                            """""|""""")
-'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
-'
-'SectionNumber = visSectionProp 'Prop 243
-'            arrRowName = Array("PerenosOboz")
-'            arrRowValue = Array("""Перенос обозн.""|""Переносить обозначение (обозначение в столбец)""|3|""""|FALSE|""69""|NOT(TheDoc!User.SA_ISO)|FALSE|1049|0")
-'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
 '
 'Next
 
@@ -146,12 +153,12 @@ Sub GetAllSSValueSplit()
     Dim strFile As String
     Dim vsoObject As Object
     
-'    Set vsoObject = ActivePage.PageSheet
+    Set vsoObject = ActivePage.PageSheet
     
 '    Set vsoObject = Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Master.34").Shapes("Sheet.5")
     
-'    Set vsoObject = ActivePage.Shapes.ItemFromID(160)
-    Set vsoObject = ActiveDocument.DocumentSheet
+'    Set vsoObject = ActivePage.Shapes.ItemFromID(70)
+'    Set vsoObject = ActiveDocument.DocumentSheet
     
     strFile = ThisDocument.path & "tempValue.vb"
     

@@ -435,7 +435,7 @@ Sub AddSAPageNext()
     Dim PageNumber As Integer
     Dim Index As Integer
     Dim ItemCol As Integer
-    Dim NazvanieShemy As String
+    Dim NazvanieShkafa As String
     Dim NazvanieFSA As String
     
     Set colPagesAfter = New Collection
@@ -486,10 +486,10 @@ Sub AddSAPageNext()
     vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
     vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
     vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
-    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
-        SetNazvanieShemy vsoPageNew.PageSheet
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+        SetNazvanieShkafa vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
         vsoPageNew.Drop Setka, 0, 0
     End If
     If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
@@ -576,7 +576,7 @@ Sub CopySAPage()
     Dim PageNumber As Integer
     Dim Index As Integer
     Dim ItemCol As Integer
-    Dim NazvanieShemy As String
+    Dim NazvanieShkafa As String
     Dim NazvanieFSA As String
     
     Set colPagesAfter = New Collection
@@ -627,10 +627,10 @@ Sub CopySAPage()
     vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
     vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
     vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
-    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
-        SetNazvanieShemy vsoPageNew.PageSheet
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShemy").Formula
+    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+        SetNazvanieShkafa vsoPageNew.PageSheet
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
 '        vsoPageNew.Drop Setka, 0, 0
     End If
     If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
@@ -801,13 +801,14 @@ SubFind:
     Return
 End Function
 
-Sub SetNazvanieShemy(vsoObject As Object) 'SetValueToSelSections
+Sub SetNazvanieShkafa(vsoObject As Object) 'SetValueToSelSections
     Dim arrRowValue()
     Dim arrRowName()
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
-    arrRowName = Array("SA_NazvanieShemy")
-    arrRowValue = Array("""Название Схемы""|""Нумерация элементов идет в пределах одной схемы""|1|""""|INDEX(0,Prop.SA_NazvanieShemy.Format)|""""|FALSE|FALSE|1049|0")
+    arrRowName = Array("SA_NazvanieShkafa", "SA_NazvanieMesta")
+    arrRowValue = Array("""Название Шкафа""|""Нумерация элементов идет в пределах одного шкафа""|1|""""|INDEX(0,Prop.SA_NazvanieShkafa.Format)|""""|FALSE|FALSE|1049|0", _
+                        """Название Места""|""Название места расположения или название установки""|0|""""|""""|""""|FALSE|FALSE|1049|0")
     SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub
 

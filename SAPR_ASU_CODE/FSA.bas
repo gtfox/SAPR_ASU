@@ -13,7 +13,7 @@ Public Sub PageFSAAddSensorsFrm()
     frmPageFSAAddSensors.Show
 End Sub
 
-Public Sub AddSensorsOnFSA(NazvanieShemy As String)
+Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddSensorsOnFSA - Вставляет все датчики со схемы на ФСА
                 'Вставка датчиков и приводов со схемы на ФСА, если датчик уже есть, то не вставляет его.
@@ -35,8 +35,8 @@ Public Sub AddSensorsOnFSA(NazvanieShemy As String)
     Dim DropX As Double
     Dim DropY As Double
     
-    If NazvanieShemy = "" Then
-        MsgBox "Нет схем для вставки. Название схемы пустое", vbExclamation, "САПР-АСУ: Ошибка"
+    If NazvanieShkafa = "" Then
+        MsgBox "Нет шкафа для вставки. Название шкафа пустое", vbExclamation, "САПР-АСУ: Ошибка"
         Exit Sub
     End If
     
@@ -60,8 +60,8 @@ Public Sub AddSensorsOnFSA(NazvanieShemy As String)
     'Берем все листы одной схемы
     For Each vsoPageCxema In ActiveDocument.Pages
         If vsoPageCxema.name Like cListNameCxema & "*" Then
-            If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
-                If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) = NazvanieShemy Then
+            If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+                If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
                     colPagesCxema.Add vsoPageCxema
                 End If
             End If

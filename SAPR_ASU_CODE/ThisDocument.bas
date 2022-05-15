@@ -49,6 +49,8 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
                 DeleteCableSH vsoShape
             Case typePlanSensor, typePlanActuator  'Датчик на ПЛАНЕ
                 DeleteSensorChildPlan vsoShape
+            Case typeShkafMesto 'Шкаф/место на эл. схеме
+                DeleteShkafMesto vsoShape
             Case typeFSASensor, typeFSAActuator  'Датчик ФСА
                 DeleteSensorChild vsoShape
             Case typeFSAPodval 'Подвал на ФСА

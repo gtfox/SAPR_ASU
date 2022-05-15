@@ -1,7 +1,7 @@
 
 
 Dim NazvanieFSA As String
-Dim NazvanieShemy As String
+Dim NazvanieShkafa As String
 
 Private Sub btnExportCx_Click()
     FindElementShemyToExcel
@@ -58,17 +58,17 @@ End Sub
 
 Private Sub UserForm_Initialize()
     
-    Fill_cmbxNazvanieShemy
+    Fill_cmbxNazvanieShkafa
     Fill_cmbxNazvanieFSA
     
-    cmbxNazvanieShemy.style = fmStyleDropDownList
+    cmbxNazvanieShkafa.style = fmStyleDropDownList
     cmbxNazvanieFSA.style = fmStyleDropDownList
-    cmbxNazvanieShemyKJ.style = fmStyleDropDownList
+    cmbxNazvanieShkafaKJ.style = fmStyleDropDownList
     
-    If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
-        NazvanieShemy = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-        cmbxNazvanieShemy.Text = NazvanieShemy
-        cmbxNazvanieShemyKJ.Text = NazvanieShemy
+    If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+        NazvanieShkafa = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+        cmbxNazvanieShkafa.Text = NazvanieShkafa
+        cmbxNazvanieShkafaKJ.Text = NazvanieShkafa
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
@@ -83,7 +83,7 @@ Private Sub UserForm_Initialize()
         .Value = IIf(NazvanieFSA = "", 0, 1)
     End With
 
-    If NazvanieShemy <> "" Then
+    If NazvanieShkafa <> "" Then
         obVybCx.Value = True
         obVybCxKJ.Value = True
     End If
@@ -107,7 +107,7 @@ Public Sub FindElementShemyToExcel()
     Dim strColKey As String
     Dim vsoPage As Visio.Page
     Dim vsoShapeOnPage As Visio.Shape
-    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
@@ -139,18 +139,18 @@ Public Sub FindElementShemyToExcel()
     Set clsStrokaSpecif = New classStrokaSpecifikacii
     Set colStrokaSpecif = New Collection
 
-    For i = 1 To cmbxNazvanieShemy.ListCount
-        NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
-        Cxema.NameCxema = NazvanieShemy
+    For i = 1 To cmbxNazvanieShkafa.ListCount
+        NazvanieShkafa = cmbxNazvanieShkafa.List(i - 1)
+        Cxema.NameCxema = NazvanieShkafa
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like PageName & "*" Then
-                If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
+                If NazvanieShkafa = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) Then
                     Cxema.colListov.Add vsoPage, vsoPage.name
                 End If
             End If
         Next
         If Cxema.colListov.Count > 0 Then
-            colCxem.Add Cxema, NazvanieShemy
+            colCxem.Add Cxema, NazvanieShkafa
         End If
         Set Cxema = New classCxema
         Set Cxema.colListov = New Collection
@@ -159,7 +159,7 @@ Public Sub FindElementShemyToExcel()
     i = 0
     If obVseCx Then
         For Each Cxema In colCxem
-            NazvanieShemy = Cxema.NameCxema
+            NazvanieShkafa = Cxema.NameCxema
             For Each vsoPage In Cxema.colListov
                 GoSub ShpOnPage
             Next
@@ -172,8 +172,8 @@ Public Sub FindElementShemyToExcel()
         Next
         WB.Save
     ElseIf obVybCx Then
-        NazvanieShemy = cmbxNazvanieShemy.Text
-        For Each vsoPage In colCxem(NazvanieShemy).colListov
+        NazvanieShkafa = cmbxNazvanieShkafa.Text
+        For Each vsoPage In colCxem(NazvanieShkafa).colListov
             GoSub ShpOnPage
         Next
         GoSub OutExcel
@@ -283,9 +283,9 @@ OutExcelNext:
     
     str = colStrokaSpecif.Count
     If obTekListCx Then
-        NameSheet = NazvanieShemy & "_" & vsoPage.name & "_СП"
+        NameSheet = NazvanieShkafa & "_" & vsoPage.name & "_СП"
     Else
-        NameSheet = NazvanieShemy & "_СП"
+        NameSheet = NazvanieShkafa & "_СП"
     End If
     'удаляем старый лист
     apx.DisplayAlerts = False
@@ -409,7 +409,7 @@ Public Sub FindKabeliShemyToExcel()
     Dim shpKabel As Visio.Shape
     Dim shpKabelPL As Visio.Shape
     Dim shpSensor As Visio.Shape
-    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
@@ -441,18 +441,18 @@ Public Sub FindKabeliShemyToExcel()
 '    Set clsStrokaKJ = New classStrokaKabelnogoJurnala
 '    Set colStrokaKJ = New Collection
 
-    For i = 1 To cmbxNazvanieShemyKJ.ListCount
-        NazvanieShemy = cmbxNazvanieShemyKJ.List(i - 1)
-        Cxema.NameCxema = NazvanieShemy
+    For i = 1 To cmbxNazvanieShkafaKJ.ListCount
+        NazvanieShkafa = cmbxNazvanieShkafaKJ.List(i - 1)
+        Cxema.NameCxema = NazvanieShkafa
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like PageName & "*" Then
-                If NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0) Then
+                If NazvanieShkafa = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) Then
                     Cxema.colListov.Add vsoPage, vsoPage.name
                 End If
             End If
         Next
         If Cxema.colListov.Count > 0 Then
-            colCxem.Add Cxema, NazvanieShemy
+            colCxem.Add Cxema, NazvanieShkafa
         End If
         Set Cxema = New classCxema
         Set Cxema.colListov = New Collection
@@ -462,7 +462,7 @@ Public Sub FindKabeliShemyToExcel()
     If obVseCxKJ Then
         For Each Cxema In colCxem
             Set colStrokaKJ = New Collection
-            NazvanieShemy = Cxema.NameCxema
+            NazvanieShkafa = Cxema.NameCxema
             For Each vsoPage In Cxema.colListov
                 GoSub FillcolStrokaKJ
             Next
@@ -480,9 +480,9 @@ Public Sub FindKabeliShemyToExcel()
 '            End If
         Next
     ElseIf obVybCxKJ Then
-        NazvanieShemy = cmbxNazvanieShemyKJ.Text
+        NazvanieShkafa = cmbxNazvanieShkafaKJ.Text
         Set colStrokaKJ = New Collection
-        For Each vsoPage In colCxem(NazvanieShemy).colListov
+        For Each vsoPage In colCxem(NazvanieShkafa).colListov
             GoSub FillcolStrokaKJ
         Next
         If obNaListCxKJ Then
@@ -538,7 +538,7 @@ OutExcelKJ:
 
 OutExcelNextKJ:
     str = colStrokaKJ.Count
-    NameSheet = NazvanieShemy & "_КЖ"
+    NameSheet = NazvanieShkafa & "_КЖ"
     'удаляем старый лист
     apx.DisplayAlerts = False
     On Error Resume Next
@@ -624,7 +624,7 @@ Public Function GetTrassa(shpKabelPL As Visio.Shape) As String
     End If
 End Function
 
-Sub Fill_cmbxNazvanieShemy()
+Sub Fill_cmbxNazvanieShkafa()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
@@ -633,19 +633,19 @@ Sub Fill_cmbxNazvanieShemy()
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
+            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
             Exit For
         End If
     Next
-    cmbxNazvanieShemy.Clear
-    cmbxNazvanieShemyKJ.Clear
+    cmbxNazvanieShkafa.Clear
+    cmbxNazvanieShkafaKJ.Clear
     mstrPropPageSheet = Split(PropPageSheet, ";")
     For i = 0 To UBound(mstrPropPageSheet)
-        cmbxNazvanieShemy.AddItem mstrPropPageSheet(i)
-        cmbxNazvanieShemyKJ.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShkafaKJ.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShemy.Text = ""
-    cmbxNazvanieShemyKJ.Text = ""
+    cmbxNazvanieShkafa.Text = ""
+    cmbxNazvanieShkafaKJ.Text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()

@@ -1,5 +1,5 @@
 Dim NazvanieFSA As String
-Dim NazvanieShemy As String
+Dim NazvanieShkafa As String
 
 Private Sub btnRenumberCx_Click()
     ReNumberShemy
@@ -17,15 +17,15 @@ End Sub
 
 Private Sub UserForm_Initialize()
     
-    Fill_cmbxNazvanieShemy
+    Fill_cmbxNazvanieShkafa
     Fill_cmbxNazvanieFSA
     
-    cmbxNazvanieShemy.style = fmStyleDropDownList
+    cmbxNazvanieShkafa.style = fmStyleDropDownList
     cmbxNazvanieFSA.style = fmStyleDropDownList
     
-    If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShemy", 0) Then
-        NazvanieShemy = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-        cmbxNazvanieShemy.Text = NazvanieShemy
+    If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+        NazvanieShkafa = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+        cmbxNazvanieShkafa.Text = NazvanieShkafa
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
@@ -40,7 +40,7 @@ Private Sub UserForm_Initialize()
         .Value = IIf(NazvanieFSA = "", 0, 1)
     End With
 
-    If NazvanieShemy <> "" Then
+    If NazvanieShkafa <> "" Then
         obVybCx.Value = True
     End If
     If NazvanieFSA <> "" Then
@@ -81,13 +81,13 @@ Public Sub ReNumberShemy()
     Dim SymNameKlemmnik As String
     Dim SAType As Integer
     Dim SymName As String       'Буквенная часть нумерации
-    Dim NazvanieShemy As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim colCxem As Collection
     Dim Cxema As classCxema
     Dim List As classListCxemy
-    Dim NazvanieShemyOld As String
+    Dim NazvanieShkafaOld As String
     Dim NextWire As Integer
     Dim NextCableSH As Integer
     Dim NextTerm As Integer
@@ -100,7 +100,7 @@ Public Sub ReNumberShemy()
     'Заполняем фильтры на основе выделенных шейпов
     If obVydNaListeCx Then 'Выделенные на листе
         Set ThePage = ActivePage.PageSheet
-        If ThePage.CellExists("Prop.SA_NazvanieShemy", 0) Then NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+        If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
         Set colTermSelectNames = New Collection
         Set colElementSelectNames = New Collection
         If ActiveWindow.Selection.Count > 0 Then
@@ -137,12 +137,12 @@ Public Sub ReNumberShemy()
     NLista = 0
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            NazvanieShemy = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
-            If NazvanieShemy <> NazvanieShemyOld Then
+            NazvanieShkafa = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+            If NazvanieShkafa <> NazvanieShkafaOld Then
                 Set Cxema = New classCxema
                 Set Cxema.colListov = New Collection
-                Cxema.NameCxema = NazvanieShemy
-                NazvanieShemyOld = NazvanieShemy
+                Cxema.NameCxema = NazvanieShkafa
+                NazvanieShkafaOld = NazvanieShkafa
                 If cbKlemCx Then Set Cxema.colTermNames = New Collection
                 If cbElCx Or cbDatCx Then Set Cxema.colElementNames = New Collection
             End If
@@ -208,15 +208,15 @@ Public Sub ReNumberShemy()
     'Перенумеровываем коллекции
     For i = 1 To colCxem.Count
         If obVseCx And Not obVydNaListeCx Then
-            NazvanieShemy = cmbxNazvanieShemy.List(i - 1)
+            NazvanieShkafa = cmbxNazvanieShkafa.List(i - 1)
             GoSub RenWireKab
             GoSub RenTerm
             GoSub RenElement
         Else
             If obVydNaListeCx Then
-                NazvanieShemy = ThePage.Cells("Prop.SA_NazvanieShemy").ResultStr(0)
+                NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
             Else
-                NazvanieShemy = cmbxNazvanieShemy.Text
+                NazvanieShkafa = cmbxNazvanieShkafa.Text
             End If
             GoSub RenWireKab
             GoSub RenTerm
@@ -230,7 +230,7 @@ Exit Sub
 RenWireKab:
     NextWire = 0
     NextCableSH = 0
-    For Each List In colCxem(NazvanieShemy).colListov
+    For Each List In colCxem(NazvanieShkafa).colListov
         If cbProvCx Or bWireSelect Then
             NextWire = ReNumber(List.colWires, NextWire)
         End If
@@ -242,13 +242,13 @@ Return
 
 RenTerm:
     If cbKlemCx Or bTermSelect Then
-        If colCxem(NazvanieShemy).colTermNames.Count > 0 Then
-            For Each ItemCol In colCxem(NazvanieShemy).colTermNames
+        If colCxem(NazvanieShkafa).colTermNames.Count > 0 Then
+            For Each ItemCol In colCxem(NazvanieShkafa).colTermNames
                 mstrNames = Split(ItemCol, ";")
                 NumberKlemmnik = CInt(mstrNames(0))
                 SymNameKlemmnik = mstrNames(1)
                 NextTerm = 0
-                For Each List In colCxem(NazvanieShemy).colListov
+                For Each List In colCxem(NazvanieShkafa).colListov
                     'По фильтрам заполняем коллецию для перенумерации
                     Set colItems = New Collection
                     For Each vsoShapeOnPage In List.colTerms
@@ -265,13 +265,13 @@ Return
 
 RenElement:
     If cbElCx Or cbDatCx Or bElementSelect Then
-        If colCxem(NazvanieShemy).colElementNames.Count > 0 Then
-            For Each ItemCol In colCxem(NazvanieShemy).colElementNames
+        If colCxem(NazvanieShkafa).colElementNames.Count > 0 Then
+            For Each ItemCol In colCxem(NazvanieShkafa).colElementNames
                 mstrNames = Split(ItemCol, ";")
                 SAType = CInt(mstrNames(0))
                 SymName = mstrNames(1)
                 NextElement = 0
-                For Each List In colCxem(NazvanieShemy).colListov
+                For Each List In colCxem(NazvanieShkafa).colListov
                     'По фильтрам заполняем коллецию для перенумерации
                     Set colItems = New Collection
                     For Each vsoShapeOnPage In List.colElements
@@ -464,7 +464,7 @@ Return
 End Sub
 
 
-Sub Fill_cmbxNazvanieShemy()
+Sub Fill_cmbxNazvanieShkafa()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
@@ -473,16 +473,16 @@ Sub Fill_cmbxNazvanieShemy()
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
+            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
             Exit For
         End If
     Next
-    cmbxNazvanieShemy.Clear
+    cmbxNazvanieShkafa.Clear
     mstrPropPageSheet = Split(PropPageSheet, ";")
     For i = 0 To UBound(mstrPropPageSheet)
-        cmbxNazvanieShemy.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShemy.Text = ""
+    cmbxNazvanieShkafa.Text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()

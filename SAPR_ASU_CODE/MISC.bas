@@ -74,7 +74,47 @@ net_takogo_shejpa:
     
 End Function
 
+Sub SetLoalShkafMesto(vsoShape As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetLoalShkafMesto - Задает имя шкафа и место для фигур внутри шейпа "шкаф/место"
+'------------------------------------------------------------------------------------------------------------
+    Dim selSelection As Visio.Selection
+    Dim vsoShp As Visio.Shape
+    Dim SAType As Integer
+    
+    Set selSelection = vsoShape.SpatialNeighbors(visSpatialOverlap + visSpatialTouching + visSpatialContainedIn + visSpatialContain, 0, 0)
+    For Each vsoShp In selSelection
+        SAType = ShapeSAType(vsoShp)
+        If SAType > 1 Then
+            Select Case SAType
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor
+                    vsoShp.Cells("User.Shkaf").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
+                    vsoShp.Cells("User.Mesto").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieMesta"
+            End Select
+        End If
+    Next
+End Sub
 
+Sub DeleteShkafMesto(vsoShape As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : DeleteShkafMesto - Возвращает имя шкафа и место для фигур на схеме
+'------------------------------------------------------------------------------------------------------------
+    Dim selSelection As Visio.Selection
+    Dim vsoShp As Visio.Shape
+    Dim SAType As Integer
+    
+    Set selSelection = vsoShape.SpatialNeighbors(visSpatialOverlap + visSpatialTouching + visSpatialContainedIn + visSpatialContain, 0, 0)
+    For Each vsoShp In selSelection
+        SAType = ShapeSAType(vsoShp)
+        If SAType > 1 Then
+            Select Case SAType
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor
+                    vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                    vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
+            End Select
+        End If
+    Next
+End Sub
 
 Public Sub ObjInfo()
 '------------------------------------------------------------------------------------------------------------

@@ -356,7 +356,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
             Case typeFSASensor
-                If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShemy", 0) Then
+                If vsoPage.PageSheet.CellExistsU("Prop.SA_NazvanieShkafa", 0) Then
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
             Case typeFSAPodval

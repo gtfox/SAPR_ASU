@@ -47,7 +47,7 @@ Public Const typeFSAPodval As Integer = 122 'Подвал на ФСА
 Public Const typePlanSensor As Integer = 123 'Датчик на ПЛАНЕ
 Public Const typePlanActuator As Integer = 124 'Привод на ПЛАНЕ
 
-
+Public Const typeShkafMesto As Integer = 130 'Шкафы, распределительные коробки на схеме электрической (Не нумеруется)
 Public Const typeBox As Integer = 140 'Шкафы, распределительные коробки (Не нумеруется)
 
 Public Const typeElectroOneWire As Integer = 150 'Однолинейная схема

@@ -1,18 +1,18 @@
 Option Explicit
 
 Private Sub UserForm_Initialize()
-    cmbxNazvanieShemy.style = fmStyleDropDownList
-    Fill_cmbxNazvanieShemy
+    cmbxNazvanieShkafa.style = fmStyleDropDownList
+    Fill_cmbxNazvanieShkafa
 End Sub
 
 Private Sub btnAddElements_Click()
-    AddSensorsOnFSA cmbxNazvanieShemy.Text
+    AddSensorsOnFSA cmbxNazvanieShkafa.Text
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
 End Sub
 
-Sub Fill_cmbxNazvanieShemy()
+Sub Fill_cmbxNazvanieShkafa()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
@@ -21,17 +21,17 @@ Sub Fill_cmbxNazvanieShemy()
     PageName = cListNameCxema
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShemy.Format").ResultStr(0)
+            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
             Exit For
         End If
     Next
-    cmbxNazvanieShemy.Clear
+    cmbxNazvanieShkafa.Clear
     mstrPropPageSheet = Split(PropPageSheet, ";")
     For i = 0 To UBound(mstrPropPageSheet)
-        cmbxNazvanieShemy.AddItem mstrPropPageSheet(i)
+        cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
     Next
     If UBound(mstrPropPageSheet) <> -1 Then
-        cmbxNazvanieShemy.ListIndex = 0
+        cmbxNazvanieShkafa.ListIndex = 0
     End If
 End Sub
 
