@@ -74,9 +74,9 @@ net_takogo_shejpa:
     
 End Function
 
-Sub SetLoalShkafMesto(vsoShape As Visio.Shape)
+Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : SetLoalShkafMesto - Задает имя шкафа и место для фигур внутри шейпа "шкаф/место"
+' Macros        : SetLocalShkafMesto - Задает имя шкафа и место для фигур внутри шейпа "шкаф/место"
 '------------------------------------------------------------------------------------------------------------
     Dim selSelection As Visio.Selection
     Dim vsoShp As Visio.Shape
@@ -87,7 +87,7 @@ Sub SetLoalShkafMesto(vsoShape As Visio.Shape)
         SAType = ShapeSAType(vsoShp)
         If SAType > 1 Then
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor
+                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor, typeWire
                     vsoShp.Cells("User.Shkaf").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
                     vsoShp.Cells("User.Mesto").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieMesta"
             End Select
@@ -108,12 +108,48 @@ Sub DeleteShkafMesto(vsoShape As Visio.Shape)
         SAType = ShapeSAType(vsoShp)
         If SAType > 1 Then
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor, typeWire
                     vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                     vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
             End Select
         End If
     Next
+End Sub
+
+Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ResetLocalShkafMesto - Обновляет имя шкафа и место для фигур внутри шейпов "шкаф/место" и снаружи от них
+'------------------------------------------------------------------------------------------------------------
+    Dim selSelection As Visio.Selection
+    Dim vsoShp As Visio.Shape
+    Dim SAType As Integer
+    
+    'Заполняем коллекции эелементов и шкафов
+    For Each vsoShp In ActivePage.Shapes
+        SAType = ShapeSAType(vsoShp)
+        Select Case SAType
+            Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+            
+            Case typeShkafMesto
+            
+        End Select
+    Next
+    
+    'Чистим все элементы
+    For Each vsoShp In selSelection
+        SAType = ShapeSAType(vsoShp)
+        If SAType > 1 Then
+            Select Case SAType
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor, typeWire
+                    vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                    vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
+            End Select
+        End If
+    Next
+    
+    'Обновляем все шкафы
+    
+
 End Sub
 
 Public Sub ObjInfo()

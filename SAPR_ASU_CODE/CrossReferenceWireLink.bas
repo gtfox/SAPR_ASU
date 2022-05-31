@@ -68,6 +68,7 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.CellsU("Prop.Number").FormulaU = AdrParent + "!Prop.Number"
     shpChild.CellsU("Prop.SymName").FormulaU = AdrParent + "!Prop.SymName"
     shpChild.CellsU("User.LocLink").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+    shpChild.CellsU("User.name").FormulaU = AdrParent + "!User.name"
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
 
 End Sub

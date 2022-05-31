@@ -63,6 +63,8 @@ Sub ConnectWire(Connects As IVConnects)
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
                     Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
+                    Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
                 End If
             End If
             
@@ -91,6 +93,8 @@ Sub ConnectWire(Connects As IVConnects)
                     shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
                     shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
                     shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                    shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
+                    shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
 '                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
 '                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
                 Else
@@ -125,6 +129,8 @@ Sub ConnectWire(Connects As IVConnects)
                             Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записывам имя подключаемого провода в существующий (к которому подсоединились)
                             Connects.ToSheet.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
                             Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                            Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
+                            Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
 '                            Connects.ToSheet.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
 '                            Connects.ToSheet.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
                         End If
@@ -144,15 +150,17 @@ Sub ConnectWire(Connects As IVConnects)
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
                     Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
+                    Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
                 End If
                 
                 'если другой конец подсоединен НЕ к проводу и НЕ к конечному разрыву провода (дочернему) - присваиваем номер проводу
                 If (ShapeTypeNaDrugomKonce <> typeWire) And (ShapeTypeNaDrugomKonce <> typeWireLinkR) Then 'Смотрим что на другом конце НЕ провод и НЕ конечный разрыв провода (дочерний)
                     'Присваиваем номер проводу
-                    shpProvod.Cells("Prop.SymName").FormulaU = "" 'Чистим название провода
+'                    shpProvod.Cells("Prop.SymName").FormulaU = "" 'Чистим название провода
                     shpProvod.Cells("Prop.AutoNum").FormulaU = True 'Включаем автонумерацию (т.к. это независимый провод)
                     shpProvod.Cells("Prop.HideNumber").FormulaU = False 'Показываем номер
-                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название
+'                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название
                     'Присваиваем номер проводу
                     AutoNum shpProvod
 
@@ -209,6 +217,8 @@ Sub DisconnectWire(Connects As IVConnects)
             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
             shpProvod.Cells("Prop.HideNumber").FormulaU = False
             shpProvod.Cells("Prop.HideName").FormulaU = True
+'            shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+'            shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
             
             'Пишем 0 в номер провода в родительский ПЛК
             If ShapeType = typePLCTerm Then
