@@ -17,167 +17,201 @@ Sub ConnectWire(Connects As IVConnects)
                 'Макрос вызывается событием ConnectionsAdded
 '------------------------------------------------------------------------------------------------------------
     Dim shpProvod As Visio.Shape
+    Dim shpSource As Visio.Shape
+    Dim ShapeNaDrugomKonce As Visio.Shape
     Dim RefNashegoProvoda As String, AdrNashegoProvoda As String, RefSource As String, AdrSource As String, kogo As String, kem As String
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
     Dim ShapeTypeNaDrugomKonce As Integer
     
-    Set shpProvod = Connects.FromSheet
-    
-    RefSource = "Pages[" & Connects.ToSheet.ContainingPage.NameU & "]!" & Connects.ToSheet.NameID 'Адрес источника нумерации (к которому подключаемся)
-    RefNashegoProvoda = "Pages[" & shpProvod.ContainingPage.NameU & "]!" & shpProvod.NameID 'Адрес нашего (подключаемого) провода
-    AdrSource = Connects.ToSheet.ContainingPage.NameU & "/" & Connects.ToSheet.NameID
-    AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
-    
     ShapeType = ShapeSAType(Connects.ToSheet) 'Тип шейпа, к которому подсоединили провод
     
-    Select Case shpProvod.Connects.Count 'кол-во соединенных концов у провода
+    Select Case ShapeType
     
-        Case 1 'С одной стороны
-        
-            'Если шейп, к которому подсоединили провод - оказался тоже провод или конечный разрыв провода (дочерний)
-            If (ShapeType = typeWire) Or (ShapeType = typeWireLinkR) Then
-
-                shpProvod.Cells("Prop.Number").FormulaU = RefSource & "!Prop.Number" 'Получаем номер от существующего провода (к которому подсоединились)
-                shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
-                shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
-                If ShapeType = typeWire Then
-                    SetArrow 10, Connects(1) 'Ставим точку если это провод а не разрыв
-                ElseIf ShapeType = typeWireLinkR Then
-                    SetArrow 0, Connects(1) 'Убираем стрелку
-                End If
-                shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
-                'shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
-                'shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
+        Case typeNO, typeNC, typeCoil, typeParent, typeElement, typePLCTerm, typeWireLinkS, typeWireLinkR, typeTerm, typeWire, typeSensorTerm
+    
+            Set shpProvod = Connects.FromSheet
+            
+            If Connects.ToSheet.CellExists("User.Shkaf", 0) Then
+                Set shpSource = Connects.ToSheet
             Else
-            'Если шейп, к которому подсоединили провод - оказался НЕ провод... (элемент)
-                SetArrow 0, Connects(1) 'Убираем стрелку
-                
-                'Пишем номер провода в родительский ПЛК
-                If ShapeType = typePLCTerm Then
-                    WireToPLCTerm shpProvod, Connects.ToSheet, True
-                End If
-                
-                'Если это начальный разрыв провода (родительский) - присваиваем ему имя и номер провода
-                If ShapeType = typeWireLinkS Then
-                    Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
-                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
-                    Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
-                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
-                    Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
-                End If
+                Set shpSource = FindParentOfTerm(Connects.ToSheet)
             End If
+                        
+
+            RefSource = "Pages[" & shpSource.ContainingPage.NameU & "]!" & shpSource.NameID 'Адрес источника нумерации (к которому подключаемся)
+            RefNashegoProvoda = "Pages[" & shpProvod.ContainingPage.NameU & "]!" & shpProvod.NameID 'Адрес нашего (подключаемого) провода
+            AdrSource = shpSource.ContainingPage.NameU & "/" & shpSource.NameID
+            AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
             
-        Case 2 'С двух сторон
-        
-            'Находим тип шейпа, на друм конце нашего провода
-            For i = 1 To shpProvod.Connects.Count 'смотрим все соединения (их 2 :) )
-                If shpProvod.Connects(i).FromPart <> Connects(1).FromPart Then 'Отбрасывам то, которое только что произошло (берем другой конец)
-                    ShapeTypeNaDrugomKonce = ShapeSAType(shpProvod.Connects(i).ToSheet) 'Тип шейпа, на друм конце нашего провода
-                End If
-            Next
             
-            'Если шейп, к которому подсоединили провод - оказался тоже провод или конечный разрыв провода (дочерний)
-            If (ShapeType = typeWire) Or (ShapeType = typeWireLinkR) Then
             
-                If ShapeType = typeWire Then
-                    SetArrow 10, Connects(1) 'Ставим точку если это провод а не разрыв
-                ElseIf ShapeType = typeWireLinkR Then
-                    SetArrow 0, Connects(1) 'Убираем стрелку
-                End If
+            Select Case shpProvod.Connects.Count 'кол-во соединенных концов у провода
+            
+                Case 1 'С одной стороны
                 
-                'если другой конец подсоединен НЕ к проводу - получаем номер от провода к которому подсоединились
-                If (ShapeTypeNaDrugomKonce <> typeWire) And (ShapeTypeNaDrugomKonce <> typeWireLinkR) Then 'Смотрим что на другом конце НЕ провод и НЕ конечный разрыв провода (дочерний)
-               
-                    shpProvod.Cells("Prop.Number").FormulaU = RefSource & "!Prop.Number" 'Получаем номер от существующего провода (к которому подсоединились)
-                    shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
-                    shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
-                    shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
-                    shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
-                    shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
-'                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
-'                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
-                Else
-                'если другой конец подсоединен к проводу - то проводу, к которому подсоединились, присваиваем номер от нашего присоединенного провода
-                    kogo = Connects.ToSheet.Cells("Prop.Number").Result(0) & ": " & Connects.ToSheet.Cells("Prop.SymName").ResultStr(0)
-                    kem = shpProvod.Cells("Prop.Number").Result(0) & ": " & shpProvod.Cells("Prop.SymName").ResultStr(0)
+                    'Если шейп, к которому подсоединили провод - оказался тоже провод или конечный разрыв провода (дочерний)
+                    If (ShapeType = typeWire) Or (ShapeType = typeWireLinkR) Then
+        
+                        shpProvod.Cells("Prop.Number").FormulaU = RefSource & "!Prop.Number" 'Получаем номер от существующего провода (к которому подсоединились)
+                        shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
+                        shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
+                        shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
+                        shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
+                        If ShapeType = typeWire Then
+                            SetArrow 10, Connects(1) 'Ставим точку если это провод а не разрыв
+                        ElseIf ShapeType = typeWireLinkR Then
+                            SetArrow 0, Connects(1) 'Убираем стрелку
+                        End If
+                        shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                        'shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
+                        'shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
+                    Else
+                    'Если шейп, к которому подсоединили провод - оказался НЕ провод... (элемент)
+                        SetArrow 0, Connects(1) 'Убираем стрелку
+                        
+                        'Пишем номер провода в родительский ПЛК
+                        If ShapeType = typePLCTerm Then
+                            WireToPLCTerm shpProvod, Connects.ToSheet, True
+                        End If
 
-                    If MsgBox("Перезаписать провод" & vbCrLf & vbCrLf & kem & " -> " & kogo, vbOKCancel + vbExclamation, "САПР-АСУ: Перезапись провода") = vbOK Then
-                    
-                        If ShapeType = typeWireLinkR Then 'Нельзя перезаписать "приемник разрыва провода" (дочерний), т.к. номер ему присвоен от "источника разрыва провода" (родителя)
+                        shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
+                        shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
                         
-                            MsgBox "Нельзя перезаписать ""Приемник разрыва провода"" (дочерний), т.к. номер ему присвоен от ""Источника разрыва провода"" (родителя)" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
-                            SetArrow 254, Connects(1) 'Возвращаем красную стрелку
-                            UnGlue Connects(1) 'Отклеиваем конец
-
-                        ElseIf Connects.ToSheet.Cells("Prop.Number").Result(0) = shpProvod.Cells("Prop.Number").Result(0) Then 'Номера проводов совпадают
-                        
-                            MsgBox "Номера проводов совпадают" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
-                            SetArrow 254, Connects(1) 'Возвращаем красную стрелку
-                            UnGlue Connects(1) 'Отклеиваем конец
-
-                        ElseIf Connects.ToSheet.Cells("Prop.Number").FormulaU Like "*!*" Then 'Нельзя перезаписать номер провода полученный по ссылке от друго провода
-                        
-                            MsgBox "Нельзя перезаписать номер провода полученный по ссылке от друго провода" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
-                            SetArrow 254, Connects(1) 'Возвращаем красную стрелку
-                            UnGlue Connects(1) 'Отклеиваем конец
-                       
-                        Else
-                        
-                            'Ничего не мешает перезаписать провод
-                            Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записывам номер подключаемого провода в существующий (к которому подсоединились)
-                            Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записывам имя подключаемого провода в существующий (к которому подсоединились)
-                            Connects.ToSheet.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
+                        'Если это начальный разрыв провода (родительский) - присваиваем ему имя и номер провода
+                        If ShapeType = typeWireLinkS Then
+                            Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
+                            Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
                             Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
                             Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
                             Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
-'                            Connects.ToSheet.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
-'                            Connects.ToSheet.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
                         End If
-                    Else    'Если отказались перезаписывать провод
-                        SetArrow 254, Connects(1) 'Возвращаем красную стрелку
-                        UnGlue Connects(1) 'Отклеиваем конец
                     End If
-                End If
-            Else
-            'Если шейп, к которому подсоединили провод - оказался НЕ провод... (элемент)
+                    
+                Case 2 'С двух сторон
+                
+                    'Находим тип шейпа, на друм конце нашего провода
+                    For i = 1 To shpProvod.Connects.Count 'смотрим все соединения (их 2 :) )
+                        If shpProvod.Connects(i).FromPart <> Connects(1).FromPart Then 'Отбрасывам то, которое только что произошло (берем другой конец)
+                            ShapeTypeNaDrugomKonce = ShapeSAType(shpProvod.Connects(i).ToSheet) 'Тип шейпа, на друм конце нашего провода
+                            Set ShapeNaDrugomKonce = shpProvod.Connects(i).ToSheet
+                        End If
+                    Next
+                    
+                    'Если шейп, к которому подсоединили провод - оказался тоже провод или конечный разрыв провода (дочерний)
+                    If (ShapeType = typeWire) Or (ShapeType = typeWireLinkR) Then
+                    
+                        If ShapeType = typeWire Then
+                            SetArrow 10, Connects(1) 'Ставим точку если это провод а не разрыв
+                        ElseIf ShapeType = typeWireLinkR Then
+                            SetArrow 0, Connects(1) 'Убираем стрелку
+                        End If
+                        
+                        'если другой конец подсоединен НЕ к проводу - получаем номер от провода к которому подсоединились
+                        If (ShapeTypeNaDrugomKonce <> typeWire) And (ShapeTypeNaDrugomKonce <> typeWireLinkR) Then 'Смотрим что на другом конце НЕ провод и НЕ конечный разрыв провода (дочерний)
+                       
+                            shpProvod.Cells("Prop.Number").FormulaU = RefSource & "!Prop.Number" 'Получаем номер от существующего провода (к которому подсоединились)
+                            shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
+                            shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
+                            shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                            shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
+                            shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
+        '                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
+        '                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
+                        Else
+                            'если другой конец подсоединен к проводу, и номер получен по ссылке от нас - получаем номер от провода к которому подсоединились
+                            If ShapeNaDrugomKonce.Cells("Prop.Number").Formula Like shpProvod.NameU & "!*" Then
+                                shpProvod.Cells("Prop.Number").FormulaU = RefSource & "!Prop.Number" 'Получаем номер от существующего провода (к которому подсоединились)
+                                shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
+                                shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
+                                shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                                shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
+                                shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
+            '                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
+            '                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
+                            Else
+                                'если другой конец подсоединен к проводу - то проводу, к которому подсоединились, присваиваем номер от нашего присоединенного провода
+                                kogo = Connects.ToSheet.Cells("Prop.Number").Result(0) & ": " & Connects.ToSheet.Cells("Prop.SymName").ResultStr(0)
+                                kem = shpProvod.Cells("Prop.Number").Result(0) & ": " & shpProvod.Cells("Prop.SymName").ResultStr(0)
             
-                'если другой конец подсоединен к проводу - только убираем стрелку
-                SetArrow 0, Connects(1) 'Убираем стрелку
-                
-                'Если это начальный разрыв провода (родительский) - присваиваем ему имя и номер провода
-                If ShapeType = typeWireLinkS Then
-                    Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
-                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
-                    Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
-                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
-                    Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
-                End If
-                
-                'если другой конец подсоединен НЕ к проводу и НЕ к конечному разрыву провода (дочернему) - присваиваем номер проводу
-                If (ShapeTypeNaDrugomKonce <> typeWire) And (ShapeTypeNaDrugomKonce <> typeWireLinkR) Then 'Смотрим что на другом конце НЕ провод и НЕ конечный разрыв провода (дочерний)
-                    'Присваиваем номер проводу
-'                    shpProvod.Cells("Prop.SymName").FormulaU = "" 'Чистим название провода
-                    shpProvod.Cells("Prop.AutoNum").FormulaU = True 'Включаем автонумерацию (т.к. это независимый провод)
-                    shpProvod.Cells("Prop.HideNumber").FormulaU = False 'Показываем номер
-'                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название
-                    'Присваиваем номер проводу
-                    AutoNum shpProvod
-
-                End If
-                
-                'Пишем номер провода в родительский ПЛК
-                If ShapeType = typePLCTerm Then
-                    WireToPLCTerm shpProvod, Connects.ToSheet, True
-                End If
-                
-            End If
-        Case Else
+                                If MsgBox("Перезаписать провод" & vbCrLf & vbCrLf & kem & " -> " & kogo, vbOKCancel + vbExclamation, "САПР-АСУ: Перезапись провода") = vbOK Then
+                                
+                                    If ShapeType = typeWireLinkR Then 'Нельзя перезаписать "приемник разрыва провода" (дочерний), т.к. номер ему присвоен от "источника разрыва провода" (родителя)
+                                    
+                                        MsgBox "Нельзя перезаписать ""Приемник разрыва провода"" (дочерний), т.к. номер ему присвоен от ""Источника разрыва провода"" (родителя)" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
+                                        SetArrow 254, Connects(1) 'Возвращаем красную стрелку
+                                        UnGlue Connects(1) 'Отклеиваем конец
+            
+                                    ElseIf Connects.ToSheet.Cells("Prop.Number").Result(0) = shpProvod.Cells("Prop.Number").Result(0) Then 'Номера проводов совпадают
+                                    
+                                        MsgBox "Номера проводов совпадают" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
+                                        SetArrow 254, Connects(1) 'Возвращаем красную стрелку
+                                        UnGlue Connects(1) 'Отклеиваем конец
+            
+                                    ElseIf Connects.ToSheet.Cells("Prop.Number").FormulaU Like "*!*" Then 'Нельзя перезаписать номер провода полученный по ссылке от друго провода
+                                    
+                                        MsgBox "Нельзя перезаписать номер провода(дочерний), полученный по ссылке от друго провода или разрыва провода" & vbCrLf & vbCrLf & kem & " -X- " & kogo, vbOKOnly + vbCritical, "САПР-АСУ: Перезапись провода"
+                                        SetArrow 254, Connects(1) 'Возвращаем красную стрелку
+                                        UnGlue Connects(1) 'Отклеиваем конец
+                                   
+                                    Else
+                                    
+                                        'Ничего не мешает перезаписать провод
+                                        Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записывам номер подключаемого провода в существующий (к которому подсоединились)
+                                        Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записывам имя подключаемого провода в существующий (к которому подсоединились)
+                                        Connects.ToSheet.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
+                                        Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                                        Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
+                                        Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
+            '                            Connects.ToSheet.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
+            '                            Connects.ToSheet.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
+                                    End If
+                                Else    'Если отказались перезаписывать провод
+                                    SetArrow 254, Connects(1) 'Возвращаем красную стрелку
+                                    UnGlue Connects(1) 'Отклеиваем конец
+                                End If
+                            End If
+                        End If
+                    Else
+                    'Если шейп, к которому подсоединили провод - оказался НЕ провод... (элемент)
+                    
+                        'если другой конец подсоединен к проводу - только убираем стрелку
+                        SetArrow 0, Connects(1) 'Убираем стрелку
+                        
+                        'Если это начальный разрыв провода (родительский) - присваиваем ему имя и номер провода
+                        If ShapeType = typeWireLinkS Then
+                            Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
+                            Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
+                            Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                            Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
+                            Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
+                        End If
+                        
+                        'если другой конец подсоединен НЕ к проводу и НЕ к конечному разрыву провода (дочернему) - присваиваем номер проводу
+                        If (ShapeTypeNaDrugomKonce <> typeWire) And (ShapeTypeNaDrugomKonce <> typeWireLinkR) Then 'Смотрим что на другом конце НЕ провод и НЕ конечный разрыв провода (дочерний)
+                            'Присваиваем номер проводу
+        '                    shpProvod.Cells("Prop.SymName").FormulaU = """""" 'Чистим название провода
+                            shpProvod.Cells("Prop.AutoNum").FormulaU = True 'Включаем автонумерацию (т.к. это независимый провод)
+                            shpProvod.Cells("Prop.HideNumber").FormulaU = False 'Показываем номер
+        '                    shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название
+                            'Присваиваем номер проводу
+                            AutoNum shpProvod
+        
+                        End If
+                        
+                        'Пишем номер провода в родительский ПЛК
+                        If ShapeType = typePLCTerm Then
+                            WireToPLCTerm shpProvod, Connects.ToSheet, True
+                        End If
+                        
+                    End If
+                Case Else
+            End Select
+            
+            'Ищем Дочерних которые ссылаются не нас - отцепляем
+            FindZombie shpProvod
+        
     End Select
-    
-    'Ищем Дочерних которые ссылаются не нас - отцепляем
-    FindZombie shpProvod
-    
 End Sub
 
 
@@ -211,7 +245,9 @@ Sub DisconnectWire(Connects As IVConnects)
             
             'Чистим наш
             shpProvod.Cells("Prop.Number").FormulaU = ""
-            shpProvod.Cells("Prop.SymName").FormulaU = ""
+            shpProvod.Cells("Prop.SymName").FormulaU = """"""
+            shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+            shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
             shpProvod.Cells("Prop.AutoNum").FormulaU = False
             shpProvod.Cells("User.AdrSource").FormulaU = ""
             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
@@ -231,8 +267,10 @@ Sub DisconnectWire(Connects As IVConnects)
                 'Чистим Дочерний
     
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = ""
-                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = ""
+                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = """"""
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = ""
+                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                    Connects.ToSheet.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     
                     'Если это был провод - то + автонумерация дочернего провода
                     If ShapeType = typeWire Then
@@ -257,8 +295,10 @@ Sub DisconnectWire(Connects As IVConnects)
                 
                     'Чистим Дочерний
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = ""
-                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = ""
+                    Connects.ToSheet.Cells("Prop.SymName").FormulaU = """"""
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = ""
+                    Connects.ToSheet.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                    Connects.ToSheet.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     SetArrow 254, Connects(1) 'Возвращаем красную стрелку
                     
                     'Если это был провод - то + автонумерация дочернего провода
@@ -276,8 +316,10 @@ Sub DisconnectWire(Connects As IVConnects)
                 'От НЕ Дочернего
                     'Чистим наш
                     shpProvod.Cells("Prop.Number").FormulaU = ""
-                    shpProvod.Cells("Prop.SymName").FormulaU = ""
+                    shpProvod.Cells("Prop.SymName").FormulaU = """"""
                     shpProvod.Cells("User.AdrSource").FormulaU = ""
+                    shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                    shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     shpProvod.Cells("Prop.AutoNum").FormulaU = False
                     SetArrow 254, Connects(1) 'Возвращаем красную стрелку
                     shpProvod.Cells("Prop.HideNumber").FormulaU = False
@@ -292,8 +334,10 @@ Sub DisconnectWire(Connects As IVConnects)
                        If shpProvod.Cells("User.AdrSource").ResultStr(0) <> AdrNaDrugomKonce Then 'Проверка на то что мы сами не являемся дочерним и на другом конце не провод или >-
                             'Чистим наш
                             shpProvod.Cells("Prop.Number").FormulaU = ""
-                            shpProvod.Cells("Prop.SymName").FormulaU = ""
+                            shpProvod.Cells("Prop.SymName").FormulaU = """"""
                             shpProvod.Cells("User.AdrSource").FormulaU = ""
+                            shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                            shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                        End If
                    End If
                 Next
@@ -345,8 +389,10 @@ Sub DeleteWire(DeletedShape As IVShape)
             If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
                 'Чистим Дочерний
                 ConnectedShape.Cells("Prop.Number").FormulaU = ""
-                ConnectedShape.Cells("Prop.SymName").FormulaU = ""
+                ConnectedShape.Cells("Prop.SymName").FormulaU = """"""
                 ConnectedShape.Cells("User.AdrSource").FormulaU = ""
+                ConnectedShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                ConnectedShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
 
                 'Если это был провод - то + автонумерация дочернего провода
                 If ShapeType = typeWire Then
@@ -384,8 +430,10 @@ Sub DeleteWire(DeletedShape As IVShape)
             If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
                 'Чистим Дочерний
                 ConnectedShape.Cells("Prop.Number").FormulaU = ""
-                ConnectedShape.Cells("Prop.SymName").FormulaU = ""
+                ConnectedShape.Cells("Prop.SymName").FormulaU = """"""
                 ConnectedShape.Cells("User.AdrSource").FormulaU = ""
+                ConnectedShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                ConnectedShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                 'Ищем каким концом дочерний приклеен к нам
                 For ii = 1 To ConnectedShape.Connects.Count '(возможно это надо убрать под следующий if)
                     If ConnectedShape.Connects(ii).ToSheet = DeletedShape Then
@@ -422,6 +470,8 @@ Sub ClearWire(vsoShape As Visio.Shape)
         vsoShape.CellsU("Prop.Number").FormulaU = ""
         vsoShape.CellsU("Prop.SymName").FormulaU = ""
         vsoShape.Cells("User.AdrSource").FormulaU = ""
+        vsoShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+        vsoShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
         vsoShape.Cells("Prop.AutoNum").FormulaU = False
         vsoShape.Cells("Prop.HideNumber").FormulaU = False
         vsoShape.Cells("Prop.HideName").FormulaU = True
@@ -461,6 +511,7 @@ Sub UnGlue(connect As IVConnect)
             connect.FromSheet.Cells("EndX").FormulaU = Chr(34) & connect.FromSheet.Cells("EndX").Result(0) & Chr(34)
             connect.FromSheet.Cells("EndY").FormulaU = Chr(34) & connect.FromSheet.Cells("EndY").Result(0) & Chr(34)
     End Select
+    If ShapeSATypeIs(connect.ToSheet, typeWire) Then connect.ToSheet.DeleteRow visSectionConnectionPts, visRowLast 'Удаляем последнюю точку
     bUnGlue = True
 End Sub
 
@@ -522,3 +573,15 @@ Sub WireToPLCTerm(shpProvod As Visio.Shape, shpPLCTerm As Visio.Shape, bConnect 
     shpPLCIOParent.CellsU("User.w" & PinNumber).FormulaU = IIf(bConnect, LinkWireNumber, 0)
 ExitSub:
 End Sub
+
+Function FindParentOfTerm(shpTerm As Visio.Shape) As Visio.Shape
+'------------------------------------------------------------------------------------------------------------
+' Function      : FindParentOfTerm - Находит родительский шейп, в котором расположена клемма (рекурсивная)
+                'Клеммы typePLCTerm и typeSensorTerm расположеные в typeElement, typePLCChild, typeParent, typeActuator, typeSensor
+'-----------------------------------------------------------------------------------------------------------
+    If shpTerm.Parent.CellExists("User.Shkaf", 0) Then
+        Set FindParentOfTerm = shpTerm.Parent
+    Else
+        Set FindParentOfTerm = FindParentOfTerm(shpTerm.Parent)
+    End If
+End Function

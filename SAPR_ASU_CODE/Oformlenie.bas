@@ -681,6 +681,13 @@ Sub SetPageAction(vsoPageNew As Visio.Page)
                 .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """20"""
             End With
         Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
+            With vsoPageNew.PageSheet
+                .AddSection visSectionAction
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Обновить """"Шкафы/Места"""""""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "CALLTHIS(""MISC.ResetLocalShkafMesto"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "688"
+            End With
         Case cListNameVID ' "ВИД" 'Чертеж внешнего вида шкафа
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction

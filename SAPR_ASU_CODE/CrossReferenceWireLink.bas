@@ -70,6 +70,8 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.CellsU("User.LocLink").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
     shpChild.CellsU("User.name").FormulaU = AdrParent + "!User.name"
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
+    shpChild.CellsU("User.Shkaf").FormulaU = AdrParent + "!User.Shkaf"
+    shpChild.CellsU("User.Mesto").FormulaU = AdrParent + "!User.Mesto"
 
 End Sub
 
@@ -152,6 +154,8 @@ Sub ClearReferenceWireLink(vsoShape As Visio.Shape)
     vsoShape.CellsU("Prop.SymName").FormulaU = """"""
     vsoShape.CellsU("User.LocLink").FormulaU = """"""
     vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """"""
+    vsoShape.CellsU("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+    vsoShape.CellsU("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
 
 End Sub
 

@@ -87,7 +87,7 @@ Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
         SAType = ShapeSAType(vsoShp)
         If SAType > 1 Then
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor, typeWire
+                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
                     vsoShp.Cells("User.Shkaf").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
                     vsoShp.Cells("User.Mesto").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieMesta"
             End Select
@@ -123,32 +123,33 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     Dim selSelection As Visio.Selection
     Dim vsoShp As Visio.Shape
     Dim SAType As Integer
+    Dim colElementyShemy As Collection
+    Dim colShkafyMesta As Collection
+    
+    Set colElementyShemy = New Collection
+    Set colShkafyMesta = New Collection
     
     'Заполняем коллекции эелементов и шкафов
     For Each vsoShp In ActivePage.Shapes
         SAType = ShapeSAType(vsoShp)
         Select Case SAType
             Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
-            
+                colElementyShemy.Add vsoShp
             Case typeShkafMesto
-            
+                colShkafyMesta.Add vsoShp
         End Select
     Next
     
     'Чистим все элементы
-    For Each vsoShp In selSelection
-        SAType = ShapeSAType(vsoShp)
-        If SAType > 1 Then
-            Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor, typeWire
-                    vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
-                    vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
-            End Select
-        End If
+    For Each vsoShp In colElementyShemy
+        vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+        vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
     Next
     
     'Обновляем все шкафы
-    
+    For Each vsoShp In colShkafyMesta
+        SetLocalShkafMesto vsoShp
+    Next
 
 End Sub
 
