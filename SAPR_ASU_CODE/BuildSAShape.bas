@@ -65,6 +65,7 @@ Public sSectionName As String
 Sub SetElement() 'SetValueToSelSections
     Dim vsoObject As Object
     Dim mastshp As Visio.Shape
+    Dim vsoShp As Visio.Shape
     
     Dim arrRowValue()
     Dim arrRowName()
@@ -79,7 +80,6 @@ Sub SetElement() 'SetValueToSelSections
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
 'arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ3P", "UZ", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor", "Term", "TermC")
-'arrMast = Array("Term", "TermC")
 arrMast = Array("w1", "w2", "w3")
 
 
@@ -153,6 +153,25 @@ Next
 '
 'vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number"
 '
+'Next
+
+
+
+'arrMast = Array("QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZF", "UZ3P", "UZ", "SA", "SB", "HL", "HA", "EK3P", "EK", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU3P", "RU", "Sensor", "Term", "TermC")
+'
+'For i = 0 To UBound(arrMast)
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+'
+'vsoObject.Cells("Actions.AddDB.Action").FormulaU = "CALLTHIS(""AddDBFrm"")"
+'
+'Next
+'
+'On Error Resume Next
+'For Each vsoShp In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Panel").Shapes.Item("Panel").Shapes
+'    vsoShp.Cells("Actions.AddDB.Action").FormulaU = "CALLTHIS(""AddDBFrm"")"
+'Next
+'For Each vsoShp In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes
+'    vsoShp.Cells("Actions.AddDB.Action").FormulaU = "CALLTHIS(""AddDBFrm"")"
 'Next
 
 End Sub

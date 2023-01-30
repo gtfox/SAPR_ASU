@@ -1,7 +1,7 @@
 '------------------------------------------------------------------------------------------------------------
 ' Module        : Specifikaciya - Спецификация
 ' Author        : gtfox
-' Date          : 2019.09.22/2022.05.11(Кабельный журнал)
+' Date          : 2019.09.22(Спецификация)/2022.05.11(Кабельный журнал)
 ' Description   : spDEL - Удаляет листы спецификации
                 ' spADD_Excel_Razbienie - Добавляет листы спецификации из Excel из листа SP_2_Visio (после разбиения на ячейки)
                 ' spADD_Visio_Perenos - Добавляет листы спецификации из Excel из листа SP (перенос длинных строк делает визио)
@@ -149,6 +149,7 @@ Private Sub xls_query(strRange As String)
         With ffs
             .Clear
             .Add "Excel", "*.xls"
+            .Add "Excel", "*.xlsx"
         End With
         Chois = oExcel.FileDialog(msoFileDialogOpen).Show
     End With
@@ -168,7 +169,7 @@ Private Sub xls_query(strRange As String)
     
     Set sp = oExcel.Workbooks.Open(sFile)
     Load frmVyborListaExcel
-    frmVyborListaExcel.Show
+    frmVyborListaExcel.Show 'присваиваем Excel_imya_lista
     If frmClose Then oExcel.Application.Quit: Exit Sub
 
     sp.Activate
@@ -186,10 +187,13 @@ Private Sub xls_query(strRange As String)
     'oExcel.GoTo Reference:=sp.Worksheets(1).Range("A2")
     'oExcel.ActiveCell.Select
     lLastRow = oExcel.Sheets(Excel_imya_lista).Cells(oExcel.Sheets(Excel_imya_lista).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = oExcel.Worksheets(Excel_imya_lista).Range(strRange & lLastRow) 'oExcel.InputBox _
-    '(Prompt:="Выберите диапазон A3:Ix", _
-    'Title:="Выбор диапазона", _
-    'Type:=8)
+    Set UserRange = oExcel.Worksheets(Excel_imya_lista).Range(strRange & lLastRow)
+    
+'    Set UserRange = oExcel.InputBox _
+'    (Prompt:="Выберите диапазон A3:Ix", _
+'    Title:="Выбор диапазона", _
+'    Type:=8)
+    
     Set Total = UserRange
         For Each tr In Total.Rows
             RowCountXls = RowCountXls + 1

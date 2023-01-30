@@ -12,6 +12,8 @@ Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 
+
+
 Sub UserForm_Initialize()
     Dim SQLQuery As String
     
@@ -77,13 +79,13 @@ Private Sub btnAdd_Click()
     ExecuteSQL DBName, SQLQuery
     
     Unload Me
-    frmDBIzbrannoe.txtNazvanie2.Value = cmbxNabor.List(cmbxNabor.ListIndex, 0)
-    frmDBIzbrannoe.Find_ItemsByText
-    frmDBIzbrannoe.txtNazvanie2.Value = ""
-    frmDBIzbrannoe.lstvTableNabor.ListItems.Clear
-    frmDBIzbrannoe.Height = frmDBIzbrannoe.frameTab.Top + frmDBIzbrannoe.frameTab.Height + 36
-    frmDBIzbrannoe.lblSostav.Caption = ""
-    frmDBIzbrannoe.Show
+    frmDBIzbrannoeAccess.txtNazvanie2.Value = cmbxNabor.List(cmbxNabor.ListIndex, 0)
+    frmDBIzbrannoeAccess.Find_ItemsByText
+    frmDBIzbrannoeAccess.txtNazvanie2.Value = ""
+    frmDBIzbrannoeAccess.lstvTableNabor.ListItems.Clear
+    frmDBIzbrannoeAccess.Height = frmDBIzbrannoeAccess.frameTab.Top + frmDBIzbrannoeAccess.frameTab.Height + 36
+    frmDBIzbrannoeAccess.lblSostav.Caption = ""
+    frmDBIzbrannoeAccess.Show
 End Sub
 
 Private Sub cmbxNabor_Change()
@@ -112,6 +114,10 @@ Sub Reload_cmbxNabor()
 End Sub
 
 Private Sub txtCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If (KeyAscii < 48 Or KeyAscii > 57) And (KeyAscii <> 44 And KeyAscii <> 46) Then KeyAscii = 0
+End Sub
+
+Private Sub txtKolichestvo_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
     If (KeyAscii < 48 Or KeyAscii > 57) And (KeyAscii <> 44 And KeyAscii <> 46) Then KeyAscii = 0
 End Sub
 
@@ -145,5 +151,5 @@ End Sub
 
 Private Sub btnClose_Click()
 Unload Me
-frmDBPrice.Show
+frmDBPriceAccess.Show
 End Sub

@@ -50,13 +50,13 @@ Private Sub btnAdd_Click()
                 "SELECT """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ", " & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ", " & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & cmbxEdinicy.List(cmbxEdinicy.ListIndex, 1) & ";"
     ExecuteSQL DBName, SQLQuery
     Unload Me
-    frmDBIzbrannoe.txtArtikul.Value = txtArtikul.Value
-    frmDBIzbrannoe.Find_ItemsByText
-    frmDBIzbrannoe.txtArtikul.Value = ""
-    frmDBIzbrannoe.lstvTableNabor.ListItems.Clear
-    frmDBIzbrannoe.Height = frmDBIzbrannoe.frameTab.Top + frmDBIzbrannoe.frameTab.Height + 36
-    frmDBIzbrannoe.lblSostav.Caption = ""
-    frmDBIzbrannoe.Show
+    frmDBIzbrannoeAccess.txtArtikul.Value = txtArtikul.Value
+    frmDBIzbrannoeAccess.Find_ItemsByText
+    frmDBIzbrannoeAccess.txtArtikul.Value = ""
+    frmDBIzbrannoeAccess.lstvTableNabor.ListItems.Clear
+    frmDBIzbrannoeAccess.Height = frmDBIzbrannoeAccess.frameTab.Top + frmDBIzbrannoeAccess.frameTab.Height + 36
+    frmDBIzbrannoeAccess.lblSostav.Caption = ""
+    frmDBIzbrannoeAccess.Show
 End Sub
 
 Sub Reset_FiltersCmbx()
@@ -179,5 +179,5 @@ End Sub
 
 Private Sub btnClose_Click()
 Unload Me
-frmDBPrice.Show
+frmDBPriceAccess.Show
 End Sub

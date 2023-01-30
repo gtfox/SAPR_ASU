@@ -544,7 +544,7 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
     'Цикл поиска датчиков и приводов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все схемы с номером той, на которую вставляем элемент
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
                 Set colShpPage = New Collection
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -

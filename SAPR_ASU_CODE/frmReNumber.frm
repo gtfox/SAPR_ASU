@@ -81,7 +81,7 @@ Public Sub ReNumberShemy()
     Dim SymNameKlemmnik As String
     Dim SAType As Integer
     Dim SymName As String       'Буквенная часть нумерации
-    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одного шкафа
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim colCxem As Collection

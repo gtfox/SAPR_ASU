@@ -63,7 +63,7 @@ Private Sub AddButtons()
         .FaceID = 521 '3
     End With
     
-                '---Кнопка Сохранить копию проекта
+        '---Кнопка Сохранить копию проекта
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
     With Button
         .Caption = "СохранитьПроект"
@@ -146,7 +146,7 @@ Private Sub AddButtons()
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=10)
     With Button
         .Caption = "ДанныеСпецификации"
-        .Tag = "ReNumber"
+        .Tag = "Specifikaciya"
         .style = msoButtonAutomatic
         .OnAction = "ShowSpecifikaciya"
         .TooltipText = "Перечень оборудования из Visio в Excel"

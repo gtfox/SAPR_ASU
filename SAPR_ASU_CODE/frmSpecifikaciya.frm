@@ -107,7 +107,7 @@ Public Sub FindElementShemyToExcel()
     Dim strColKey As String
     Dim vsoPage As Visio.Page
     Dim vsoShapeOnPage As Visio.Shape
-    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одного шкафа
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
@@ -409,8 +409,7 @@ Public Sub FindKabeliShemyToExcel()
     Dim shpKabel As Visio.Shape
     Dim shpKabelPL As Visio.Shape
     Dim shpSensor As Visio.Shape
-    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одной схемы (одного номера схемы)
-    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
+    Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одного шкафа
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
     Dim mNum() As String
