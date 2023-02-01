@@ -2,6 +2,12 @@
 
 
 
+
+
+Private Sub btnAddPriceExcel_Click()
+    WizardAddPriceExcel tbNameVendor
+End Sub
+
 Private Sub UserForm_Initialize()
     Reload_cmbx
     With ActiveDocument.DocumentSheet
