@@ -61,7 +61,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel, True
+    Fill_cmbxProizvoditel DBNameIzbrannoeExcel, SQLQuery, cmbxProizvoditel, True
 
     Load frmDBIzbrannoeExcel
     'frmDBIzbrannoeExcel.Find_ItemsByText

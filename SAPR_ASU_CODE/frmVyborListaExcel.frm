@@ -18,7 +18,7 @@ End Sub
 Sub Fill_cmbxNazvanieLista()
     Dim sht As Excel.Worksheet
     cmbxNazvanieLista.Clear
-    For Each sht In sp.Worksheets
+    For Each sht In wbExcel.Worksheets
         cmbxNazvanieLista.AddItem sht.name
     Next
     cmbxNazvanieLista.ListIndex = 0

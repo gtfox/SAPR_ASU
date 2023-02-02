@@ -19,7 +19,7 @@ Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
     
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
 
     Select Case iKey
         Case 1, 5, 8

@@ -9,7 +9,7 @@
 'Option Explicit
 
 Public Const frmMinWdth As Integer = 417 'Минимальна ширина формы
-Public Const DBNameIzbrannoe As String = "SAPR_ASU_Izbrannoe.accdb" 'Имя файла избронного
+Public Const DBNameIzbrannoeAccess As String = "SAPR_ASU_Izbrannoe.accdb" 'Имя файла избронного
 
 Public Const NaboryColor   As Long = &HBD0429 'синий
 

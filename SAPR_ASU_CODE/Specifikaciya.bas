@@ -707,7 +707,7 @@ Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Inte
     SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
                 "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
                 "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
-    Set rst = GetRecordSet(DBNameIzbrannoe, SQLQuery)
+    Set rst = GetRecordSet(DBNameIzbrannoeAccess, SQLQuery)
     If rst.RecordCount > 0 Then
         rst.MoveLast
         RecordCount = rst.RecordCount

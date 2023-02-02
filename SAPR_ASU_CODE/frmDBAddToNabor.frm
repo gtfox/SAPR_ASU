@@ -33,7 +33,7 @@ Sub UserForm_Initialize()
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
 
-    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoeAccess, SQLQuery, cmbxProizvoditel
     
 
 
@@ -51,7 +51,7 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
     SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
             "FROM Единицы;"
 
-    Fill_ComboBox DBNameIzbrannoe, SQLQuery, cmbxEdinicy
+    Fill_ComboBox DBNameIzbrannoeAccess, SQLQuery, cmbxEdinicy
     
     For i = 0 To cmbxEdinicy.ListCount - 1
         If cmbxEdinicy.List(i, 1) = EdinicaID Then cmbxEdinicy.ListIndex = i
@@ -65,7 +65,7 @@ Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
     Dim NewCena As Double
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     
     If cmbxNabor.ListIndex = -1 Then Exit Sub
     
@@ -96,7 +96,7 @@ End Sub
 Sub Load_lstvTableNabor()
     Dim colNum As Long
     If cmbxNabor.ListIndex > -1 Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoe, cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoeAccess, cmbxNabor.List(cmbxNabor.ListIndex, 1), lstvTableNabor)
     End If
     'выровнять ширину столбцов по заголовкам
     For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -110,7 +110,7 @@ Sub Reload_cmbxNabor()
                 "FROM Избранное " & _
                 "WHERE Избранное.ПодгруппыКод=2;"
 
-    Fill_ComboBox DBNameIzbrannoe, SQLQuery, cmbxNabor
+    Fill_ComboBox DBNameIzbrannoeAccess, SQLQuery, cmbxNabor
 End Sub
 
 Private Sub txtCena_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
@@ -132,7 +132,7 @@ Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
                     "WHERE Производители.КодПроизводителя=" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"

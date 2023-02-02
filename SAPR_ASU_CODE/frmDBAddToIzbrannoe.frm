@@ -9,7 +9,7 @@ Sub UserForm_Initialize()
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoeAccess, SQLQuery, cmbxProizvoditel
     
 
     
@@ -32,7 +32,7 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
     SQLQuery = "SELECT Единицы.КодЕдиницы, Единицы.Единица " & _
                 "FROM Единицы;"
 
-    Fill_ComboBox DBNameIzbrannoe, SQLQuery, cmbxEdinicy
+    Fill_ComboBox DBNameIzbrannoeAccess, SQLQuery, cmbxEdinicy
 
     For i = 0 To cmbxEdinicy.ListCount - 1
         If cmbxEdinicy.List(i, 1) = EdinicaID Then cmbxEdinicy.ListIndex = i
@@ -45,7 +45,7 @@ End Sub
 Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод, ЕдиницыКод ) " & _
                 "SELECT """ & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & txtCena.Value & """, " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ", " & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ", " & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & cmbxEdinicy.List(cmbxEdinicy.ListIndex, 1) & ";"
     ExecuteSQL DBName, SQLQuery
@@ -63,7 +63,7 @@ Sub Reset_FiltersCmbx()
     Dim DBName As String
     Dim SQLQuery As String
 
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
                 "FROM Категории;"
     Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
@@ -121,7 +121,7 @@ Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
                     "WHERE Производители.КодПроизводителя=" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
@@ -136,7 +136,7 @@ Private Sub CommandButton6_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Категория: " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Категорий") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Категории.* " & _
                     "FROM Категории " & _
                     "WHERE Категории.КодКатегории=" & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ";"
@@ -151,7 +151,7 @@ Private Sub CommandButton7_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Группа: " & cmbxGruppa.List(cmbxGruppa.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Групп") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Группы.* " & _
                     "FROM Группы " & _
                     "WHERE Группы.КодГруппы=" & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ";"
@@ -166,7 +166,7 @@ Private Sub CommandButton8_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Подгруппа: " & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Подгрупп") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Подгруппы.* " & _
                     "FROM Подгруппы " & _
                     "WHERE Подгруппы.КодПодгруппы=" & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1) & ";"

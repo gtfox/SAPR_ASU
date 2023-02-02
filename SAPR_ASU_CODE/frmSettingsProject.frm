@@ -5,7 +5,12 @@
 
 
 Private Sub btnAddPriceExcel_Click()
-    WizardAddPriceExcel tbNameVendor
+    If tbNameVendor = "" Then
+        MsgBox "Название производителя пустое" & vbCrLf & vbCrLf & "Необходимо ввести название производителя", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
+    Else
+        WizardAddPriceExcel tbNameVendor
+    End If
+    Unload Me
 End Sub
 
 Private Sub UserForm_Initialize()

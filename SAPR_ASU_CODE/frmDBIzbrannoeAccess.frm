@@ -73,7 +73,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoeAccess, SQLQuery, cmbxProizvoditel
     
     Reset_FiltersCmbx
 
@@ -183,7 +183,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
         SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWHERE & ";"
                 
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     
     NameQueryDef = "FilterSQLQuery"
     
@@ -232,7 +232,7 @@ Sub Find_ItemsByText()
     Dim findArtikul As String
     Dim findNazvanie As String
 
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     
     If txtArtikul.Value = "" Then
         findArtikul = ""
@@ -299,7 +299,7 @@ Private Sub btnFavDel_Click()
     Dim SQLQuery As String
     If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(3) & vbCrLf & "Название: " & mstrShpData(2) & vbCrLf & "Цена: " & mstrShpData(5) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Избранного") = vbYes Then
         If mstrShpData(6) <> "" Then
-            DBName = DBNameIzbrannoe
+            DBName = DBNameIzbrannoeAccess
             SQLQuery = "DELETE Избранное.* " & _
                         "FROM Избранное " & _
                         "WHERE Избранное.КодПозиции=" & mstrShpData(6) & ";"
@@ -315,7 +315,7 @@ Private Sub btnNabDel_Click()
     Dim SQLQuery As String
     If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(3) & vbCrLf & "Название: " & mstrVybPozVNabore(2) & vbCrLf & "Цена: " & mstrVybPozVNabore(5) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Набора") = vbYes Then
         If mstrVybPozVNabore(6) <> "" Then
-            DBName = DBNameIzbrannoe
+            DBName = DBNameIzbrannoeAccess
             SQLQuery = "DELETE Наборы.* " & _
                         "FROM Наборы " & _
                         "WHERE Наборы.КодПозиции=" & mstrVybPozVNabore(6) & ";"
@@ -335,7 +335,7 @@ Private Sub Reset_FiltersCmbx()
     Dim SQLQuery As String
 
     bBlock = True
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
                 "FROM Категории;"
     Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
@@ -367,7 +367,7 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     mstrShpData(7) = Item.SubItems(3)
     
     If Item.ForeColor = NaboryColor Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoe, mstrShpData(6), lstvTableNabor)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoeAccess, mstrShpData(6), lstvTableNabor)
         lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1

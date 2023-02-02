@@ -9,7 +9,7 @@ Sub UserForm_Initialize()
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel DBNameIzbrannoe, SQLQuery, cmbxProizvoditel
+    Fill_cmbxProizvoditel DBNameIzbrannoeAccess, SQLQuery, cmbxProizvoditel
     
     cmbxProizvoditel.style = fmStyleDropDownList
     cmbxKategoriya.style = fmStyleDropDownList
@@ -31,7 +31,7 @@ End Sub
 Private Sub btnAdd_Click()
     Dim DBName As String
     Dim SQLQuery As String
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     SQLQuery = "INSERT INTO Избранное ( Артикул, Название, Цена, КатегорииКод, ГруппыКод, ПодгруппыКод, ПроизводительКод, ЕдиницыКод ) " & _
                 "SELECT ""Набор_" & txtArtikul.Value & """, """ & txtNazvanie.Value & """, """ & "0" & """, " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ", " & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ", " & "2" & " ," & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ", " & "1" & ";"
     ExecuteSQL DBName, SQLQuery
@@ -44,7 +44,7 @@ Sub Reset_FiltersCmbx()
     Dim DBName As String
     Dim SQLQuery As String
 
-    DBName = DBNameIzbrannoe
+    DBName = DBNameIzbrannoeAccess
     SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
                 "FROM Категории;"
     Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
@@ -81,7 +81,7 @@ Private Sub CommandButton5_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Производители.* " & _
                     "FROM Производители " & _
                     "WHERE Производители.КодПроизводителя=" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2) & ";"
@@ -96,7 +96,7 @@ Private Sub CommandButton6_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Категория: " & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Категорий") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Категории.* " & _
                     "FROM Категории " & _
                     "WHERE Категории.КодКатегории=" & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1) & ";"
@@ -111,7 +111,7 @@ Private Sub CommandButton7_Click()
     Dim DBName As String
     Dim SQLQuery As String
     If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Группа: " & cmbxGruppa.List(cmbxGruppa.ListIndex, 0), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Групп") = vbYes Then
-        DBName = DBNameIzbrannoe
+        DBName = DBNameIzbrannoeAccess
         SQLQuery = "DELETE Группы.* " & _
                     "FROM Группы " & _
                     "WHERE Группы.КодГруппы=" & cmbxGruppa.List(cmbxGruppa.ListIndex, 1) & ";"
