@@ -72,7 +72,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    Fill_cmbxProizvoditel DBNameIzbrannoeExcel, SQLQuery, cmbxProizvoditel
+    FillExcel_cmbxProizvoditel DBNameIzbrannoeExcel, SQLQuery, cmbxProizvoditel
     
     Reset_FiltersCmbx
 

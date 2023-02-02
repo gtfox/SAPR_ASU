@@ -341,7 +341,7 @@ Public Function ConvertToJPG(ImgPNG As String) As String
     Set oExcel = CreateObject("Excel.Application")
     If Dir(strTempXls, 16) = "" Then
         Set WB = oExcel.Workbooks.Add
-        WB.SaveAs filename:=strTempXls
+        WB.SaveAs FileName:=strTempXls
     Else
         Set WB = oExcel.Workbooks.Open(strTempXls)
     End If

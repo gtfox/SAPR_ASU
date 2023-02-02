@@ -646,10 +646,10 @@ End Sub
 'End Function
 
 
-Function AddIntoTXTfile(ByVal filename As String, ByVal txt As String) As Boolean
+Function AddIntoTXTfile(ByVal FileName As String, ByVal txt As String) As Boolean
     On Error Resume Next: err.Clear
     Set fso = CreateObject("scripting.filesystemobject")
-    Set ts = fso.OpenTextFile(filename, 8, True): ts.Write txt: ts.Close
+    Set ts = fso.OpenTextFile(FileName, 8, True): ts.Write txt: ts.Close
     Set ts = Nothing: Set fso = Nothing
     AddIntoTXTfile = err = 0
 End Function
