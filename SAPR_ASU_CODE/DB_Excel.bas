@@ -10,6 +10,10 @@
 
 Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя файла избронного
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
+Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
+Public Const ExcelNabory As String = "Наборы" 'Имя листа Наборы
+Public Const Exceltemp As String = "temp" 'Имя листа для временных данных
+
 
 #If VBA7 Then
     Public Declare PtrSafe Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long

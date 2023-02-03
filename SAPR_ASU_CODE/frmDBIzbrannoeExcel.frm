@@ -330,23 +330,49 @@ Private Sub btnNabDel_Click()
 End Sub
 
 Private Sub Reset_FiltersCmbx()
-    Dim DBName As String
-    Dim SQLQuery As String
+    Dim oExcelApp As Excel.Application
+    Dim wbExcel As Excel.Workbook
+    Dim wshTemp As Excel.Worksheet
+    Dim sPath As String
+    Dim UserRange As Excel.Range
+    Dim lLastRow As Long
+    Dim i As Integer
+    Dim j As Integer
+    Dim mFilter() As String
 
+    Set oExcelApp = CreateObject("Excel.Application")
+    sPath = Visio.ActiveDocument.path
+    Set wbExcel = oExcelApp.Workbooks.Open(sPath & DBNameIzbrannoeExcel)
+    Set wshTemp = oExcelApp.Worksheets(Exceltemp)
+
+    lLastRow = oExcelApp.Sheets(ExcelIzbrannoe).Cells(oExcelApp.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    oExcelApp.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy oExcelApp.Worksheets(Exceltemp).Range("A1")
+    Set UserRange = wshTemp.Range("A1:C" & lLastRow - 1)
+    UserRange.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
+    
     bBlock = True
-    DBName = DBNameIzbrannoeExcel
-    SQLQuery = "SELECT Категории.КодКатегории, Категории.Категория " & _
-                "FROM Категории;"
-    Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
-    SQLQuery = "SELECT Группы.КодГруппы, Группы.Группа " & _
-                "FROM Группы;"
-    Fill_ComboBox DBName, SQLQuery, cmbxGruppa
-    SQLQuery = "SELECT Подгруппы.КодПодгруппы, Подгруппы.Подгруппа " & _
-                "FROM Подгруппы;"
-    Fill_ComboBox DBName, SQLQuery, cmbxPodgruppa
+    
+    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
+    For i = 1 To lLastRow
+        cmbxKategoriya.AddItem wshTemp.Cells(i, 1)
+    Next
+    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 2).End(xlUp).Row
+    For i = 1 To lLastRow
+        cmbxGruppa.AddItem wshTemp.Cells(i, 2)
+    Next
+    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 3).End(xlUp).Row
+    For i = 1 To lLastRow
+        cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
+    Next
+    
+    wbExcel.Close SaveChanges:=False
+    oExcelApp.Application.Quit
+    
     bBlock = False
     lstvTableIzbrannoe.ListItems.Clear
     lblResult.Caption = "Найдено записей: 0"
+
+
 End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
