@@ -11,6 +11,7 @@ Public sSAPath As String
 Public oExcelApp As Excel.Application
 Public wbExcelIzbrannoe As Excel.Workbook
 Public wbExcelPrice As Excel.Workbook
+Public mProizvoditel() As classProizvoditelBD
 Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя файла избронного
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
 Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
@@ -51,10 +52,26 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     Dim sDialogString As String
     Dim mVendorData(0 To 11) As String
     Dim lLastRow As Long
+    Dim UserRange As Excel.Range
+    Dim FindRange As Excel.Range
 
     Set oExcelApp = CreateObject("Excel.Application")
     sSAPath = Visio.ActiveDocument.path
     
+    'Проверяем, что такого производителя нет в списке
+    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Range("A2:A" & lLastRow)
+
+    Set FindRange = UserRange.Find(sNameVendor, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
+    If Not FindRange Is Nothing Then
+        MsgBox "Такой производитель уже есть в списке: " & sNameVendor, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
+        wbExcelIzbrannoe.Close SaveChanges:=False
+        oExcelApp.Application.Quit
+        Exit Sub
+    End If
+    
+    'Открываем прайс
     Set fdFileDialog = oExcelApp.FileDialog(msoFileDialogOpen)
     With fdFileDialog
         .AllowMultiSelect = False
@@ -129,7 +146,7 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     wbExcelPrice.Close SaveChanges:=False
     
     'Запись данных в лист НастройкиПрайсов
-    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    
     wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Activate
     lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
     For i = 1 To 12
@@ -141,13 +158,12 @@ Sub WizardAddPriceExcel(sNameVendor As String)
 End Sub
 
 
-Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As Boolean = False)
+Public Sub FillExcel_mProizvoditel()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : FillExcel_cmbxProizvoditel - Заполняет ComboBox Производители из Excel как базы данных САПР-АСУ
+' Macros        : FillExcel_mProizvoditel - Заполняет массив mProizvoditel Производители из Excel как базы данных САПР-АСУ
 '------------------------------------------------------------------------------------------------------------
     Dim UserRange As Excel.Range
     Dim i As Integer
-    Dim mProizvoditel() As classProizvoditelBD
 
     Set oExcelApp = CreateObject("Excel.Application")
     sSAPath = Visio.ActiveDocument.path
@@ -172,7 +188,15 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
             mProizvoditel(i - 1).Gruppa = UserRange.Cells(i, 11)
             mProizvoditel(i - 1).Podgruppa = UserRange.Cells(i, 12)
     Next
-    
+End Sub
+
+
+Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As Boolean = False)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : FillExcel_cmbxProizvoditel - Заполняет ComboBox Производители из массива mProizvoditel
+'------------------------------------------------------------------------------------------------------------
+    Dim i As Integer
+
     For i = 0 To UBound(mProizvoditel)
         If mProizvoditel(i).FileName = "" And Price Then
             'для формы Прайс пропускаем производителя, если у него нету файла

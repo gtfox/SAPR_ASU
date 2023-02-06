@@ -56,11 +56,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
 
-    Dim SQLQuery As String
-
-    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
-                "FROM Производители;"
-                
+    FillExcel_mProizvoditel
     FillExcel_cmbxProizvoditel cmbxProizvoditel, True
 
     Load frmDBIzbrannoeExcel

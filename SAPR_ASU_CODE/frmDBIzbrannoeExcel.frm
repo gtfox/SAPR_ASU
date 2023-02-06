@@ -66,15 +66,10 @@ Private Sub UserForm_Initialize() ' инициализация формы
     tbtnFiltr.Caption = ChrW(9650)
 '    tbtnBD = False
     tbtnFav = True
-
-    Dim SQLQuery As String
-
-    SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
-                "FROM Производители;"
-                
+    
     FillExcel_cmbxProizvoditel cmbxProizvoditel
     
-    UpdateCmbxFiltersIzbrannoe
+'    UpdateCmbxFiltersIzbrannoe
 
 End Sub
 
@@ -225,70 +220,62 @@ Sub Find_ItemsByText()
     
     lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
     lblResult.Caption = "Найдено записей: " & lLastRow - 1
-    Fill_lstvTable wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:H" & lLastRow), lstvTableIzbrannoe, 1
-        
-    UpdateCmbxFiltersIzbrannoe
-
-    ReSize
- 
+    Fill_lstvTable wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe), lstvTableIzbrannoe, 1
+    
+    If lLastRow > 1 Then
+        UpdateCmbxFiltersIzbrannoe
+        ReSize
+    End If
 End Sub
 
-'Заполняет lstvTable запросами из БД
-Public Sub Fill_lstvTable(RangeToFill As Excel.Range, lstvTable As ListView, Optional ByVal TableType As Integer = 0)
+'Заполняет lstvTable данными из БД
+Public Sub Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView, Optional ByVal TableType As Integer = 0)
     'TableType=1 - Избранное
     'TableType=2 - Набор
+    Dim RangeToFill As Excel.Range
+    Dim RangeResult As Excel.Range
+    Dim RangeRow As Excel.Range
     Dim i As Double
     Dim iold As Double
     Dim j As Double
     Dim itmx As ListItem
-    
-    
-    
-'    Sub Макрос16()
-        Dim tbl As Range
-        Set tbl = Sheets(1).AutoFilter.Range
-        
-        'далее исключаем из диапазона автофильтра первую строку (Offset),
-        'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
-        'и в цикле перебираем эти сроки
-        Set y = tbl.Offset(1, 0).ReSize(tbl.Rows.Count - 1, tbl.Columns.Count).SpecialCells(xlCellTypeVisible).EntireRow
-        
-        For Each s In y.Rows
-            RowNamber = s.Row
-        Next
-'    End Sub
-    
-    
-
+    Set RangeToFill = wSheets.AutoFilter.Range
+    'исключаем из диапазона автофильтра первую строку (Offset),
+    'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
+    'и в цикле перебираем эти сроки
+    On Error GoTo err1
+    Set RangeResult = RangeToFill.Offset(1, 0).ReSize(RangeToFill.Rows.Count - 1, RangeToFill.Columns.Count).SpecialCells(xlCellTypeVisible).EntireRow
     lstvTable.ListItems.Clear
-    If RangeToFill.Rows.Count > 0 Then
-        For i = 1 To RangeToFill.Rows.Count
-            Set itmx = lstvTable.ListItems.Add(, , RangeToFill.Cells(i, 1)) 'Артикул
-            itmx.SubItems(1) = RangeToFill.Cells(i, 2) 'Название
-            itmx.SubItems(2) = RangeToFill.Cells(i, 3) 'Цена
-            itmx.SubItems(3) = RangeToFill.Cells(i, 4) 'Единица
-            If TableType = 1 Then
-                itmx.SubItems(4) = RangeToFill.Cells(i, 5) 'Производитель
-                itmx.SubItems(5) = "    "
-            ElseIf TableType = 2 Then
-                itmx.SubItems(4) = RangeToFill.Cells(i, 5) 'Производитель
-                itmx.SubItems(5) = RangeToFill.Cells(i, 6) 'Количество
-                itmx.SubItems(6) = "    "
-            End If
+    For Each RangeRow In RangeResult.Rows
+        Set itmx = lstvTable.ListItems.Add(, , RangeRow.Cells(1, 1)) 'Артикул
+        itmx.SubItems(1) = RangeRow.Cells(1, 2) 'Название
+        itmx.SubItems(2) = RangeRow.Cells(1, 3) 'Цена
+        itmx.SubItems(3) = RangeRow.Cells(1, 4) 'Единица
+        If TableType = 1 Then
+            itmx.SubItems(4) = RangeRow.Cells(1, 5) 'Производитель
+            itmx.SubItems(5) = "    "
+        ElseIf TableType = 2 Then
+            itmx.SubItems(4) = RangeRow.Cells(1, 5) 'Производитель
+            itmx.SubItems(5) = RangeRow.Cells(1, 6) 'Количество
+            itmx.SubItems(6) = "    "
+        End If
 
-            'красим наборы
-            If TableType = 1 Then
-                If RangeToFill.Cells(i, 1) Like "Набор_*" Then
-                    itmx.ForeColor = NaboryColor
-    '               itmx.Bold = True
-                    For j = 1 To itmx.ListSubItems.Count
-    '                   itmx.ListSubItems(j).Bold = True
-                        itmx.ListSubItems(j).ForeColor = NaboryColor
-                    Next
-                End If
+        'красим наборы
+        If TableType = 1 Then
+            If RangeRow.Cells(1, 1) Like "Набор_*" Then
+                itmx.ForeColor = NaboryColor
+'               itmx.Bold = True
+                For j = 1 To itmx.ListSubItems.Count
+'                   itmx.ListSubItems(j).Bold = True
+                    itmx.ListSubItems(j).ForeColor = NaboryColor
+                Next
             End If
-        Next
-    End If
+        End If
+        i = i + 1
+    Next
+    Exit Sub
+err1:
+    lstvTable.ListItems.Clear
 End Sub
 
 Private Sub btnFavDel_Click()
@@ -338,31 +325,41 @@ Private Sub UpdateCmbxFiltersIzbrannoe()
     Set wshTemp = oExcelApp.Worksheets(Exceltemp)
 
     lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
-    wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy wbExcelIzbrannoe.Worksheets(Exceltemp).Range("A1")
-    Set UserRange = wshTemp.Range("A1:C" & lLastRow - 1)
-    UserRange.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
-    
-    bBlock = True
-    
-    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
-    For i = 1 To lLastRow
-        cmbxKategoriya.AddItem wshTemp.Cells(i, 1)
-    Next
-    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 2).End(xlUp).Row
-    For i = 1 To lLastRow
-        cmbxGruppa.AddItem wshTemp.Cells(i, 2)
-    Next
-    lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 3).End(xlUp).Row
-    For i = 1 To lLastRow
-        cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
-    Next
-    
-'    wbExcelIzbrannoe.Close SaveChanges:=False
-'    oExcelApp.Application.Quit
-    
-    bBlock = False
-'    lstvTableIzbrannoe.ListItems.Clear
-'    lblResult.Caption = "Найдено записей: 0"
+    If lLastRow > 1 Then
+        wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy wbExcelIzbrannoe.Worksheets(Exceltemp).Range("A1")
+        Set UserRange = wshTemp.Range("A1:C" & lLastRow - 1)
+        UserRange.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
+        
+        bBlock = True
+        cmbxKategoriya.Clear
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
+        For i = 1 To lLastRow
+            cmbxKategoriya.AddItem wshTemp.Cells(i, 1)
+        Next
+        cmbxGruppa.Clear
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 2).End(xlUp).Row
+        For i = 1 To lLastRow
+            cmbxGruppa.AddItem wshTemp.Cells(i, 2)
+        Next
+        cmbxPodgruppa.Clear
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 3).End(xlUp).Row
+        For i = 1 To lLastRow
+            cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
+        Next
+        
+    '    wbExcelIzbrannoe.Close SaveChanges:=False
+    '    oExcelApp.Application.Quit
+        
+        bBlock = False
+    '    lstvTableIzbrannoe.ListItems.Clear
+    '    lblResult.Caption = "Найдено записей: 0"
+    Else
+        bBlock = True
+        cmbxKategoriya.Clear
+        cmbxGruppa.Clear
+        cmbxPodgruppa.Clear
+        bBlock = False
+    End If
 
 
 End Sub
