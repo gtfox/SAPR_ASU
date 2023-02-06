@@ -116,7 +116,7 @@ Public Sub FindElementShemyToExcel()
     Dim xx As Integer
     '-------Вывод EXCEL---------
     Dim apx As Excel.Application
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
@@ -170,20 +170,20 @@ Public Sub FindElementShemyToExcel()
             End If
             i = i + 1
         Next
-        WB.Save
+        wb.Save
     ElseIf obVybCx Then
         NazvanieShkafa = cmbxNazvanieShkafa.Text
         For Each vsoPage In colCxem(NazvanieShkafa).colListov
             GoSub ShpOnPage
         Next
         GoSub OutExcel
-        WB.Save
+        wb.Save
     ElseIf obTekListCx Then
         Set vsoPage = ActivePage
         GoSub ShpOnPage
         If obVExcelCx Then
             GoSub OutExcel
-            WB.Save
+            wb.Save
         Else 'obNaListCx
             GoSub OutList
         End If
@@ -269,7 +269,7 @@ OutExcel:
         Exit Sub
     End If
     
-    Set WB = apx.Workbooks.Open(sFile)
+    Set wb = apx.Workbooks.Open(sFile)
 
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
@@ -309,7 +309,7 @@ OutExcelNext:
     apx.ActiveSheet.Range("A3:I5").ClearContents
 
     
-    WB.Activate
+    wb.Activate
     apx.ActiveSheet.Range("J1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
     apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
     For xx = 1 To str
@@ -325,25 +325,25 @@ OutExcelNext:
     apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
     For xx = 1 To str
-        WB.Sheets(NameSheet).Cells(xx + 2, 1) = "=A" & xx + 1 & "+1" '1 Позиция
-        WB.Sheets(NameSheet).Cells(xx + 2, 2) = colStrokaSpecif(xx).NazvanieDB '2 Наименование и техническая характеристика
-        WB.Sheets(NameSheet).Cells(xx + 2, 3) = colStrokaSpecif(xx).ArtikulDB '3 Тип, марка, обозначение документа, опросного листа
-        WB.Sheets(NameSheet).Cells(xx + 2, 4) = PozNameInString(colStrokaSpecif(xx).PozOboznach, colStrokaSpecif(xx).SymName) '4 Код оборудования, изделия, материала
-        WB.Sheets(NameSheet).Cells(xx + 2, 5) = colStrokaSpecif(xx).ProizvoditelDB '5 Завод-изготовитель
-        WB.Sheets(NameSheet).Cells(xx + 2, 6) = colStrokaSpecif(xx).EdDB '6 Единица измерения
-        WB.Sheets(NameSheet).Cells(xx + 2, 7) = colStrokaSpecif(xx).KolVo '7 Количество
+        wb.Sheets(NameSheet).Cells(xx + 2, 1) = "=A" & xx + 1 & "+1" '1 Позиция
+        wb.Sheets(NameSheet).Cells(xx + 2, 2) = colStrokaSpecif(xx).NazvanieDB '2 Наименование и техническая характеристика
+        wb.Sheets(NameSheet).Cells(xx + 2, 3) = colStrokaSpecif(xx).ArtikulDB '3 Тип, марка, обозначение документа, опросного листа
+        wb.Sheets(NameSheet).Cells(xx + 2, 4) = PozNameInString(colStrokaSpecif(xx).PozOboznach, colStrokaSpecif(xx).SymName) '4 Код оборудования, изделия, материала
+        wb.Sheets(NameSheet).Cells(xx + 2, 5) = colStrokaSpecif(xx).ProizvoditelDB '5 Завод-изготовитель
+        wb.Sheets(NameSheet).Cells(xx + 2, 6) = colStrokaSpecif(xx).EdDB '6 Единица измерения
+        wb.Sheets(NameSheet).Cells(xx + 2, 7) = colStrokaSpecif(xx).KolVo '7 Количество
         'WB.Sheets(NameSheet).Cells(xx + 2, 8) = colStrokaSpecif(xx) '8 Масса единицы, кг
         'WB.Sheets(NameSheet).Cells(xx + 2, 9) = colStrokaSpecif(xx) '9 Примечание
-        WB.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(IIf(colStrokaSpecif(xx).CenaDB = "", 0, colStrokaSpecif(xx).CenaDB)) 'Цена
-        WB.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & (xx + 2) & "*G" & (xx + 2)
+        wb.Sheets(NameSheet).Cells(xx + 2, 11) = CSng(IIf(colStrokaSpecif(xx).CenaDB = "", 0, colStrokaSpecif(xx).CenaDB)) 'Цена
+        wb.Sheets(NameSheet).Cells(xx + 2, 12) = "=K" & (xx + 2) & "*G" & (xx + 2)
         'wb.Sheets(NameSheet).Range("A" & (xx + 2)).Select 'для наглядности
     Next
 
-    WB.Sheets(NameSheet).Range("A3") = 1
-    WB.Sheets(NameSheet).Range("K2") = "Цена"
-    WB.Sheets(NameSheet).Range("L2") = "Сумма"
-    WB.Sheets(NameSheet).Range("K2:L2").HorizontalAlignment = xlRight
-    WB.Sheets(NameSheet).Range("K2:L2").VerticalAlignment = xlCenter
+    wb.Sheets(NameSheet).Range("A3") = 1
+    wb.Sheets(NameSheet).Range("K2") = "Цена"
+    wb.Sheets(NameSheet).Range("L2") = "Сумма"
+    wb.Sheets(NameSheet).Range("K2:L2").HorizontalAlignment = xlRight
+    wb.Sheets(NameSheet).Range("K2:L2").VerticalAlignment = xlCenter
     apx.ActiveSheet.Range("A3:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).WrapText = False
     apx.ActiveSheet.Range("A3:I" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид
     apx.ActiveSheet.Range("B3:B" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).HorizontalAlignment = xlLeft
@@ -417,7 +417,7 @@ Public Sub FindKabeliShemyToExcel()
     Dim xx As Integer
     '-------Вывод EXCEL---------
     Dim apx As Excel.Application
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
@@ -475,7 +475,7 @@ Public Sub FindKabeliShemyToExcel()
                     GoSub OutExcelKJ
                 End If
                 i = i + 1
-                WB.Save
+                wb.Save
 '            End If
         Next
     ElseIf obVybCxKJ Then
@@ -489,7 +489,7 @@ Public Sub FindKabeliShemyToExcel()
             fill_table_KJ
         Else
             GoSub OutExcelKJ
-            WB.Save
+            wb.Save
         End If
     End If
 
@@ -527,7 +527,7 @@ OutExcelKJ:
         Exit Sub
     End If
     
-    Set WB = apx.Workbooks.Open(sFile)
+    Set wb = apx.Workbooks.Open(sFile)
 
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
@@ -559,7 +559,7 @@ OutExcelNextKJ:
     apx.ActiveSheet.Range("A4:J6").ClearContents
 
     
-    WB.Activate
+    wb.Activate
     apx.ActiveSheet.Range("K3") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
 '    apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
 
@@ -568,13 +568,13 @@ OutExcelNextKJ:
     apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
     For xx = 1 To str
-        WB.Sheets(NameSheet).Cells(xx + 3, 1) = colStrokaKJ(xx).Oboznach '1 Обозначение кабеля, провода
-        WB.Sheets(NameSheet).Cells(xx + 3, 2) = colStrokaKJ(xx).Nachalo '2 Трасса - Начало
-        WB.Sheets(NameSheet).Cells(xx + 3, 3) = colStrokaKJ(xx).Konec '3 Трасса - Конец
-        WB.Sheets(NameSheet).Cells(xx + 3, 4) = colStrokaKJ(xx).Trassa '4 Участок трассы кабеля, провода
-        WB.Sheets(NameSheet).Cells(xx + 3, 5) = colStrokaKJ(xx).Marka '5 Кабель, провод - по проекту - Марка
-        WB.Sheets(NameSheet).Cells(xx + 3, 6) = colStrokaKJ(xx).Sechenie '6 Кабель, провод - по проекту - Кол., число и сечение жил
-        WB.Sheets(NameSheet).Cells(xx + 3, 7) = colStrokaKJ(xx).Dlina '7 Кабель, провод - по проекту - Длина, м.
+        wb.Sheets(NameSheet).Cells(xx + 3, 1) = colStrokaKJ(xx).Oboznach '1 Обозначение кабеля, провода
+        wb.Sheets(NameSheet).Cells(xx + 3, 2) = colStrokaKJ(xx).Nachalo '2 Трасса - Начало
+        wb.Sheets(NameSheet).Cells(xx + 3, 3) = colStrokaKJ(xx).Konec '3 Трасса - Конец
+        wb.Sheets(NameSheet).Cells(xx + 3, 4) = colStrokaKJ(xx).Trassa '4 Участок трассы кабеля, провода
+        wb.Sheets(NameSheet).Cells(xx + 3, 5) = colStrokaKJ(xx).Marka '5 Кабель, провод - по проекту - Марка
+        wb.Sheets(NameSheet).Cells(xx + 3, 6) = colStrokaKJ(xx).Sechenie '6 Кабель, провод - по проекту - Кол., число и сечение жил
+        wb.Sheets(NameSheet).Cells(xx + 3, 7) = colStrokaKJ(xx).Dlina '7 Кабель, провод - по проекту - Длина, м.
         'wb.Sheets(NameSheet).Range("A" & (xx + 3)).Select 'для наглядности
     Next
 

@@ -334,29 +334,29 @@ End Function
 Public Function ConvertToJPG(ImgPNG As String) As String
     Dim pic As Object
     Dim oExcel As Excel.Application
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim strTempXls As String
     
     strTempXls = ThisDocument.path & "temp.xls"
     Set oExcel = CreateObject("Excel.Application")
     If Dir(strTempXls, 16) = "" Then
-        Set WB = oExcel.Workbooks.Add
-        WB.SaveAs FileName:=strTempXls
+        Set wb = oExcel.Workbooks.Add
+        wb.SaveAs FileName:=strTempXls
     Else
-        Set WB = oExcel.Workbooks.Open(strTempXls)
+        Set wb = oExcel.Workbooks.Open(strTempXls)
     End If
-    WB.Activate
-    Set pic = WB.ActiveSheet.Pictures.Insert(ImgPNG)
+    wb.Activate
+    Set pic = wb.ActiveSheet.Pictures.Insert(ImgPNG)
     pic.Width = 300
     pic.Height = 300
     pic.Copy
 
-    With WB.Worksheets(1).ChartObjects.Add(0, 0, pic.Width, pic.Height).Chart
+    With wb.Worksheets(1).ChartObjects.Add(0, 0, pic.Width, pic.Height).Chart
         .Paste
         .Export Left(ImgPNG, Len(ImgPNG) - 3) & "jpg", "jpg"
     End With
     
-    WB.Close SaveChanges:=False
+    wb.Close SaveChanges:=False
     oExcel.Application.Quit
     
     Kill ImgPNG

@@ -169,7 +169,8 @@ Private Sub xls_query(strRange As String)
     
     Set sp = oExcel.Workbooks.Open(sFile)
     Load frmVyborListaExcel
-    frmVyborListaExcel.Show 'присваиваем Excel_imya_lista
+    frmVyborListaExcel.run sp 'присваиваем Excel_imya_lista
+
     If frmClose Then oExcel.Application.Quit: Exit Sub
 
     sp.Activate
@@ -388,7 +389,7 @@ Public Sub SP_EXP_2_XLS()
     
     Dim apx As Excel.Application
     Set apx = CreateObject("Excel.Application")
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
@@ -404,7 +405,7 @@ Public Sub SP_EXP_2_XLS()
         Exit Sub
     End If
     
-    Set WB = apx.Workbooks.Open(sFile)
+    Set wb = apx.Workbooks.Open(sFile)
     
 
     
@@ -435,11 +436,11 @@ Public Sub SP_EXP_2_XLS()
     apx.ActiveSheet.Range("A3:I5").ClearContents
     apx.ActiveSheet.Rows("5:" & str).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
-    WB.Activate
+    wb.Activate
         
         For xx = 1 To str + 2
             For yx = 1 To 9
-                WB.Sheets("СП_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
+                wb.Sheets("СП_EXP_2_XLS").Cells(xx + 2, yx) = tabl(xx, yx)
                 'wb.Sheets("СП_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
@@ -448,7 +449,7 @@ Public Sub SP_EXP_2_XLS()
     apx.ActiveSheet.Range("A3:I" & apx.Sheets("СП_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
     apx.ActiveSheet.Range("K1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
     apx.ActiveSheet.Range("K1").Select
-    WB.Save
+    wb.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
     MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист СП_EXP_2_XLS", vbInformation, "САПР-АСУ: Info"
@@ -473,7 +474,7 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape)
     
     Dim apx As Excel.Application
     Set apx = CreateObject("Excel.Application")
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
@@ -489,7 +490,7 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape)
         Exit Sub
     End If
     
-    Set WB = apx.Workbooks.Open(sFile)
+    Set wb = apx.Workbooks.Open(sFile)
 
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
@@ -523,11 +524,11 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape)
     apx.ActiveSheet.Range("D1") = "Примечание"
     apx.ActiveSheet.Columns("E:I").Delete
    
-    WB.Activate
+    wb.Activate
         
         For xx = 1 To str + 2
             For yx = 1 To 4
-                WB.Sheets(NameListExcel).Cells(xx + 2, yx) = tabl(xx, yx)
+                wb.Sheets(NameListExcel).Cells(xx + 2, yx) = tabl(xx, yx)
                 'wb.Sheets(NameListExcel).Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
@@ -543,7 +544,7 @@ Public Sub PE_EXP_2_XLS(PerechenElementov As Visio.Shape)
     
     
     
-    WB.Save
+    wb.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
 '    MsgBox "Спецификация экспортирована в файл SP_2_Visio.xls на лист ПЭ_EXP_2_XLS", vbInformation
@@ -951,7 +952,7 @@ Public Sub KJ_EXP_2_XLS()
     
     Dim apx As Excel.Application
     Set apx = CreateObject("Excel.Application")
-    Dim WB As Excel.Workbook
+    Dim wb As Excel.Workbook
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
@@ -967,7 +968,7 @@ Public Sub KJ_EXP_2_XLS()
         Exit Sub
     End If
     
-    Set WB = apx.Workbooks.Open(sFile)
+    Set wb = apx.Workbooks.Open(sFile)
 
     'Set wb = apx.Workbooks.Add
     'un = Format(Now(), "yyyy_mm_dd")
@@ -998,11 +999,11 @@ Public Sub KJ_EXP_2_XLS()
     If str < 5 Then nstr = 5 Else nstr = str
     apx.ActiveSheet.Rows("5:" & nstr).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
     
-    WB.Activate
+    wb.Activate
         
         For xx = 1 To str
             For yx = 1 To 7
-                WB.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = tabl(xx, yx)
+                wb.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = tabl(xx, yx)
                 'wb.Sheets("КЖ_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
@@ -1011,7 +1012,7 @@ Public Sub KJ_EXP_2_XLS()
     apx.ActiveSheet.Range("A4:I" & apx.Sheets("КЖ_EXP_2_XLS").Cells(apx.Rows.Count, 1).End(xlUp).Row).RowHeight = 20 'Если ячейки, в которых были многострочные тексты, были растянуты по высоте, то мы их приводим в нормальный вид перед копированием
     apx.ActiveSheet.Range("K3") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
     apx.ActiveSheet.Range("K3").Select
-    WB.Save
+    wb.Save
 '    WB.Close SaveChanges:=True
 '    apx.Quit
     MsgBox "Кабельный журнал экспортирован в файл SP_2_Visio.xls на лист КЖ_EXP_2_XLS", vbInformation, "САПР-АСУ: Info"

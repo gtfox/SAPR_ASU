@@ -7,7 +7,10 @@
 '------------------------------------------------------------------------------------------------------------
 
 'Option Explicit
-
+Public sSAPath As String
+Public oExcelApp As Excel.Application
+Public wbExcelIzbrannoe As Excel.Workbook
+Public wbExcelPrice As Excel.Workbook
 Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя файла избронного
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
 Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
@@ -34,12 +37,12 @@ Sub WizardAddPriceExcel(sNameVendor As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : WizardAddPriceExcel - Мастер добавления прайс-листа Excel в виде базы данных САПР-АСУ
 '------------------------------------------------------------------------------------------------------------
-    Dim oExcelApp As Excel.Application
-    Dim wbExcel As Excel.Workbook
-    Dim sPath As String
+'    Dim oExcelApp As Excel.Application
+'    Dim wbExcelIzbrannoe As Excel.Workbook
+'    Dim sSAPath As String
     Dim sFilePathName As String
     Dim fdFileDialog As FileDialog
-    Dim fdfFilters As FileDialogFilters
+    Dim fdFilters As FileDialogFilters
     
     Dim Chois As Integer
     Dim i As Integer
@@ -47,16 +50,17 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     Dim mDialogString() As String
     Dim sDialogString As String
     Dim mVendorData(0 To 11) As String
+    Dim lLastRow As Long
 
     Set oExcelApp = CreateObject("Excel.Application")
-    sPath = Visio.ActiveDocument.path
+    sSAPath = Visio.ActiveDocument.path
     
     Set fdFileDialog = oExcelApp.FileDialog(msoFileDialogOpen)
     With fdFileDialog
         .AllowMultiSelect = False
-        .InitialFileName = sPath
-        Set fdfFilters = .Filters
-        With fdfFilters
+        .InitialFileName = sSAPath
+        Set fdFilters = .Filters
+        With fdFilters
             .Clear
             .Add "Excel", "*.xls"
             .Add "Excel", "*.xlsx"
@@ -66,19 +70,20 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     If Chois = 0 Then oExcelApp.Application.Quit: frmClose = True: Exit Sub
     sFilePathName = oExcelApp.FileDialog(msoFileDialogOpen).SelectedItems(1)
     
-    If InStr(sFilePathName, sPath) = 1 Then 'файл в той же папке, что и проект (но может быть и глубже)
-        sRelativeFileName = Replace(sFilePathName, sPath, "") 'относительный путь
+    If InStr(sFilePathName, sSAPath) = 1 Then 'файл в той же папке, что и проект (но может быть и глубже)
+        sRelativeFileName = Replace(sFilePathName, sSAPath, "") 'относительный путь
     Else
         sRelativeFileName = sFilePathName 'абсолютный путь
     End If
 
-    Set wbExcel = oExcelApp.Workbooks.Open(sFilePathName)
+    Set wbExcelPrice = oExcelApp.Workbooks.Open(sFilePathName)
     Load frmVyborListaExcel
-    frmVyborListaExcel.Show 'присваиваем Excel_imya_lista
+    frmVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
+
     If frmClose Then oExcelApp.Application.Quit: Exit Sub
 
     oExcelApp.Visible = True
-    wbExcel.Activate
+    wbExcelPrice.Activate
     
     'Строка Производителя на листе НастройкиПрайсов в файле SAPR_ASU_Izbrannoe.xls
     mVendorData(0) = sNameVendor 'Производитель
@@ -98,16 +103,21 @@ Sub WizardAddPriceExcel(sNameVendor As String)
 
     mDialogString = Split(sDialogString, ";")
 
-    For i = 0 To 1
+    For i = 0 To 8
         Set UserRange = oExcelApp.InputBox _
         (Prompt:=mDialogString(i), _
         Title:="Выбор ячейки", _
         Type:=8)
     
         mRange = Split(UserRange.Address, ":")
-        If UBound(mRange) = 0 Then 'выбрана 1 ячейка
-            mRange = Split(UserRange.Address, "$") 'номер строки
-            mVendorData(i + 3) = mRange(2) 'Строка начало/СтрокаКонец
+        If UBound(mRange) = 0 Then 'выбрана одна ячейка
+            If i < 2 Then
+    '            mRange = Split(UserRange.Address, "$")'номер строки mRange(2) 'Строка начало/СтрокаКонец
+                mVendorData(i + 3) = UserRange.Row 'Строка начало/СтрокаКонец
+            Else
+    '            mRange = Split(UserRange.Address, "$") 'буква столбца mRange(1) 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
+                mVendorData(i + 3) = UserRange.Column 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
+            End If
         Else 'выбран диапазон
             oExcelApp.WindowState = xlMinimized
             MsgBox "Был выбран диапазон ячеек!" & vbCrLf & vbCrLf & "Необходимо выбрать одну ячейку", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
@@ -116,58 +126,35 @@ Sub WizardAddPriceExcel(sNameVendor As String)
         End If
     Next
 
-    For i = 2 To 8
-        Set UserRange = oExcelApp.InputBox _
-        (Prompt:=mDialogString(i), _
-        Title:="Выбор ячейки", _
-        Type:=8)
+    wbExcelPrice.Close SaveChanges:=False
     
-        mRange = Split(UserRange.Address, ":")
-        If UBound(mRange) = 0 Then 'выбрана 1 ячейка
-            mRange = Split(UserRange.Address, "$") 'буква столбца
-            mVendorData(i + 3) = mRange(1) 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
-        Else 'выбран диапазон
-            oExcelApp.WindowState = xlMinimized
-            MsgBox "Был выбран диапазон ячеек!" & vbCrLf & vbCrLf & "Необходимо выбрать одну ячейку", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
-            i = i - 1
-            oExcelApp.WindowState = xlMaximized
-        End If
-    Next
-
-    wbExcel.Close SaveChanges:=False
-    oExcelApp.Application.Quit
-    
-    Set oExcelApp = CreateObject("Excel.Application")
-    Set wbExcel = oExcelApp.Workbooks.Open(sPath & DBNameIzbrannoeExcel)
-    wbExcel.Worksheets(ExcelNastrojkiPrajsov).Activate
-    lLastRow = oExcelApp.Sheets(ExcelNastrojkiPrajsov).Cells(oExcelApp.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
+    'Запись данных в лист НастройкиПрайсов
+    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Activate
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
     For i = 1 To 12
-        wbExcel.Sheets(ExcelNastrojkiPrajsov).Cells(lLastRow + 1, i) = mVendorData(i - 1)
+        wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(lLastRow + 1, i) = mVendorData(i - 1)
     Next
     oExcelApp.Visible = True
-    wbExcel.Save
+    wbExcelIzbrannoe.Save
 
 End Sub
 
 
-Public Sub FillExcel_cmbxProizvoditel(DBName As String, SQLQuery As String, cmbx As ComboBox, Optional ByVal Price As Boolean = False)
+Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As Boolean = False)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : FillExcel_cmbxProizvoditel - Заполняет ComboBox Производители из Excel как базы данных САПР-АСУ
 '------------------------------------------------------------------------------------------------------------
-    Dim oExcelApp As Excel.Application
-    Dim wbExcel As Excel.Workbook
-    Dim sPath As String
     Dim UserRange As Excel.Range
     Dim i As Integer
-    Dim j As Integer
     Dim mProizvoditel() As classProizvoditelBD
 
     Set oExcelApp = CreateObject("Excel.Application")
-    sPath = Visio.ActiveDocument.path
-    Set wbExcel = oExcelApp.Workbooks.Open(sPath & DBNameIzbrannoeExcel)
+    sSAPath = Visio.ActiveDocument.path
+    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
     
-    lLastRow = oExcelApp.Sheets(ExcelNastrojkiPrajsov).Cells(oExcelApp.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = oExcelApp.Worksheets(ExcelNastrojkiPrajsov).Range("A2:L" & lLastRow)
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Range("A2:L" & lLastRow)
     
     ReDim mProizvoditel(lLastRow - 2)
     For i = 1 To lLastRow - 1
@@ -186,18 +173,15 @@ Public Sub FillExcel_cmbxProizvoditel(DBName As String, SQLQuery As String, cmbx
             mProizvoditel(i - 1).Podgruppa = UserRange.Cells(i, 12)
     Next
     
-    j = 0
     For i = 0 To UBound(mProizvoditel)
         If mProizvoditel(i).FileName = "" And Price Then
-            'пропускаем производителя, если у него нету файла
+            'для формы Прайс пропускаем производителя, если у него нету файла
         Else
             cmbx.AddItem mProizvoditel(i).NameVendor
-            cmbx.List(j, 1) = "" & i + 1
-            j = j + 1
         End If
     Next
     
-    wbExcel.Close SaveChanges:=False
-    oExcelApp.Application.Quit
-    
+'    wbExcelIzbrannoe.Close SaveChanges:=False
+'    oExcelApp.Application.Quit
+    oExcelApp.Visible = True
 End Sub

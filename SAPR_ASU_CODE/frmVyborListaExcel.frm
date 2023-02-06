@@ -1,11 +1,18 @@
-
-
 Option Explicit
 
 Private Sub UserForm_Initialize()
     cmbxNazvanieLista.style = fmStyleDropDownList
     frmClose = False
-    Fill_cmbxNazvanieLista
+End Sub
+
+Sub run(wb As Excel.Workbook)
+    Dim sht As Excel.Worksheet
+    cmbxNazvanieLista.Clear
+    For Each sht In wb.Worksheets
+        cmbxNazvanieLista.AddItem sht.name
+    Next
+    cmbxNazvanieLista.ListIndex = 0
+    Me.Show
 End Sub
 
 Private Sub btnSelSheet_Click()
@@ -13,15 +20,6 @@ Private Sub btnSelSheet_Click()
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
-End Sub
-
-Sub Fill_cmbxNazvanieLista()
-    Dim sht As Excel.Worksheet
-    cmbxNazvanieLista.Clear
-    For Each sht In wbExcel.Worksheets
-        cmbxNazvanieLista.AddItem sht.name
-    Next
-    cmbxNazvanieLista.ListIndex = 0
 End Sub
 
 Private Sub btnClose_Click()

@@ -72,9 +72,9 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    FillExcel_cmbxProizvoditel DBNameIzbrannoeExcel, SQLQuery, cmbxProizvoditel
+    FillExcel_cmbxProizvoditel cmbxProizvoditel
     
-    Reset_FiltersCmbx
+    UpdateCmbxFiltersIzbrannoe
 
 End Sub
 
@@ -196,101 +196,99 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     
 End Sub
 
-Sub Fill_FiltersByResultSQLQuery(DBName As String, fltrKategoriya As String, fltrGruppa As String, fltrPodgruppa As String)
-    Dim SQLQuery As String
 
-    If fltrKategoriya = "" Then
-        SQLQuery = "SELECT FilterSQLQuery.КатегорииКод, Категории.Категория " & _
-                    "FROM Категории INNER JOIN FilterSQLQuery ON Категории.КодКатегории = FilterSQLQuery.КатегорииКод " & _
-                    "GROUP BY FilterSQLQuery.КатегорииКод, Категории.Категория;"
-        Fill_ComboBox DBName, SQLQuery, cmbxKategoriya
-    End If
-    
-    If fltrGruppa = "" Then
-        SQLQuery = "SELECT FilterSQLQuery.ГруппыКод, Группы.Группа " & _
-                    "FROM Группы INNER JOIN FilterSQLQuery ON Группы.КодГруппы = FilterSQLQuery.ГруппыКод " & _
-                    "GROUP BY FilterSQLQuery.ГруппыКод, Группы.Группа;"
-        Fill_ComboBox DBName, SQLQuery, cmbxGruppa
-    End If
-    
-    If fltrPodgruppa = "" Then
-        SQLQuery = "SELECT FilterSQLQuery.ПодгруппыКод, Подгруппы.Подгруппа " & _
-                    "FROM Подгруппы INNER JOIN FilterSQLQuery ON Подгруппы.КодПодгруппы = FilterSQLQuery.ПодгруппыКод " & _
-                    "GROUP BY FilterSQLQuery.ПодгруппыКод, Подгруппы.Подгруппа;"
-        Fill_ComboBox DBName, SQLQuery, cmbxPodgruppa
-    End If
-
-End Sub
-
+'Полнотекстовый поиск
 Sub Find_ItemsByText()
-    Dim DBName As String
-    Dim SQLQuery As String
-    Dim findMode As Integer
-    Dim findWHERE As String
-    Dim findProizvoditel As String
-    Dim findArtikul As String
-    Dim findNazvanie As String
+    Dim RangeToFilter As Excel.Range
+    Dim lLastRow As Long
 
-    DBName = DBNameIzbrannoeExcel
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    Set RangeToFilter = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:H" & lLastRow)
     
     If txtArtikul.Value = "" Then
-        findArtikul = ""
+        RangeToFilter.AutoFilter Field:=1
     Else
-        findArtikul = "Избранное.Артикул like ""*" & txtArtikul.Value & "*"""
+        RangeToFilter.AutoFilter Field:=1, Criteria1:="=*" & txtArtikul.Value & "*"
     End If
     
-    If txtNazvanie1.Value = "" And txtNazvanie2.Value = "" And txtNazvanie3.Value = "" Then
-        findNazvanie = ""
+    If txtNazvanie2.Value = "" Then
+        RangeToFilter.AutoFilter Field:=2
     Else
-        findNazvanie = "Избранное.Название like ""*" & txtNazvanie1.Value & "*" & Replace(txtNazvanie2.Value, " ", "*") & "*" & txtNazvanie3.Value & "*"""
+        RangeToFilter.AutoFilter Field:=2, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
     End If
     
     If cmbxProizvoditel.ListIndex = -1 Then
-        findProizvoditel = ""
+        RangeToFilter.AutoFilter Field:=5
     Else
-        findProizvoditel = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " AND Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
+        RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0)
     End If
     
-    findMode = IIf(findArtikul = "", 0, 2) + IIf(findNazvanie = "", 0, 1)
-
-    '*   Арт Наз
-    '0   0   0
-    '1   0   1
-    '2   1   0
-    '3   1   1
-
-    Select Case findMode
-        Case 0
-            If cmbxProizvoditel.ListIndex = -1 Then
-                findWHERE = ""
-            Else
-                findWHERE = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " WHERE Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
-            End If
-        Case 1
-            findWHERE = " WHERE " & findNazvanie & findProizvoditel
-        Case 2
-            findWHERE = " WHERE " & findArtikul & findProizvoditel
-        Case 3
-            findWHERE = " WHERE " & findArtikul & " AND " & findNazvanie & findProizvoditel
-        Case Else
-            findWHERE = ""
-    End Select
-
-    If cmbxKategoriya.ListIndex = -1 And cmbxGruppa.ListIndex = -1 And cmbxPodgruppa.ListIndex = -1 Then
-        NameQueryDef = "FilterSQLQuery"
-        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
-                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
-        Fill_FiltersByResultSQLQuery DBName, "", "", ""
-    Else
-        NameQueryDef = ""
-        SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, Производители.Производитель, FilterSQLQuery.ЕдиницыКод, Единицы.Единица " & _
-                   "FROM Единицы INNER JOIN (Производители INNER JOIN FilterSQLQuery ON Производители.КодПроизводителя = FilterSQLQuery.ПроизводительКод) ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
-    End If
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    lblResult.Caption = "Найдено записей: " & lLastRow - 1
+    Fill_lstvTable wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:H" & lLastRow), lstvTableIzbrannoe, 1
+        
+    UpdateCmbxFiltersIzbrannoe
 
     ReSize
  
+End Sub
+
+'Заполняет lstvTable запросами из БД
+Public Sub Fill_lstvTable(RangeToFill As Excel.Range, lstvTable As ListView, Optional ByVal TableType As Integer = 0)
+    'TableType=1 - Избранное
+    'TableType=2 - Набор
+    Dim i As Double
+    Dim iold As Double
+    Dim j As Double
+    Dim itmx As ListItem
+    
+    
+    
+'    Sub Макрос16()
+        Dim tbl As Range
+        Set tbl = Sheets(1).AutoFilter.Range
+        
+        'далее исключаем из диапазона автофильтра первую строку (Offset),
+        'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
+        'и в цикле перебираем эти сроки
+        Set y = tbl.Offset(1, 0).ReSize(tbl.Rows.Count - 1, tbl.Columns.Count).SpecialCells(xlCellTypeVisible).EntireRow
+        
+        For Each s In y.Rows
+            RowNamber = s.Row
+        Next
+'    End Sub
+    
+    
+
+    lstvTable.ListItems.Clear
+    If RangeToFill.Rows.Count > 0 Then
+        For i = 1 To RangeToFill.Rows.Count
+            Set itmx = lstvTable.ListItems.Add(, , RangeToFill.Cells(i, 1)) 'Артикул
+            itmx.SubItems(1) = RangeToFill.Cells(i, 2) 'Название
+            itmx.SubItems(2) = RangeToFill.Cells(i, 3) 'Цена
+            itmx.SubItems(3) = RangeToFill.Cells(i, 4) 'Единица
+            If TableType = 1 Then
+                itmx.SubItems(4) = RangeToFill.Cells(i, 5) 'Производитель
+                itmx.SubItems(5) = "    "
+            ElseIf TableType = 2 Then
+                itmx.SubItems(4) = RangeToFill.Cells(i, 5) 'Производитель
+                itmx.SubItems(5) = RangeToFill.Cells(i, 6) 'Количество
+                itmx.SubItems(6) = "    "
+            End If
+
+            'красим наборы
+            If TableType = 1 Then
+                If RangeToFill.Cells(i, 1) Like "Набор_*" Then
+                    itmx.ForeColor = NaboryColor
+    '               itmx.Bold = True
+                    For j = 1 To itmx.ListSubItems.Count
+    '                   itmx.ListSubItems(j).Bold = True
+                        itmx.ListSubItems(j).ForeColor = NaboryColor
+                    Next
+                End If
+            End If
+        Next
+    End If
 End Sub
 
 Private Sub btnFavDel_Click()
@@ -329,24 +327,18 @@ Private Sub btnNabDel_Click()
     End If
 End Sub
 
-Private Sub Reset_FiltersCmbx()
-    Dim oExcelApp As Excel.Application
-    Dim wbExcel As Excel.Workbook
+Private Sub UpdateCmbxFiltersIzbrannoe()
     Dim wshTemp As Excel.Worksheet
-    Dim sPath As String
     Dim UserRange As Excel.Range
     Dim lLastRow As Long
     Dim i As Integer
     Dim j As Integer
     Dim mFilter() As String
 
-    Set oExcelApp = CreateObject("Excel.Application")
-    sPath = Visio.ActiveDocument.path
-    Set wbExcel = oExcelApp.Workbooks.Open(sPath & DBNameIzbrannoeExcel)
     Set wshTemp = oExcelApp.Worksheets(Exceltemp)
 
-    lLastRow = oExcelApp.Sheets(ExcelIzbrannoe).Cells(oExcelApp.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
-    oExcelApp.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy oExcelApp.Worksheets(Exceltemp).Range("A1")
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy wbExcelIzbrannoe.Worksheets(Exceltemp).Range("A1")
     Set UserRange = wshTemp.Range("A1:C" & lLastRow - 1)
     UserRange.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
     
@@ -365,12 +357,12 @@ Private Sub Reset_FiltersCmbx()
         cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
     Next
     
-    wbExcel.Close SaveChanges:=False
-    oExcelApp.Application.Quit
+'    wbExcelIzbrannoe.Close SaveChanges:=False
+'    oExcelApp.Application.Quit
     
     bBlock = False
-    lstvTableIzbrannoe.ListItems.Clear
-    lblResult.Caption = "Найдено записей: 0"
+'    lstvTableIzbrannoe.ListItems.Clear
+'    lblResult.Caption = "Найдено записей: 0"
 
 
 End Sub
@@ -564,7 +556,7 @@ Private Sub tbtnFiltr_Click()
         frameFilters.Height = 0
         tbtnFiltr.Caption = ChrW(9660) 'вниз
         cmbxProizvoditel.ListIndex = -1
-        Reset_FiltersCmbx
+        UpdateCmbxFiltersIzbrannoe
     End If
     lblSostav.Caption = ""
     frameTab.Top = frameFilters.Top + frameFilters.Height
@@ -626,7 +618,7 @@ Private Sub tbtnBD_Click()
         tbtnBD = False
         bBlock = False
         Me.Hide
-        frmDBPriceAccess.Show
+        frmDBPriceExcel.Show
     End If
 End Sub
 
@@ -656,6 +648,7 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBPriceAccess
+    oExcelApp.Application.Quit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

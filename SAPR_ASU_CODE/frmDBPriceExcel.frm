@@ -61,7 +61,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
-    FillExcel_cmbxProizvoditel DBNameIzbrannoeExcel, SQLQuery, cmbxProizvoditel, True
+    FillExcel_cmbxProizvoditel cmbxProizvoditel, True
 
     Load frmDBIzbrannoeExcel
     'frmDBIzbrannoeExcel.Find_ItemsByText
@@ -536,6 +536,7 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBIzbrannoeExcel
+    oExcelApp.Application.Quit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
