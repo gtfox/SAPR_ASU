@@ -9,14 +9,19 @@
 'Option Explicit
 Public sSAPath As String
 Public oExcelApp As Excel.Application
-Public wbExcelIzbrannoe As Excel.Workbook
 Public wbExcelPrice As Excel.Workbook
+Public wshPrice As Excel.Worksheet
+Public wbExcelIzbrannoe As Excel.Workbook
+Public wshIzbrannoe As Excel.Worksheet
+Public wshNabory As Excel.Worksheet
+Public wshNastrojkiPrajsov As Excel.Worksheet
+Public wshTemp As Excel.Worksheet
 Public mProizvoditel() As classProizvoditelBD
 Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя файла избронного
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
 Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
 Public Const ExcelNabory As String = "Наборы" 'Имя листа Наборы
-Public Const Exceltemp As String = "temp" 'Имя листа для временных данных
+Public Const ExcelTemp As String = "temp" 'Имя листа для временных данных
 
 
 #If VBA7 Then
@@ -34,13 +39,23 @@ Public Const Exceltemp As String = "temp" 'Имя листа для времен
 'End Sub
 
 
+Sub InitExcelDB()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : InitExcelDB - Инициализирует переменные для доступа к Excel
+'------------------------------------------------------------------------------------------------------------
+    sSAPath = Visio.ActiveDocument.path
+    Set oExcelApp = CreateObject("Excel.Application")
+    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    Set wshIzbrannoe = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe)
+    Set wshNabory = wbExcelIzbrannoe.Worksheets(ExcelNabory)
+    Set wshNastrojkiPrajsov = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov)
+    Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
+End Sub
+
 Sub WizardAddPriceExcel(sNameVendor As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : WizardAddPriceExcel - Мастер добавления прайс-листа Excel в виде базы данных САПР-АСУ
 '------------------------------------------------------------------------------------------------------------
-'    Dim oExcelApp As Excel.Application
-'    Dim wbExcelIzbrannoe As Excel.Workbook
-'    Dim sSAPath As String
     Dim sFilePathName As String
     Dim fdFileDialog As FileDialog
     Dim fdFilters As FileDialogFilters
@@ -50,24 +65,22 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     Dim mRange() As String
     Dim mDialogString() As String
     Dim sDialogString As String
-    Dim mVendorData(0 To 11) As String
+    Dim mVendorData(0 To 11) As Variant
     Dim lLastRow As Long
     Dim UserRange As Excel.Range
     Dim FindRange As Excel.Range
 
-    Set oExcelApp = CreateObject("Excel.Application")
-    sSAPath = Visio.ActiveDocument.path
-    
+    InitExcelDB
+  
     'Проверяем, что такого производителя нет в списке
-    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Range("A2:A" & lLastRow)
+    lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wshNastrojkiPrajsov.Range("A2:A" & lLastRow)
 
     Set FindRange = UserRange.Find(sNameVendor, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
     If Not FindRange Is Nothing Then
         MsgBox "Такой производитель уже есть в списке: " & sNameVendor, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
-        wbExcelIzbrannoe.Close SaveChanges:=False
-        oExcelApp.Application.Quit
+        wbExcelIzbrannoe.Close savechanges:=False
+        oExcelApp.Quit
         Exit Sub
     End If
     
@@ -84,7 +97,7 @@ Sub WizardAddPriceExcel(sNameVendor As String)
         End With
         Chois = oExcelApp.FileDialog(msoFileDialogOpen).Show
     End With
-    If Chois = 0 Then oExcelApp.Application.Quit: frmClose = True: Exit Sub
+    If Chois = 0 Then oExcelApp.Quit: frmClose = True: Exit Sub
     sFilePathName = oExcelApp.FileDialog(msoFileDialogOpen).SelectedItems(1)
     
     If InStr(sFilePathName, sSAPath) = 1 Then 'файл в той же папке, что и проект (но может быть и глубже)
@@ -98,9 +111,9 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     frmVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
 
     If frmClose Then oExcelApp.Application.Quit: Exit Sub
-
+    Set wshPrice = wbExcelPrice.Worksheets(Excel_imya_lista)
     oExcelApp.Visible = True
-    wbExcelPrice.Activate
+    wshPrice.Activate
     
     'Строка Производителя на листе НастройкиПрайсов в файле SAPR_ASU_Izbrannoe.xls
     mVendorData(0) = sNameVendor 'Производитель
@@ -110,7 +123,7 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     '0-8
     sDialogString = "Выберите начальную ячейку данных прайса (Ctrl+Home);" & _
                     "Выберите конечную ячейку данных прайса (Ctrl+End);" & _
-                    "Выберите ячейку в столбце ""Артикул"";" & _
+                    "Выберите ячейку в столбце ""Артикул""." & vbCrLf & "Будет выполнено преобразование Артикула в текст" & vbCrLf & "Дождитесь окончания процесса...;" & _
                     "Выберите ячейку в столбце ""Название"";" & _
                     "Выберите ячейку в столбце ""Цена"";" & _
                     "Выберите ячейку в столбце ""Единица"";" & _
@@ -134,6 +147,10 @@ Sub WizardAddPriceExcel(sNameVendor As String)
             Else
     '            mRange = Split(UserRange.Address, "$") 'буква столбца mRange(1) 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
                 mVendorData(i + 3) = UserRange.Column 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
+                'Преобразование Артикула в тип Текст
+                If i = 2 Then
+                    ExcelConvertToString wshPrice.Range(wshPrice.Cells(mVendorData(3), mVendorData(5)), wshPrice.Cells(mVendorData(4), mVendorData(5)))
+                End If
             End If
         Else 'выбран диапазон
             oExcelApp.WindowState = xlMinimized
@@ -143,14 +160,14 @@ Sub WizardAddPriceExcel(sNameVendor As String)
         End If
     Next
 
-    wbExcelPrice.Close SaveChanges:=False
+    wbExcelPrice.Close savechanges:=True
     
     'Запись данных в лист НастройкиПрайсов
     
-    wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Activate
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
+    wshNastrojkiPrajsov.Activate
+    lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
     For i = 1 To 12
-        wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(lLastRow + 1, i) = mVendorData(i - 1)
+        wshNastrojkiPrajsov.Cells(lLastRow + 1, i) = mVendorData(i - 1)
     Next
     oExcelApp.Visible = True
     wbExcelIzbrannoe.Save
@@ -165,12 +182,8 @@ Public Sub FillExcel_mProizvoditel()
     Dim UserRange As Excel.Range
     Dim i As Integer
 
-    Set oExcelApp = CreateObject("Excel.Application")
-    sSAPath = Visio.ActiveDocument.path
-    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
-    
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Cells(wbExcelIzbrannoe.Sheets(ExcelNastrojkiPrajsov).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov).Range("A2:L" & lLastRow)
+    lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wshNastrojkiPrajsov.Range("A2:L" & lLastRow)
     
     ReDim mProizvoditel(lLastRow - 2)
     For i = 1 To lLastRow - 1
@@ -206,6 +219,19 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
     Next
     
 '    wbExcelIzbrannoe.Close SaveChanges:=False
-'    oExcelApp.Application.Quit
+'    oExcelApp.Quit
     oExcelApp.Visible = True
+End Sub
+
+Public Sub ExcelConvertToString(ConvertRange As Excel.Range)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ExcelConvertToString - Преобразует диапазон ячеек Excel в текстовый тип данных для работы фильтра (стандартное преобразование в текст не работает)
+'------------------------------------------------------------------------------------------------------------
+    Dim text$
+    Dim rCell As Excel.Range
+    For Each rCell In ConvertRange
+        text = WorksheetFunction.text(rCell.Value, rCell.NumberFormat)
+        rCell.NumberFormat = "@"
+        rCell.Value = text
+    Next
 End Sub

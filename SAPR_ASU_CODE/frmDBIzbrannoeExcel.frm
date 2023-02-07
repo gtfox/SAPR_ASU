@@ -20,12 +20,10 @@ Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
-Dim mstrShpData(7) As String
+Dim mstrShpData(5) As String
 Public bBlock As Boolean
 Dim NameQueryDef As String
 Dim mstrVybPozVNabore(7) As String
-
-
 
 
 Private Sub UserForm_Initialize() ' инициализация формы
@@ -74,80 +72,18 @@ Private Sub UserForm_Initialize() ' инициализация формы
 End Sub
 
 Private Sub Filter_CmbxChange(Ncmbx As Integer)
-    Dim SQLQuery As String
-    Dim fltrKategoriya As String
-    Dim fltrGruppa As String
-    Dim fltrPodgruppa As String
-    Dim fltrProizvoditel As String
-    Dim fltrMode As Integer
-    Dim fltrWHERE As String
-    Dim DBName As String
+    Dim RangeToFilter As Excel.Range
+    Dim lLastRow As Long
 
-    If cmbxKategoriya.ListIndex = -1 Then
-        fltrKategoriya = ""
-    Else
-        fltrKategoriya = "Избранное.КатегорииКод=" & cmbxKategoriya.List(cmbxKategoriya.ListIndex, 1)
-    End If
-    If cmbxGruppa.ListIndex = -1 Then
-        fltrGruppa = ""
-    Else
-        fltrGruppa = "Избранное.ГруппыКод=" & cmbxGruppa.List(cmbxGruppa.ListIndex, 1)
-    End If
-    If cmbxPodgruppa.ListIndex = -1 Then
-        fltrPodgruppa = ""
-    Else
-        fltrPodgruppa = "Избранное.ПодгруппыКод=" & cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 1)
-    End If
+    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
+    Set RangeToFilter = wshIzbrannoe.Range("A2:H" & lLastRow)
     
-    If cmbxProizvoditel.ListIndex = -1 Then
-        fltrProizvoditel = ""
-    Else
-        fltrProizvoditel = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " AND Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
-    End If
     
-    fltrMode = IIf(fltrKategoriya = "", 0, 4) + IIf(fltrGruppa = "", 0, 2) + IIf(fltrPodgruppa = "", 0, 1)
     
-'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
-    '*    К   Гр  Пг
-    '0    0   0   0
-    '1    0   0   1
-    '2    0   1   0
-    '3    0   1   1
-    '4    1   0   0
-    '5    1   0   1
-    '6    1   1   0
-    '7    1   1   1
     
-    Select Case fltrMode
-        Case 0
-            If cmbxProizvoditel.ListIndex = -1 Then
-                fltrWHERE = ""
-            Else
-                fltrWHERE = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " WHERE Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
-            End If
-        Case 1
-            fltrWHERE = " WHERE " & fltrPodgruppa & fltrProizvoditel
-        Case 2
-            fltrWHERE = " WHERE " & fltrGruppa & fltrProizvoditel
-        Case 3
-            fltrWHERE = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
-        Case 4
-            fltrWHERE = " WHERE " & fltrKategoriya & fltrProizvoditel
-        Case 5
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa & fltrProizvoditel
-        Case 6
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & fltrProizvoditel
-        Case 7
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
-        Case Else
-            fltrWHERE = ""
-            fltrKategoriya = ""
-            fltrGruppa = ""
-            fltrPodgruppa = ""
-    End Select
-'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
-
-'-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
+    
+    
+    '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
     Select Case Ncmbx
         Case 1
             fltrWHERE = " WHERE " & fltrKategoriya & fltrProizvoditel
@@ -172,19 +108,43 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
             fltrPodgruppa = ""
     End Select
 '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-
-
-        SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
-                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWHERE & ";"
-                
-    DBName = DBNameIzbrannoeExcel
     
-    NameQueryDef = "FilterSQLQuery"
     
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
+    
+    
+    
+    
+    
+    
+    
+    
 
-    Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
-
+    If cmbxProizvoditel.ListIndex = -1 Then
+        RangeToFilter.AutoFilter Field:=5
+    Else
+        RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0)
+    End If
+    
+    If cmbxKategoriya.ListIndex = -1 Then
+        RangeToFilter.AutoFilter Field:=6
+    Else
+        RangeToFilter.AutoFilter Field:=6, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0)
+    End If
+    
+    If cmbxGruppa.ListIndex = -1 Then
+        RangeToFilter.AutoFilter Field:=7
+    Else
+        RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0)
+    End If
+    If cmbxPodgruppa.ListIndex = -1 Then
+        RangeToFilter.AutoFilter Field:=8
+    Else
+        RangeToFilter.AutoFilter Field:=8, Criteria1:=cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 0)
+    End If
+    
+    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
+    lblResult.Caption = "Найдено записей: " & lLastRow - 1
+    Fill_lstvTable wshIzbrannoe, lstvTableIzbrannoe, 1
     ReSize
 
     'Find_ItemsByText
@@ -197,8 +157,8 @@ Sub Find_ItemsByText()
     Dim RangeToFilter As Excel.Range
     Dim lLastRow As Long
 
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
-    Set RangeToFilter = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:H" & lLastRow)
+    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
+    Set RangeToFilter = wshIzbrannoe.Range("A2:H" & lLastRow)
     
     If txtArtikul.Value = "" Then
         RangeToFilter.AutoFilter Field:=1
@@ -218,14 +178,12 @@ Sub Find_ItemsByText()
         RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0)
     End If
     
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
     lblResult.Caption = "Найдено записей: " & lLastRow - 1
-    Fill_lstvTable wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe), lstvTableIzbrannoe, 1
-    
-    If lLastRow > 1 Then
-        UpdateCmbxFiltersIzbrannoe
-        ReSize
-    End If
+    Fill_lstvTable wshIzbrannoe, lstvTableIzbrannoe, 1
+    UpdateCmbxFiltersIzbrannoe
+    ReSize
+
 End Sub
 
 'Заполняет lstvTable данными из БД
@@ -315,38 +273,45 @@ Private Sub btnNabDel_Click()
 End Sub
 
 Private Sub UpdateCmbxFiltersIzbrannoe()
-    Dim wshTemp As Excel.Worksheet
     Dim UserRange As Excel.Range
     Dim lLastRow As Long
     Dim i As Integer
-    Dim j As Integer
     Dim mFilter() As String
-
-    Set wshTemp = oExcelApp.Worksheets(Exceltemp)
-
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    
+    wshTemp.Cells.ClearContents
+    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
     If lLastRow > 1 Then
-        wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("F2:H" & lLastRow).Copy wbExcelIzbrannoe.Worksheets(Exceltemp).Range("A1")
-        Set UserRange = wshTemp.Range("A1:C" & lLastRow - 1)
-        UserRange.RemoveDuplicates Columns:=Array(1, 2, 3), Header:=xlNo
+        wshIzbrannoe.Range("F2:H" & lLastRow).Copy wshTemp.Range("A1")
+        For i = 1 To 3
+            Set UserRange = wshTemp.Range(wshTemp.Cells(1, i), wshTemp.Cells(lLastRow - 1, i))
+            UserRange.RemoveDuplicates Columns:=1, Header:=xlNo
+        Next
         
         bBlock = True
-        cmbxKategoriya.Clear
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
-        For i = 1 To lLastRow
-            cmbxKategoriya.AddItem wshTemp.Cells(i, 1)
-        Next
-        cmbxGruppa.Clear
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 2).End(xlUp).Row
-        For i = 1 To lLastRow
-            cmbxGruppa.AddItem wshTemp.Cells(i, 2)
-        Next
-        cmbxPodgruppa.Clear
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 3).End(xlUp).Row
-        For i = 1 To lLastRow
-            cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
-        Next
         
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
+        If lLastRow > 1 Then
+            cmbxKategoriya.Clear
+            For i = 1 To lLastRow
+                cmbxKategoriya.AddItem wshTemp.Cells(i, 1)
+            Next
+        End If
+        
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 2).End(xlUp).Row
+        If lLastRow > 1 Then
+            cmbxGruppa.Clear
+            For i = 1 To lLastRow
+                cmbxGruppa.AddItem wshTemp.Cells(i, 2)
+            Next
+        End If
+        
+        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 3).End(xlUp).Row
+        If lLastRow > 1 Then
+            cmbxPodgruppa.Clear
+            For i = 1 To lLastRow
+                cmbxPodgruppa.AddItem wshTemp.Cells(i, 3)
+            Next
+        End If
     '    wbExcelIzbrannoe.Close SaveChanges:=False
     '    oExcelApp.Application.Quit
         
@@ -366,22 +331,24 @@ End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
-    Dim Mstr() As String
     Dim colNum As Long
-    
-    Mstr = Split(Replace(Item.Key, """", ""), "/")
+    Dim RangeToFilter As Excel.Range
+    Dim lLastRow As Long
 
-    mstrShpData(0) = Mstr(1)
-    mstrShpData(1) = Item.Key
-    mstrShpData(2) = Item.SubItems(1)
-    mstrShpData(3) = Item
+    mstrShpData(0) = Item
+    mstrShpData(1) = Item.SubItems(1)
+    mstrShpData(2) = Item.SubItems(2)
+    mstrShpData(3) = Item.SubItems(3)
     mstrShpData(4) = Item.SubItems(4)
-    mstrShpData(5) = Item.SubItems(2)
-    mstrShpData(6) = Mstr(0)
-    mstrShpData(7) = Item.SubItems(3)
-    
+
+    lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
+    Set RangeToFilter = wshNabory.Range("A2:H" & lLastRow)
+
     If Item.ForeColor = NaboryColor Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTableNabor(DBNameIzbrannoeExcel, mstrShpData(6), lstvTableNabor)
+        RangeToFilter.AutoFilter Field:=7, Criteria1:=Item
+        lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
+        lblSostav.Caption = "Состав набора: " & lLastRow - 1
+        Fill_lstvTable wshNabory, lstvTableNabor, 2
         lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -401,27 +368,27 @@ End Sub
 Private Sub lstvTableIzbrannoe_DblClick()
     Dim vsoShape As Visio.Shape
     
-    With frmDBPriceAccess.glShape
-        .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
-        .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
-        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
-        .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+    With frmDBPriceExcel.glShape
+        .Cells("User.KodProizvoditelyaDB").Formula = """"""
+        .Cells("User.KodPoziciiDB").Formula = """"""
+        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
+        .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(0) & """"
         .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-        .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
-        .Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
+        .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
+        .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
     End With
     
     If ActiveWindow.Selection.Count > 1 Then
         For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPriceAccess.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceAccess.glShape)) Then
+            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
                 With vsoShape
-                    .Cells("User.KodProizvoditelyaDB").Formula = mstrShpData(0)
-                    .Cells("User.KodPoziciiDB").Formula = Replace(mstrShpData(1), """", "")
-                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(2), """", """""") & """"
-                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(3) & """"
+                    .Cells("User.KodProizvoditelyaDB").Formula = """"""
+                    .Cells("User.KodPoziciiDB").Formula = """"""
+                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
+                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(0) & """"
                     .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(5) & """"
-                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(7) & """"
+                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
+                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
                 End With
             End If
         Next
@@ -432,45 +399,38 @@ Private Sub lstvTableIzbrannoe_DblClick()
 End Sub
 
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
-    Dim Mstr() As String
-
-    Mstr = Split(Replace(Item.Key, """", ""), "/")
-    
-    mstrVybPozVNabore(0) = Mstr(1)
-    mstrVybPozVNabore(1) = Item.Key
-    mstrVybPozVNabore(2) = Item.SubItems(1)
-    mstrVybPozVNabore(3) = Item
+    mstrVybPozVNabore(0) = Item
+    mstrVybPozVNabore(1) = Item.SubItems(1)
+    mstrVybPozVNabore(2) = Item.SubItems(2)
+    mstrVybPozVNabore(3) = Item.SubItems(3)
     mstrVybPozVNabore(4) = Item.SubItems(4)
-    mstrVybPozVNabore(5) = Item.SubItems(2)
-    mstrVybPozVNabore(6) = Mstr(0)
-    mstrVybPozVNabore(7) = Item.SubItems(3)
-    
+    mstrVybPozVNabore(5) = Item.SubItems(5)
 End Sub
 
 Private Sub lstvTableNabor_DblClick()
     Dim vsoShape As Visio.Shape
     
-    With frmDBPriceAccess.glShape
-        .Cells("User.KodProizvoditelyaDB").Formula = mstrVybPozVNabore(0)
-        .Cells("User.KodPoziciiDB").Formula = Replace(mstrVybPozVNabore(1), """", "")
-        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(2), """", """""") & """"
-        .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(3) & """"
+    With frmDBPriceExcel.glShape
+        .Cells("User.KodProizvoditelyaDB").Formula = """"""
+        .Cells("User.KodPoziciiDB").Formula = """"""
+        .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(1), """", """""") & """"
+        .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(0) & """"
         .Cells("Prop.ProizvoditelDB").Formula = """" & mstrVybPozVNabore(4) & """"
-        .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(5) & """"
-        .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(7) & """"
+        .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(2) & """"
+        .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(3) & """"
     End With
     
     If ActiveWindow.Selection.Count > 1 Then
         For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPriceAccess.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceAccess.glShape)) Then
+            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
                 With vsoShape
-                    .Cells("User.KodProizvoditelyaDB").Formula = mstrVybPozVNabore(0)
-                    .Cells("User.KodPoziciiDB").Formula = Replace(mstrVybPozVNabore(1), """", "")
-                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(2), """", """""") & """"
-                    .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(3) & """"
+                    .Cells("User.KodProizvoditelyaDB").Formula = """"""
+                    .Cells("User.KodPoziciiDB").Formula = """"""
+                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(1), """", """""") & """"
+                    .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(0) & """"
                     .Cells("Prop.ProizvoditelDB").Formula = """" & mstrVybPozVNabore(4) & """"
-                    .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(5) & """"
-                    .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(7) & """"
+                    .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(2) & """"
+                    .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(3) & """"
                 End With
             End If
         Next
@@ -578,11 +538,11 @@ Private Sub cmbxMagazin_Change()
 End Sub
 
 Private Sub btnETM_Click()
-    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+    MagazinInfo mstrShpData(0), cmbxMagazin.ListIndex
 End Sub
 
 Private Sub btnAVS_Click()
-    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+    MagazinInfo mstrShpData(0), cmbxMagazin.ListIndex
 End Sub
 
 Private Sub btnFind_Click()
@@ -591,18 +551,21 @@ End Sub
 
 Private Sub cmbxKategoriya_Change()
     If Not bBlock Then Filter_CmbxChange 1
+    UpdateCmbxFiltersIzbrannoe
 End Sub
 
 Private Sub cmbxGruppa_Change()
     If Not bBlock Then Filter_CmbxChange 2
+    UpdateCmbxFiltersIzbrannoe
 End Sub
 
 Private Sub cmbxPodgruppa_Change()
     If Not bBlock Then Filter_CmbxChange 3
+    UpdateCmbxFiltersIzbrannoe
 End Sub
 
 Private Sub cmbxProizvoditel_Change()
-   If Not bBlock Then Find_ItemsByText
+   If Not bBlock Then Filter_CmbxChange 3
 End Sub
 
 Private Sub tbtnFav_Click()
@@ -644,10 +607,10 @@ Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.Col
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
-    Unload frmDBPriceAccess
     oExcelApp.Application.Quit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
+    Unload frmDBPriceExcel
     Unload Me
 End Sub
 

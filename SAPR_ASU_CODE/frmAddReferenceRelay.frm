@@ -115,8 +115,8 @@ End Sub
 Sub SelectText(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выбор - по тексту
     Dim shtxt As String, txt As String
     
-    shtxt = Switch(chkCase = True, vsoShape.Characters.Text, chkCase = False, LCase(vsoShape.Characters.Text))
-    txt = Switch(chkCase = True, txtShapeText.Text, chkCase = False, LCase(txtShapeText.Text))
+    shtxt = Switch(chkCase = True, vsoShape.Characters.text, chkCase = False, LCase(vsoShape.Characters.text))
+    txt = Switch(chkCase = True, txtShapeText.text, chkCase = False, LCase(txtShapeText.text))
     
     If shtxt Like txt Then ' проверка текста шейпа
         Call AddToCol(vsoShape, vsoPage)
@@ -268,7 +268,7 @@ Sub Fill_lstvChild(vsoShape As Visio.Shape) ' заполнение списка 
                 mstrAdrChild = Split(vsoShape.CellsU("Scratch.A" & i).ResultStr(0), "/")
                 Set shpInfoChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
                 Set itmx = lstvChild.ListItems.Add(, shpInfoChild.ContainingPage.id & "/" & shpInfoChild.id, _
-                shpInfoChild.Characters.Text + " " + IIf(ShapeSATypeIs(shpInfoChild, typeNO), "NO", "NC") _
+                shpInfoChild.Characters.text + " " + IIf(ShapeSATypeIs(shpInfoChild, typeNO), "NO", "NC") _
                 + " " + shpInfoChild.CellsU("User.Location").ResultStr(0)) '
             End If
         Next
@@ -286,13 +286,13 @@ Sub Fill_lstvParent() ' заполнение списка родительски
         Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-                Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.Text) '.Cells("TheText").ResultStr("")
+                Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.text) '.Cells("TheText").ResultStr("")
               End With
             Next i
         Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
-                    Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.Text) '.Cells("TheText").ResultStr("")
+                    Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.text) '.Cells("TheText").ResultStr("")
                     itmx.SubItems(1) = IIf(.Cells("User.LocationParent").ResultStr(0) = "0,0000", "", .Cells("User.LocationParent").ResultStr(0))
                     itmx.SubItems(2) = .Cells("User.Location").ResultStr(0)
                     itmx.SubItems(3) = .ContainingPage.name
@@ -320,7 +320,7 @@ End Sub
 Private Sub lstvPages_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
     chkAllPages.Value = False
-    lblCurPage.Caption = Item.Text
+    lblCurPage.Caption = Item.text
     lblCurPage.Visible = True
     lblCurPageALL.Visible = False
     
@@ -352,7 +352,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Dim PageID As String
     Dim mstrShPgID() As String
     
-    lblCurParent.Caption = Item.Text
+    lblCurParent.Caption = Item.text
     
     mstrShPgID = Split(Item.Key, "/")
     PageID = mstrShPgID(0)   ' ID страницы
@@ -373,7 +373,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     End With
 
     If vsoShape.CellExistsU("User.Location", 0) Then
-        lblCurParent.Caption = Item.Text + "  " + vsoShape.Cells("User.Location").ResultStr(0)
+        lblCurParent.Caption = Item.text + "  " + vsoShape.Cells("User.Location").ResultStr(0)
     End If
     
     Select Case FindType
@@ -411,7 +411,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     
-    txtShapeText.Text = "*" ' вставка текста в поле поиска
+    txtShapeText.text = "*" ' вставка текста в поле поиска
     lblCurParent.Caption = ""
     lblCurPageALL.Caption = "Все страницы"
     lblCurPage.Caption = ActivePage.name

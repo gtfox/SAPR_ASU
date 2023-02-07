@@ -25,11 +25,11 @@ Private Sub UserForm_Initialize()
     
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
         NazvanieShkafa = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
-        cmbxNazvanieShkafa.Text = NazvanieShkafa
+        cmbxNazvanieShkafa.text = NazvanieShkafa
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
-        cmbxNazvanieFSA.Text = NazvanieFSA
+        cmbxNazvanieFSA.text = NazvanieFSA
     End If
 
     With mpRazdel
@@ -216,7 +216,7 @@ Public Sub ReNumberShemy()
             If obVydNaListeCx Then
                 NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
             Else
-                NazvanieShkafa = cmbxNazvanieShkafa.Text
+                NazvanieShkafa = cmbxNazvanieShkafa.text
             End If
             GoSub RenWireKab
             GoSub RenTerm
@@ -418,7 +418,7 @@ Public Sub ReNumberFSA()
             If obVydNaListeFSA Then
                 NazvanieFSA = ThePage.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
             Else
-                NazvanieFSA = cmbxNazvanieFSA.Text
+                NazvanieFSA = cmbxNazvanieFSA.text
             End If
             GoSub RenPodval
             GoSub RenElement
@@ -482,7 +482,7 @@ Sub Fill_cmbxNazvanieShkafa()
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShkafa.Text = ""
+    cmbxNazvanieShkafa.text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -503,7 +503,7 @@ Sub Fill_cmbxNazvanieFSA()
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieFSA.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieFSA.Text = ""
+    cmbxNazvanieFSA.text = ""
 End Sub
 
 Private Sub obVseTipObCx_Change()

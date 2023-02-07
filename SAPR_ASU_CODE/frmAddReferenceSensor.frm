@@ -138,8 +138,8 @@ End Sub
 Sub SelectText(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выбор - по тексту
     Dim shtxt As String, txt As String
     
-    shtxt = Switch(chkCase = True, vsoShape.Characters.Text, chkCase = False, LCase(vsoShape.Characters.Text))
-    txt = Switch(chkCase = True, txtShapeText.Text, chkCase = False, LCase(txtShapeText.Text))
+    shtxt = Switch(chkCase = True, vsoShape.Characters.text, chkCase = False, LCase(vsoShape.Characters.text))
+    txt = Switch(chkCase = True, txtShapeText.text, chkCase = False, LCase(txtShapeText.text))
     
     If shtxt Like txt Then ' проверка текста шейпа
         Call AddToCol(vsoShape, vsoPage)
@@ -372,7 +372,7 @@ End Sub
 Private Sub lstvPages_ItemClick(ByVal Item As MSComctlLib.ListItem)
     
     chkAllPages.Value = False
-    lblCurPage.Caption = Item.Text
+    lblCurPage.Caption = Item.text
     lblCurPage.Visible = True
     lblCurPageALL.Visible = False
     
@@ -407,7 +407,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Dim PageID As String
     Dim mstrShPgID() As String
     
-    lblCurParent.Caption = Item.Text
+    lblCurParent.Caption = Item.text
     
     mstrShPgID = Split(Item.Key, "/")
     PageID = mstrShPgID(0)   ' ID страницы
@@ -428,7 +428,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     End With
 
     If vsoShape.CellExistsU("User.Location", 0) Then
-        lblCurParent.Caption = Item.Text + "  " + vsoShape.Cells("User.Location").ResultStr(0)
+        lblCurParent.Caption = Item.text + "  " + vsoShape.Cells("User.Location").ResultStr(0)
     End If
     
     Select Case FindType
@@ -466,7 +466,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     
-    txtShapeText.Text = "*" ' вставка текста в поле поиска
+    txtShapeText.text = "*" ' вставка текста в поле поиска
     lblCurParent.Caption = ""
     lblCurPageALL.Caption = "Все страницы"
     lblCurPage.Caption = ActivePage.name

@@ -6,7 +6,7 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub btnAddElements_Click()
-    AddSensorsFSAOnPlan cmbxNazvanieFSA.Text
+    AddSensorsFSAOnPlan cmbxNazvanieFSA.text
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

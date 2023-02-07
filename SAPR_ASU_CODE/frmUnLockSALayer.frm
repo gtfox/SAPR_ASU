@@ -40,31 +40,31 @@ Private Sub cbDeleteFromLayer_Click()
     If vsoShp Is Nothing Then
         Exit Sub
     Else
-        ActivePage.Layers(cmbxLayers.Text).Remove vsoShp, 0
+        ActivePage.Layers(cmbxLayers.text).Remove vsoShp, 0
         Fill_lstvSapes
     End If
 End Sub
 
 Private Sub cbLockUnlockLayer_Click()
-    If cmbxLayers.Text <> "" Then
-        If ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).Result(0) = 1 Then
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "0"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "255"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
+    If cmbxLayers.text <> "" Then
+        If ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).Result(0) = 1 Then
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerColor).FormulaU = "255"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerSnap).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "0"
             cbLockUnlockLayer.Caption = "Заблокировать слой"
         Else
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).FormulaU = "1"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerColor).FormulaU = "19"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerSnap).FormulaU = "0"
-            ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerGlue).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).FormulaU = "1"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerColor).FormulaU = "19"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerSnap).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "0"
             cbLockUnlockLayer.Caption = "Разблокировать слой"
         End If
     End If
 End Sub
 
 Private Sub cmbxLayers_Change()
-    If ActivePage.Layers(cmbxLayers.Text).CellsC(visLayerLock).Result(0) = 1 Then cbLockUnlockLayer.Caption = "Разблокировать слой" Else cbLockUnlockLayer.Caption = "Заблокировать слой"
+    If ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).Result(0) = 1 Then cbLockUnlockLayer.Caption = "Разблокировать слой" Else cbLockUnlockLayer.Caption = "Заблокировать слой"
     Fill_lstvSapes
 End Sub
 
@@ -79,7 +79,7 @@ End Sub
 Sub Fill_lstvSapes()
     Dim itmx As ListItem
     Dim i As Integer
-    FillCollection ActivePage.Layers(cmbxLayers.Text)
+    FillCollection ActivePage.Layers(cmbxLayers.text)
     lstvSapes.ListItems.Clear
     For i = 1 To colShapes.Count
         Set itmx = lstvSapes.ListItems.Add(, colShapes.Item(i).NameID, colShapes.Item(i).NameID)

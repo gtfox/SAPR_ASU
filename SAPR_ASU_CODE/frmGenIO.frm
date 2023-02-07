@@ -24,7 +24,7 @@ End Sub
 
 Private Sub gen()
     Dim NIO As Integer
-    NIO = TextBox1.Text
+    NIO = TextBox1.text
     Call GenIOPLC(shpIO, NIO)
 End Sub
 

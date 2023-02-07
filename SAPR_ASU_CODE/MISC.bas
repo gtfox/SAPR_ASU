@@ -351,13 +351,29 @@ Sub TuneTable_6() 'очистка таблицы
         Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
         For j = 1 To 10
             Set shpCel = shpRow.Shapes(i & "." & j)
-            shpCel.Text = " "
+            shpCel.text = " "
         Next
     Next
 End Sub
 
 '-----------------------------------------------------------------------------------------------
 
+'Преобразует тип данных артикула в избранном к типу текст
+Sub ConvertArticulIzbrannoe()
+    Dim lLastRow As Long
+    Dim UserRange As Excel.Range
+    Set oExcelApp = CreateObject("Excel.Application")
+    sSAPath = Visio.ActiveDocument.path
+    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:A" & lLastRow)
+    ExcelConvertToString UserRange
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNabory).Cells(wbExcelIzbrannoe.Sheets(ExcelNabory).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNabory).Range("A2:A" & lLastRow)
+    ExcelConvertToString UserRange
+    wbExcelIzbrannoe.Close savechanges:=True
+    oExcelApp.Quit
+End Sub
 
 Public Sub dl()
 Dim sel As Selection

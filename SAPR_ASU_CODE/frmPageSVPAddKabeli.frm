@@ -8,7 +8,7 @@ Private Sub UserForm_Initialize()
 End Sub
 
 Private Sub btnAddElements_Click()
-    AddPagesSVP cmbxNazvanieShkafa.Text
+    AddPagesSVP cmbxNazvanieShkafa.text
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

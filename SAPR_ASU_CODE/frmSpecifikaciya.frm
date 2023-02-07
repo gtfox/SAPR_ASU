@@ -67,12 +67,12 @@ Private Sub UserForm_Initialize()
     
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
         NazvanieShkafa = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
-        cmbxNazvanieShkafa.Text = NazvanieShkafa
-        cmbxNazvanieShkafaKJ.Text = NazvanieShkafa
+        cmbxNazvanieShkafa.text = NazvanieShkafa
+        cmbxNazvanieShkafaKJ.text = NazvanieShkafa
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
-        cmbxNazvanieFSA.Text = NazvanieFSA
+        cmbxNazvanieFSA.text = NazvanieFSA
     End If
 
     With mpRazdel
@@ -172,7 +172,7 @@ Public Sub FindElementShemyToExcel()
         Next
         wb.Save
     ElseIf obVybCx Then
-        NazvanieShkafa = cmbxNazvanieShkafa.Text
+        NazvanieShkafa = cmbxNazvanieShkafa.text
         For Each vsoPage In colCxem(NazvanieShkafa).colListov
             GoSub ShpOnPage
         Next
@@ -381,11 +381,11 @@ OutList:
     If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "САПР-АСУ: Перечень элементов"
     For NRow = 1 To str
         Set shpRow = shpPerechenElementov.Shapes("row" & NRow)
-        shpRow.Shapes(NRow & ".1").Text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)
-        shpRow.Shapes(NRow & ".2").Text = colStrokaSpecif(NRow).NazvanieDB
-        shpRow.Shapes(NRow & ".3").Text = colStrokaSpecif(NRow).KolVo
-        shpRow.Shapes(NRow & ".4").Text = colStrokaSpecif(NRow).ArtikulDB
-        If shpRow.Shapes(NRow & ".3").Text = " " Then
+        shpRow.Shapes(NRow & ".1").text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)
+        shpRow.Shapes(NRow & ".2").text = colStrokaSpecif(NRow).NazvanieDB
+        shpRow.Shapes(NRow & ".3").text = colStrokaSpecif(NRow).KolVo
+        shpRow.Shapes(NRow & ".4").text = colStrokaSpecif(NRow).ArtikulDB
+        If shpRow.Shapes(NRow & ".3").text = " " Then
             shpRow.Shapes(NRow & ".2").CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
             shpRow.Shapes(NRow & ".2").CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание
         End If
@@ -479,7 +479,7 @@ Public Sub FindKabeliShemyToExcel()
 '            End If
         Next
     ElseIf obVybCxKJ Then
-        NazvanieShkafa = cmbxNazvanieShkafaKJ.Text
+        NazvanieShkafa = cmbxNazvanieShkafaKJ.text
         Set colStrokaKJ = New Collection
         For Each vsoPage In colCxem(NazvanieShkafa).colListov
             GoSub FillcolStrokaKJ
@@ -643,8 +643,8 @@ Sub Fill_cmbxNazvanieShkafa()
         cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
         cmbxNazvanieShkafaKJ.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShkafa.Text = ""
-    cmbxNazvanieShkafaKJ.Text = ""
+    cmbxNazvanieShkafa.text = ""
+    cmbxNazvanieShkafaKJ.text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -665,7 +665,7 @@ Sub Fill_cmbxNazvanieFSA()
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieFSA.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieFSA.Text = ""
+    cmbxNazvanieFSA.text = ""
 End Sub
 
 Private Sub btnCloseCx_Click()

@@ -23,16 +23,16 @@ Sub FillBP4(shpBP4 As Visio.Shape)
     
     If shpBP4.Cells("User.v").Result(0) > 0 Then
         For i = 1 To 30
-            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").Text = " "
-            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").Text = " "
-            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".3").Text = " "
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").text = " "
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").text = " "
+            shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".3").text = " "
         Next
     End If
 
     For Each vsoPage In ActiveDocument.Pages
         On Error GoTo err
         Set shpRamka = vsoPage.Shapes("Рамка")
-        If shpRamka.Shapes("FORMA3").Shapes("NaimenovLista").Characters.Text <> "" And _
+        If shpRamka.Shapes("FORMA3").Shapes("NaimenovLista").Characters.text <> "" And _
            shpRamka.Cells("user.n").Result(0) = 3 And _
            Right(shpRamka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").ResultStr(""), 3) <> ".CO" _
         Then
@@ -42,7 +42,7 @@ err:
     Next
 
     For i = 1 To colRamki.Count
-        NazvanieRazdela = colRamki(i).Shapes("FORMA3").Shapes("NaimenovLista").Characters.Text
+        NazvanieRazdela = colRamki(i).Shapes("FORMA3").Shapes("NaimenovLista").Characters.text
         NachaloRazdela = colRamki(i).Cells("User.NomerLista").Result(0)
         If colRamki.Count >= (i + 1) Then
             KonecRazdela = colRamki(i + 1).Cells("User.NomerLista").Result(0) - 1
@@ -51,8 +51,8 @@ err:
             KonecRazdela = colRamki(i).Cells("User.ChisloListov").Result(0)
         End If
         
-        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").Text = NachaloRazdela & IIf(KonecRazdela = 0 Or KonecRazdela = NachaloRazdela, "", "-" & KonecRazdela)
-        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").Text = NazvanieRazdela
+        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").text = NachaloRazdela & IIf(KonecRazdela = 0 Or KonecRazdela = NachaloRazdela, "", "-" & KonecRazdela)
+        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").text = NazvanieRazdela
     Next
     Application.EventsEnabled = -1
     ThisDocument.InitEvent

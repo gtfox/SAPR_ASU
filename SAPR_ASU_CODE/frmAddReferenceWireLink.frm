@@ -233,7 +233,7 @@ End Sub
 Private Sub lstvPages_ItemClick(ByVal Item As MSComctlLib.ListItem)
 
     chkAllPages.Value = False
-    lblCurPage.Caption = Item.Text
+    lblCurPage.Caption = Item.text
     lblCurPage.Visible = True
     lblCurPageALL.Visible = False
     
@@ -283,7 +283,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
         End If
     End With
 
-    lblCurParent.Caption = Item.Text + " " + vsoShape.Cells("User.Location").ResultStr(0)
+    lblCurParent.Caption = Item.text + " " + vsoShape.Cells("User.Location").ResultStr(0)
 
     Set shpParent = vsoShape 'передаем родителя для создания связи
     

@@ -209,7 +209,7 @@ Private Sub xls_query(strRange As String)
             arr(qx, qy) = Total.Cells(qx, qy) ' заполнение массива arr
         Next qy
     Next qx
-    sp.Close SaveChanges:=False
+    sp.Close savechanges:=False
     oExcel.Application.Quit
     
 
@@ -244,7 +244,7 @@ Private Sub fill_table_SP()
         Set shpRow = shpSpecifikacia.Shapes.Item("row" & NRow)
         For ncell = 1 To 9 'ColoumnCountXls
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
-            shpCell.Text = arr(NStrokiXls, ncell)
+            shpCell.text = arr(NStrokiXls, ncell)
             If ncell = 2 Or ncell = 9 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
             If ncell = 2 And arr(NStrokiXls, 1) = "" Then
                 shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
@@ -262,7 +262,7 @@ Private Sub fill_table_SP()
             While HTable > HMax
                 For xNCell = 1 To 9 'ColoumnCountXls
                     Set shpCell = shpRow.Shapes.Item(NRow & "." & xNCell)
-                    shpCell.Text = " "
+                    shpCell.text = " "
 '                    shpCell.CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "0 mm"
                 Next xNCell
                 NStrokiXls = NStrokiXls - 1
@@ -315,7 +315,7 @@ SubAddPage:
         Set shpRow = PerechenElementov.Shapes.Item("row" & NRow)
         For ncell = 1 To 4 'ColoumnCountXls
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
-            shpCell.Text = arr(NStrokiXls, ncell)
+            shpCell.text = arr(NStrokiXls, ncell)
             If ncell = 2 Or ncell = 4 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
             If ncell = 2 And arr(NStrokiXls, 1) = "" Then
                 shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
@@ -564,7 +564,7 @@ Public Sub get_data(Tablica As Visio.Shape, kolcell As Integer)
         If rw.CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight) = 0 Then GoTo out:
         For c = 1 To kolcell
             cn = i & "." & c
-             tabl(str, c) = rw.Shapes.Item(cn).Text
+             tabl(str, c) = rw.Shapes.Item(cn).text
         Next
         str = str + 1
     Next
@@ -831,7 +831,7 @@ Public Sub fill_table_KJ()
         Set shpRow = shpKJ.Shapes.Item("row" & NRow)
         For ncell = 1 To 7 'ColoumnCountXls
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
-            shpCell.Text = arr(NStrokiXls, ncell)
+            shpCell.text = arr(NStrokiXls, ncell)
 '            If ncell = 2 Or ncell = 9 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
 '            If ncell = 2 And arr(NStrokiXls, 1) = "" Then
 '                shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
@@ -849,7 +849,7 @@ Public Sub fill_table_KJ()
             While HTable > HMax
                 For xNCell = 1 To 7 'ColoumnCountXls
                     Set shpCell = shpRow.Shapes.Item(NRow & "." & xNCell)
-                    shpCell.Text = " "
+                    shpCell.text = " "
 '                    shpCell.CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "0 mm"
                 Next xNCell
                 NStrokiXls = NStrokiXls - 1

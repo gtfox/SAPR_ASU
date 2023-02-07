@@ -68,7 +68,7 @@ End Sub
 
 Sub Add_cmbx(cmbxCmbx As ComboBox)
     Dim strFamilii As String
-    strFamilii = ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal.Prompt").ResultStr(0) + ";" + cmbxCmbx.Text
+    strFamilii = ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal.Prompt").ResultStr(0) + ";" + cmbxCmbx.text
     ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal.Prompt").Formula = """" + strFamilii + """"
     Reload_cmbx
 End Sub
@@ -76,7 +76,7 @@ End Sub
 Sub Del_cmbx(cmbxCmbx As ComboBox)
     Dim strFamiliyaToDel As String
     Dim strFamilii As String
-    strFamiliyaToDel = cmbxCmbx.Text
+    strFamiliyaToDel = cmbxCmbx.text
     strFamilii = Replace(ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal.Prompt").ResultStr(0), strFamiliyaToDel, "")
     strFamilii = Replace(strFamilii, ";;", ";")
     strFamilii = IIf(Left(strFamilii, 1) = ";", Right(strFamilii, Len(strFamilii) - 1), IIf(Right(strFamilii, 1) = ";", Left(strFamilii, Len(strFamilii) - 1), strFamilii))

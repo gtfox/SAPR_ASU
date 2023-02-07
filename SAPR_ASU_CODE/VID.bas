@@ -430,7 +430,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
                 shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
                 shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                shpElementOnVID.Shapes("Desc").Text = shpElementOnCxema.Shapes("Desc").Text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
+                shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
                 shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
                 dX = shpElementOnVID.Cells("Width").Result(0)
                 dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
@@ -487,7 +487,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("PLC"), DropX, DropY)
                 shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
                 shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                shpElementOnVID.Shapes("Desc").Text = shpElementOnCxema.Shapes("Desc").Text
+                shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text
                 shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
                 dX = shpElementOnVID.Cells("Width").Result(0)
                 dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)

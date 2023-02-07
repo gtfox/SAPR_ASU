@@ -56,6 +56,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
 
+    InitExcelDB
     FillExcel_mProizvoditel
     FillExcel_cmbxProizvoditel cmbxProizvoditel, True
 

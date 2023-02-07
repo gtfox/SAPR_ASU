@@ -16,7 +16,7 @@ Sub run(wb As Excel.Workbook)
 End Sub
 
 Private Sub btnSelSheet_Click()
-    Excel_imya_lista = cmbxNazvanieLista.Text
+    Excel_imya_lista = cmbxNazvanieLista.text
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

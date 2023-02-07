@@ -356,7 +356,7 @@ Public Function ConvertToJPG(ImgPNG As String) As String
         .Export Left(ImgPNG, Len(ImgPNG) - 3) & "jpg", "jpg"
     End With
     
-    wb.Close SaveChanges:=False
+    wb.Close savechanges:=False
     oExcel.Application.Quit
     
     Kill ImgPNG

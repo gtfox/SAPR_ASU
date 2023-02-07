@@ -100,7 +100,7 @@ Private Sub btnAddRazdel_Click()
         
     If cmbxNaimenovLista.ListIndex = -1 Then
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
-        shpRamka.Cells("Prop.Type.Format").FormulaU = """" & shpRamka.Cells("Prop.Type.Format").ResultStr(0) & ";" & cmbxNaimenovLista.Text & """"
+        shpRamka.Cells("Prop.Type.Format").FormulaU = """" & shpRamka.Cells("Prop.Type.Format").ResultStr(0) & ";" & cmbxNaimenovLista.text & """"
         shpRamka.Cells("Prop.Type").FormulaU = "INDEX(" & cmbxNaimenovLista.ListCount & ",Prop.Type.Format)"
         shpRamka.Cells("Prop.CNUM").Formula = 0
         shpRamka.Cells("Prop.TNUM").Formula = 0
@@ -190,7 +190,7 @@ Sub Fill_cmbxNazvanieShkafa()
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieShkafa.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieShkafa.Text = ""
+    cmbxNazvanieShkafa.text = ""
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -211,7 +211,7 @@ Sub Fill_cmbxNazvanieFSA()
     For i = 0 To UBound(mstrPropPageSheet)
         cmbxNazvanieFSA.AddItem mstrPropPageSheet(i)
     Next
-    cmbxNazvanieFSA.Text = ""
+    cmbxNazvanieFSA.text = ""
 End Sub
 
 Sub Fill_cmbxNaimenovLista()
@@ -229,10 +229,10 @@ Sub Fill_cmbxNaimenovLista()
 End Sub
 
 Private Sub btnNazvanieShkafaAdd_Click()
-    If cmbxNazvanieShkafa.Text = "" Then
+    If cmbxNazvanieShkafa.text = "" Then
         MsgBox "Название шкафа пустое" & vbNewLine & "Введите название шкафа... ", vbExclamation, "САПР-АСУ: Название шкафа пустое"
     Else
-        If MsgBox("Добавить шкаф: " & cmbxNazvanieShkafa.Text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название шкафа") = vbYes Then
+        If MsgBox("Добавить шкаф: " & cmbxNazvanieShkafa.text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название шкафа") = vbYes Then
             NazvanieShkafaAdd
         End If
     End If
@@ -242,12 +242,12 @@ Sub NazvanieShkafaAdd()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
-    If cmbxNazvanieShkafa.Text <> "" Then
+    If cmbxNazvanieShkafa.text <> "" Then
         PageName = cListNameCxema
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like PageName & "*" Then
                 PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
-                vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieShkafa.Text & """"
+                vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieShkafa.text & """"
             End If
         Next
         Fill_cmbxNazvanieShkafa
@@ -255,10 +255,10 @@ Sub NazvanieShkafaAdd()
 End Sub
 
 Private Sub btnNazvanieFSAAdd_Click()
-    If cmbxNazvanieFSA.Text = "" Then
+    If cmbxNazvanieFSA.text = "" Then
         MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "САПР-АСУ: Название ФСА пустое"
     Else
-        If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
+        If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
             NazvanieFSAAdd
         End If
     End If
@@ -268,12 +268,12 @@ Sub NazvanieFSAAdd()
     Dim vsoPage As Visio.Page
     Dim PageName As String
     Dim PropPageSheet As String
-    If cmbxNazvanieFSA.Text <> "" Then
+    If cmbxNazvanieFSA.text <> "" Then
         PageName = cListNameFSA
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like PageName & "*" Then
                 PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
-                vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieFSA.Text & """"
+                vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieFSA.text & """"
             End If
         Next
         Fill_cmbxNazvanieFSA
@@ -283,10 +283,10 @@ End Sub
 Private Sub btnNaimenovanieAdd2Master_Click()
     Dim Ramka As Visio.Shape
     Dim PropShapeSheet As String
-    If MsgBox("Добавить наименование листа в шаблон рамки: " & cmbxNaimenovLista.Text & vbNewLine & vbNewLine & "Это повлияет на все будущие рамки всех разделов!" & vbNewLine & "Запись попадет в рамку в наборе элементов SAPR_ASU_OFORM.vss" & vbNewLine & "Чтобы это произошло набор элементов должен быть переведен в режим редактирования (изменения)", vbYesNo + vbExclamation, "САПР-АСУ: Добавить Наименование листа в Шаблон рамки") = vbYes Then
+    If MsgBox("Добавить наименование листа в шаблон рамки: " & cmbxNaimenovLista.text & vbNewLine & vbNewLine & "Это повлияет на все будущие рамки всех разделов!" & vbNewLine & "Запись попадет в рамку в наборе элементов SAPR_ASU_OFORM.vss" & vbNewLine & "Чтобы это произошло набор элементов должен быть переведен в режим редактирования (изменения)", vbYesNo + vbExclamation, "САПР-АСУ: Добавить Наименование листа в Шаблон рамки") = vbYes Then
         Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка").Shapes("Рамка")
         PropShapeSheet = Ramka.Cells("Prop.Type.Format").ResultStr(0)
-        Ramka.Cells("Prop.Type.Format").Formula = """" & PropShapeSheet & ";" & cmbxNaimenovLista.Text & """"
+        Ramka.Cells("Prop.Type.Format").Formula = """" & PropShapeSheet & ";" & cmbxNaimenovLista.text & """"
         Fill_cmbxNaimenovLista
     End If
 End Sub
@@ -296,7 +296,7 @@ Private Sub btnNazvanieShkafaDel_Click()
     Dim PageName As String
     Dim PropPageSheet As String
     Dim i As Integer
-    If MsgBox("Удалить шкаф: " & cmbxNazvanieShkafa.Text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название шкафа") = vbYes Then
+    If MsgBox("Удалить шкаф: " & cmbxNazvanieShkafa.text & vbNewLine & vbNewLine & "Это повлияет на все шкафы в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название шкафа") = vbYes Then
         If cmbxNazvanieShkafa.ListIndex <> -1 Then
             cmbxNazvanieShkafa.RemoveItem cmbxNazvanieShkafa.ListIndex
             For i = 0 To cmbxNazvanieShkafa.ListCount - 1
@@ -318,7 +318,7 @@ Private Sub btnNazvanieFSADel_Click()
     Dim PageName As String
     Dim PropPageSheet As String
     Dim i As Integer
-    If MsgBox("Удалить ФСА: " & cmbxNazvanieFSA.Text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название ФСА") = vbYes Then
+    If MsgBox("Удалить ФСА: " & cmbxNazvanieFSA.text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название ФСА") = vbYes Then
         If cmbxNazvanieFSA.ListIndex <> -1 Then
             cmbxNazvanieFSA.RemoveItem cmbxNazvanieFSA.ListIndex
             For i = 0 To cmbxNazvanieFSA.ListCount - 1
