@@ -467,7 +467,6 @@ Private Sub lstvTableNabor_DblClick()
 End Sub
 
 
-
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTableIzbrannoe
     Dim TableIzbrannoeWidth As Single
     Dim TableNaborWidth As Single

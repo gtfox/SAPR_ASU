@@ -17,11 +17,15 @@ Public wshNabory As Excel.Worksheet
 Public wshNastrojkiPrajsov As Excel.Worksheet
 Public wshTemp As Excel.Worksheet
 Public mProizvoditel() As classProizvoditelBD
+Public CurentPrice As classProizvoditelBD
 Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя файла избронного
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
 Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
 Public Const ExcelNabory As String = "Наборы" 'Имя листа Наборы
 Public Const ExcelTemp As String = "temp" 'Имя листа для временных данных
+Public MaxColumn As Double
+Public MinColumn As Double
+Public RangePrice As Excel.Range
 
 
 #If VBA7 Then
@@ -52,7 +56,7 @@ Sub InitExcelDB()
     Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
 End Sub
 
-Sub WizardAddPriceExcel(sNameVendor As String)
+Sub WizardAddPriceExcel(sProizvoditel As String)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : WizardAddPriceExcel - Мастер добавления прайс-листа Excel в виде базы данных САПР-АСУ
 '------------------------------------------------------------------------------------------------------------
@@ -76,9 +80,9 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
     Set UserRange = wshNastrojkiPrajsov.Range("A2:A" & lLastRow)
 
-    Set FindRange = UserRange.Find(sNameVendor, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
+    Set FindRange = UserRange.Find(sProizvoditel, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
     If Not FindRange Is Nothing Then
-        MsgBox "Такой производитель уже есть в списке: " & sNameVendor, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
+        MsgBox "Такой производитель уже есть в списке: " & sProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
         wbExcelIzbrannoe.Close savechanges:=False
         oExcelApp.Quit
         Exit Sub
@@ -116,7 +120,7 @@ Sub WizardAddPriceExcel(sNameVendor As String)
     wshPrice.Activate
     
     'Строка Производителя на листе НастройкиПрайсов в файле SAPR_ASU_Izbrannoe.xls
-    mVendorData(0) = sNameVendor 'Производитель
+    mVendorData(0) = sProizvoditel 'Производитель
     mVendorData(1) = sRelativeFileName 'ИмяФайлаБазы
     mVendorData(2) = Excel_imya_lista 'ИмяЛиста
     
@@ -187,19 +191,19 @@ Public Sub FillExcel_mProizvoditel()
     
     ReDim mProizvoditel(lLastRow - 2)
     For i = 1 To lLastRow - 1
-            Set mProizvoditel(i - 1) = New classProizvoditelBD
-            mProizvoditel(i - 1).NameVendor = UserRange.Cells(i, 1)
-            mProizvoditel(i - 1).FileName = UserRange.Cells(i, 2)
-            mProizvoditel(i - 1).NameListExcel = UserRange.Cells(i, 3)
-            mProizvoditel(i - 1).FirstRow = UserRange.Cells(i, 4)
-            mProizvoditel(i - 1).LastRow = UserRange.Cells(i, 5)
-            mProizvoditel(i - 1).Artikul = UserRange.Cells(i, 6)
-            mProizvoditel(i - 1).Nazvanie = UserRange.Cells(i, 7)
-            mProizvoditel(i - 1).Cena = UserRange.Cells(i, 8)
-            mProizvoditel(i - 1).Ed = UserRange.Cells(i, 9)
-            mProizvoditel(i - 1).Kategoriya = UserRange.Cells(i, 10)
-            mProizvoditel(i - 1).Gruppa = UserRange.Cells(i, 11)
-            mProizvoditel(i - 1).Podgruppa = UserRange.Cells(i, 12)
+        Set mProizvoditel(i - 1) = New classProizvoditelBD
+        mProizvoditel(i - 1).Proizvoditel = UserRange.Cells(i, 1)
+        mProizvoditel(i - 1).FileName = UserRange.Cells(i, 2)
+        mProizvoditel(i - 1).NameListExcel = UserRange.Cells(i, 3)
+        mProizvoditel(i - 1).FirstRow = UserRange.Cells(i, 4)
+        mProizvoditel(i - 1).LastRow = UserRange.Cells(i, 5)
+        mProizvoditel(i - 1).Artikul = UserRange.Cells(i, 6)
+        mProizvoditel(i - 1).Nazvanie = UserRange.Cells(i, 7)
+        mProizvoditel(i - 1).Cena = UserRange.Cells(i, 8)
+        mProizvoditel(i - 1).Ed = UserRange.Cells(i, 9)
+        mProizvoditel(i - 1).Kategoriya = UserRange.Cells(i, 10)
+        mProizvoditel(i - 1).Gruppa = UserRange.Cells(i, 11)
+        mProizvoditel(i - 1).Podgruppa = UserRange.Cells(i, 12)
     Next
 End Sub
 
@@ -214,7 +218,7 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
         If mProizvoditel(i).FileName = "" And Price Then
             'для формы Прайс пропускаем производителя, если у него нету файла
         Else
-            cmbx.AddItem mProizvoditel(i).NameVendor
+            cmbx.AddItem mProizvoditel(i).Proizvoditel
         End If
     Next
     

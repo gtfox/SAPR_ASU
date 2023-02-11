@@ -1,4 +1,4 @@
-Public NameVendor As String 'Производитель
+Public Proizvoditel As String 'Производитель
 Public FileName  As String 'ИмяФайлаБазы
 Public NameListExcel As String 'ИмяЛиста
 Public FirstRow As Long 'Строка начало

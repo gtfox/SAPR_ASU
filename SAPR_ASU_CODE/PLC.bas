@@ -29,7 +29,7 @@ Sub GenModPLC(vsoModParent As Visio.Shape)
     Dim ModHeight As Long 'Высота модуля заполненного входами
     
     Dim NIO As Integer 'Количество Вх./Вых. в модуле 1-32
-    Dim NColumn As Integer 'Число столбцов клемм: 1 или 2
+    Dim nColumn As Integer 'Число столбцов клемм: 1 или 2
     
     NIO = vsoModParent.Cells("Prop.NIO").Result(0)
     
@@ -37,24 +37,24 @@ Sub GenModPLC(vsoModParent As Visio.Shape)
         If ShapeSATypeIs(vsoShape, typePLCIOLParent) Then
             Set shpPLCIOL = vsoShape
             shpPLCIOL.Cells("Prop.Autonum").Formula = True
-            NColumn = NColumn + 1
+            nColumn = nColumn + 1
         ElseIf ShapeSATypeIs(vsoShape, typePLCIORParent) Then
             Set shpPLCIOR = vsoShape
             shpPLCIOR.Cells("Prop.Autonum").Formula = True
-            NColumn = NColumn + 1
+            nColumn = nColumn + 1
         End If
     Next
 
-    If NColumn = 2 Then
-        Set shpPLCIO = ColumnCopy(shpPLCIOL, NIO, NColumn, False, shpPLCIO)
-        Set shpPLCIO = ColumnCopy(shpPLCIOR, NIO, NColumn, True, shpPLCIO)
-        ModHeight = IIf(shpPLCIOL.Cells("Width").Result(visMillimeters) * (NIO / NColumn) > shpPLCIOR.Cells("Width").Result(visMillimeters) * (NIO / NColumn), shpPLCIOL.Cells("Width").Result(visMillimeters) * (NIO / NColumn), shpPLCIOR.Cells("Width").Result(visMillimeters) * (NIO / NColumn))
-    ElseIf NColumn = 1 Then
+    If nColumn = 2 Then
+        Set shpPLCIO = ColumnCopy(shpPLCIOL, NIO, nColumn, False, shpPLCIO)
+        Set shpPLCIO = ColumnCopy(shpPLCIOR, NIO, nColumn, True, shpPLCIO)
+        ModHeight = IIf(shpPLCIOL.Cells("Width").Result(visMillimeters) * (NIO / nColumn) > shpPLCIOR.Cells("Width").Result(visMillimeters) * (NIO / nColumn), shpPLCIOL.Cells("Width").Result(visMillimeters) * (NIO / nColumn), shpPLCIOR.Cells("Width").Result(visMillimeters) * (NIO / nColumn))
+    ElseIf nColumn = 1 Then
         If shpPLCIOR Is Nothing Then
-            Set shpPLCIO = ColumnCopy(shpPLCIOL, NIO, NColumn, False, shpPLCIO)
+            Set shpPLCIO = ColumnCopy(shpPLCIOL, NIO, nColumn, False, shpPLCIO)
             ModHeight = shpPLCIOL.Cells("Width").Result(visMillimeters) * NIO
         Else
-            Set shpPLCIO = ColumnCopy(shpPLCIOR, NIO, NColumn, False, shpPLCIO)
+            Set shpPLCIO = ColumnCopy(shpPLCIOR, NIO, nColumn, False, shpPLCIO)
             ModHeight = shpPLCIOR.Cells("Width").Result(visMillimeters) * NIO
         End If
     End If
@@ -63,7 +63,7 @@ Sub GenModPLC(vsoModParent As Visio.Shape)
 
 End Sub
 
-Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer, r As Boolean, shpPLCIOLast As Visio.Shape) As Visio.Shape
+Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, nColumn As Integer, r As Boolean, shpPLCIOLast As Visio.Shape) As Visio.Shape
 '------------------------------------------------------------------------------------------------------------
 ' Function      : ColumnCopy - Генерит столбец входов(функция для GenModPLC,GenIOPLC)
 '------------------------------------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, NColumn As Integer,
         shpPLCIO.Cells("User.TNumber1").FormulaU = "sheet." & shpPLCIOLast.id & "!User.LaqstNum+1"
     End If
 
-    For i = 2 To NIO / NColumn
+    For i = 2 To NIO / nColumn
         Set shpPLCIOLast = shpPLCIO
         Set shpPLCIO = shpPLCIO.Duplicate
         NPin = shpPLCIO.Cells("Prop.NPin").Result(0)
@@ -115,12 +115,12 @@ Sub GenIOPLC(shpIO As Visio.Shape, NIO As Integer)
                 'Приклеивает вход ко входу снизу в количестве заданном в форме frmGenIO
 '------------------------------------------------------------------------------------------------------------
     Dim shpPLCIO As Visio.Shape
-    Dim NColumn As Integer 'Число столбцов клемм: 1 или 2
+    Dim nColumn As Integer 'Число столбцов клемм: 1 или 2
 
-    NColumn = 1
+    nColumn = 1
     shpIO.Cells("Prop.Autonum").Formula = True
 
-    Set shpPLCIO = ColumnCopy(shpIO, NIO, NColumn, False, shpPLCIO)
+    Set shpPLCIO = ColumnCopy(shpIO, NIO, nColumn, False, shpPLCIO)
 
 End Sub
 
