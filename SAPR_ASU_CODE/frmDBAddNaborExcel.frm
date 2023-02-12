@@ -1,4 +1,5 @@
 Sub UserForm_Initialize()
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
     FillExcel_cmbxProizvoditel cmbxProizvoditel
 End Sub
 
@@ -14,6 +15,7 @@ Sub run(Artikul As String, Nazvanie As String, ProizvoditelID As String)
     frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
     frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
     frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
+    InitCustomCCPMenu frmDBAddNaborExcel 'Контекстное меню для TextBox
     frmDBAddNaborExcel.Show
 End Sub
 
@@ -45,6 +47,7 @@ Private Sub CommandButton5_Click()
                 MsgBox "Производитель не найден в базе" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
             Else
                 UserRange.EntireRow.Delete
+                wbExcelIzbrannoe.Save
                 FillExcel_mProizvoditel
             End If
         End If
@@ -53,6 +56,10 @@ Private Sub CommandButton5_Click()
 End Sub
 
 Private Sub btnClose_Click()
-Unload Me
-frmDBAddToNaborExcel.Show
+    Unload Me
+    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
+    frmDBAddToNaborExcel.Show
+End Sub
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub

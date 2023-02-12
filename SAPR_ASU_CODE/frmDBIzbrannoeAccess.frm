@@ -31,6 +31,8 @@ Dim mstrVybPozVNabore(7) As String
 
 Private Sub UserForm_Initialize() ' инициализация формы
 
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+
     lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
@@ -634,4 +636,6 @@ Sub btnClose_Click() ' выгрузка формы
     ThisDocument.InitEvent
     Unload Me
 End Sub
-
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
+End Sub

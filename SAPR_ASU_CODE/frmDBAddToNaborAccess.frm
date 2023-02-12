@@ -17,6 +17,8 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 Sub UserForm_Initialize()
     Dim SQLQuery As String
     
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+    
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
@@ -152,4 +154,7 @@ End Sub
 Private Sub btnClose_Click()
 Unload Me
 frmDBPriceAccess.Show
+End Sub
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub

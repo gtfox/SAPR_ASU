@@ -34,9 +34,16 @@ Private Sub btnClose_Click() ' выгрузка формы
     Unload Me
 End Sub
 
+Private Sub UserForm_Initialize()
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+End Sub
+
 'Private Sub TextBox1_AfterUpdate() 'крашится visio
 '    gen
 '    DoEvents
 '    Unload Me
 'End Sub
 
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
+End Sub

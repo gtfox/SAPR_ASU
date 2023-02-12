@@ -86,8 +86,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     Set FindRange = UserRange.Find(sProizvoditel, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
     If Not FindRange Is Nothing Then
         MsgBox "Такой производитель уже есть в списке: " & sProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
-        wbExcelIzbrannoe.Close SaveChanges:=False
-        oExcelApp.Quit
+        ExcelAppExit
         Exit Sub
     End If
     
@@ -117,7 +116,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     Load frmVyborListaExcel
     frmVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
 
-    If frmClose Then oExcelApp.Application.Quit: Exit Sub
+    If frmClose Then ExcelAppExit: Exit Sub
     Set wshPrice = wbExcelPrice.Worksheets(Excel_imya_lista)
     oExcelApp.Visible = True
     wshPrice.Activate
@@ -155,9 +154,11 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     '            mRange = Split(UserRange.Address, "$") 'буква столбца mRange(1) 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
                 mVendorData(i + 3) = UserRange.Column 'СтолбецАртикул/СтолбецНазвание/СтолбецЦена/СтолбецЕдиницы/СтолбецКатегория/СтолбецГруппа/СтолбецПодгруппа
                 'Преобразование Артикула в тип Текст
+                oExcelApp.ScreenUpdating = False
                 If i = 2 Then
                     ExcelConvertToString wshPrice.Range(wshPrice.Cells(mVendorData(3), mVendorData(5)), wshPrice.Cells(mVendorData(4), mVendorData(5)))
                 End If
+                oExcelApp.ScreenUpdating = True
             End If
         Else 'выбран диапазон
             oExcelApp.WindowState = xlMinimized
@@ -258,4 +259,27 @@ Public Sub ExcelConvertToString(ConvertRange As Excel.Range)
         rCell.NumberFormat = "@"
         rCell.Value = text
     Next
+End Sub
+
+Public Sub FindArticulInBrowser(Artikul As String, NomerMagazina As Integer)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : FindArticulInBrowser - Открывает браузер с поиском артикула товара в нужном магазине
+'------------------------------------------------------------------------------------------------------------
+    If Artikul = "" Then Exit Sub
+    Select Case NomerMagazina
+        Case 0 'ЭТМ
+            CreateObject("WScript.Shell").run "https://www.etm.ru/catalog/?searchValue=" & Artikul
+        Case 1 'АВС Электро
+            CreateObject("WScript.Shell").run "https://avselectro.ru/search/index.php?q=" & Artikul
+        Case Else
+    End Select
+End Sub
+
+Public Sub ExcelAppExit()
+    If Not wbExcelIzbrannoe Is Nothing Then wbExcelIzbrannoe.Close SaveChanges:=False
+    Set wbExcelIzbrannoe = Nothing
+    If Not wbExcelPrice Is Nothing Then wbExcelPrice.Close SaveChanges:=False
+    Set wbExcelPrice = Nothing
+    oExcelApp.Application.Quit
+    Set oExcelApp = Nothing
 End Sub

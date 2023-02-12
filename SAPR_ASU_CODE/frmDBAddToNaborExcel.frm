@@ -9,6 +9,9 @@ Private Const LVSCW_AUTOSIZE As Long = -1
 Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 Sub UserForm_Initialize()
+
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
@@ -43,6 +46,7 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
     Next
     
     FillCmbxNabor cmbxNabor
+    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
     frmDBAddToNaborExcel.Show
 End Sub
 
@@ -103,6 +107,7 @@ Private Sub btnAdd_Click()
     frmDBIzbrannoeExcel.lstvTableNabor.ListItems.Clear
     frmDBIzbrannoeExcel.Height = frmDBIzbrannoeExcel.frameTab.Top + frmDBIzbrannoeExcel.frameTab.Height + 36
     frmDBIzbrannoeExcel.lblSostav.Caption = ""
+    InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
     frmDBIzbrannoeExcel.Show
 End Sub
 
@@ -144,6 +149,7 @@ Private Sub CommandButton5_Click()
                 MsgBox "Производитель не найден в базе" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
             Else
                 UserRange.EntireRow.Delete
+                wbExcelIzbrannoe.Save
                 FillExcel_mProizvoditel
             End If
         End If
@@ -158,6 +164,10 @@ Private Sub CommandButton8_Click()
 End Sub
 
 Private Sub btnClose_Click()
-Unload Me
-frmDBPriceExcel.Show
+    Unload Me
+    InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+    frmDBPriceExcel.Show
+End Sub
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub

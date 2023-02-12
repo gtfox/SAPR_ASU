@@ -418,6 +418,8 @@ Private Sub UserForm_Initialize() ' инициализация формы
     Set colShapes = New Collection
     Set colPages = New Collection
     
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+    
     Me.Height = 213 ' высота формы
     
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи

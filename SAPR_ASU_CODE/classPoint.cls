@@ -1,4 +1,4 @@
 Public PointNumber As Integer
-Public x As Double
-Public y As Double
+Public X As Double
+Public Y As Double
 

@@ -16,6 +16,7 @@ End Sub
 
 
 Private Sub UserForm_Initialize()
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
     Reload_cmbx
     With ActiveDocument.DocumentSheet
         tbSA_FR_Shifr = .Cells("User.SA_FR_Shifr").ResultStr(0)
@@ -213,4 +214,7 @@ Private Sub CommandButton37_Click()
 End Sub
 Private Sub cbISO_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_ISO").Formula = cbISO
+End Sub
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub

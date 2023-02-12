@@ -6,6 +6,8 @@
 Sub UserForm_Initialize()
     Dim SQLQuery As String
 
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+
     SQLQuery = "SELECT Производители.ИмяФайлаБазы, Производители.Производитель, Производители.КодПроизводителя " & _
                 "FROM Производители;"
                 
@@ -125,4 +127,7 @@ End Sub
 Private Sub btnClose_Click()
 Unload Me
 frmDBAddToNaborAccess.Show
+End Sub
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub

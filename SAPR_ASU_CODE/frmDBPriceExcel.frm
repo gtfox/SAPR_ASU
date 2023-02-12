@@ -69,6 +69,8 @@ End Sub
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBPriceExcel
     ArtikulDB = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
     If ArtikulDB <> "" Then
@@ -76,13 +78,14 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
         For i = 0 To cmbxProizvoditel.ListCount - 1
             If cmbxProizvoditel.List(i, 0) = glShape.Cells("Prop.ProizvoditelDB").ResultStr(0) Then cmbxProizvoditel.ListIndex = i
         Next
-        Fill_cmbxProizvoditel
+        SetVarProizvoditelPrice
         If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
             txtArtikul.Value = ArtikulDB
             tbtnFiltr.Value = False
             Find_ItemsByText
             txtArtikul.Value = ""
             bBlock = False
+            InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
             frmDBPriceExcel.Show
         Else
             bBlock = False
@@ -92,19 +95,22 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
             frmDBIzbrannoeExcel.Find_ItemsByText
             frmDBIzbrannoeExcel.txtArtikul.Value = ""
             frmDBIzbrannoeExcel.bBlock = False
+            InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
             frmDBIzbrannoeExcel.Show
         End If
     Else
+        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
         frmDBPriceExcel.Show
     End If
 End Sub
 
-Sub Fill_cmbxProizvoditel()
+Sub SetVarProizvoditelPrice()
     Dim UserRange As Excel.Range
     For i = 0 To UBound(mProizvoditel)
         If cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) = mProizvoditel(i).Proizvoditel Then
             If mProizvoditel(i).FileName <> "" Then 'пустое имя файла - пропускаем
-                If Not wbExcelPrice Is Nothing Then wbExcelPrice.Close SaveChanges:=False
+'                wbExcelPrice.Close SaveChanges:=True
+'                Set wbExcelPrice = Nothing
                 If mProizvoditel(i).FileName Like ":" Then
                     Set wbExcelPrice = oExcelApp.Workbooks.Open(mProizvoditel(i).FileName) 'абсолютный адрес
                 Else
@@ -124,7 +130,7 @@ End Sub
 
 Private Sub cmbxProizvoditel_Change()
     If Not bBlock Then
-        Fill_cmbxProizvoditel
+        SetVarProizvoditelPrice
         ClearFilter wshPrice
         UpdateAllCmbxFilters
         lstvTablePrice.ListItems.Clear
@@ -262,8 +268,14 @@ Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView
     'исключаем из диапазона автофильтра первую строку (Offset),
     'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
     'и в цикле перебираем эти сроки
-    On Error GoTo err1
-    Set RangeResult = RangeToFill.Offset(1, 0).ReSize(RangeToFill.Rows.Count - 1, RangeToFill.Columns.Count).SpecialCells(xlCellTypeVisible).EntireRow
+'    On Error GoTo err1
+    Set RangeResult = RangeToFill.Offset(1, 0).ReSize(RangeToFill.Rows.Count - 1, RangeToFill.Columns.Count).SpecialCells(xlCellTypeVisible) '.EntireRow
+    wbExcelPrice.Worksheets("Лист2").Range("A1").AutoFilter Field:=1
+     Set RangeToFill = wbExcelPrice.Worksheets("Лист2").AutoFilter.Range
+    
+    SQL_Query_To_Smart_Table Replace(RangeToFill.Address, "$", "")
+    
+    
     lstvTable.ListItems.Clear
     lstvTablePrice.Visible = False
     For Each RangeRow In RangeResult.Rows
@@ -438,11 +450,11 @@ Private Sub cmbxMagazin_Change()
 End Sub
 
 Private Sub btnETM_Click()
-    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+    FindArticulInBrowser mstrShpData(0), cmbxMagazin.ListIndex
 End Sub
 
 Private Sub btnAVS_Click()
-    MagazinInfo mstrShpData(3), cmbxMagazin.ListIndex
+    FindArticulInBrowser mstrShpData(0), cmbxMagazin.ListIndex
 End Sub
 
 Private Sub btnFind_Click()
@@ -472,6 +484,7 @@ Private Sub tbtnFav_Click()
         bBlock = False
         Me.Hide
         frmDBIzbrannoeExcel.Find_ItemsByText
+        InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
         frmDBIzbrannoeExcel.Show
     End If
 End Sub
@@ -502,9 +515,12 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBIzbrannoeExcel
-    oExcelApp.Application.Quit
+    ExcelAppExit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
 End Sub
 
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
+End Sub

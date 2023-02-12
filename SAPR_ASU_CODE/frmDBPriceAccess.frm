@@ -32,6 +32,9 @@ Dim NameQueryDef As String
 'End Sub
 
 Private Sub UserForm_Initialize() ' инициализация формы
+
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
     
     lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
@@ -543,3 +546,6 @@ Sub btnClose_Click() ' выгрузка формы
     Unload Me
 End Sub
 
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
+End Sub

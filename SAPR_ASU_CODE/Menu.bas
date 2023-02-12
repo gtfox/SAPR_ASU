@@ -49,7 +49,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ObjInfo"
         .TooltipText = "Формат->Специальный+NameU"
-        .FaceID = 487
+        .FaceId = 487
     End With
     
         '---Кнопка Экспорта на GitHub
@@ -60,7 +60,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ExportGitHub"
         .TooltipText = "Экспорт кода для GitHub"
-        .FaceID = 521 '3
+        .FaceId = 521 '3
     End With
     
         '---Кнопка Сохранить копию проекта
@@ -70,7 +70,7 @@ Private Sub AddButtons()
         .Tag = "SaveFileAs"
         .OnAction = "SaveProjectFileAs"
         .TooltipText = "Сохранить копию проекта"
-        .FaceID = 3
+        .FaceId = 3
 '        .BeginGroup = True
     End With
     
@@ -81,7 +81,7 @@ Private Sub AddButtons()
         .Tag = "LockTitle"
         .OnAction = "LockTitleBlock"
         .TooltipText = "Блокировка рамки"
-        .FaceID = 894 '519
+        .FaceId = 894 '519
         .BeginGroup = True
     End With
 
@@ -93,7 +93,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "AddSAPageNext"
         .TooltipText = "Добавить лист"
-        .FaceID = 535 '18
+        .FaceId = 535 '18
         .BeginGroup = True
     End With
     
@@ -105,7 +105,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "DelSAPage"
         .TooltipText = "Удалить лист"
-        .FaceID = 536 '305
+        .FaceId = 536 '305
     End With
     
         '---Кнопка Создать раздел
@@ -116,7 +116,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ShowSAPageRazdel"
         .TooltipText = "Создать раздел"
-        .FaceID = 533 '786
+        .FaceId = 533 '786
     End With
 
         '---Кнопка Копировать лист
@@ -127,7 +127,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "CopySAPage"
         .TooltipText = "Копировать лист"
-        .FaceID = 531 '585
+        .FaceId = 531 '585
     End With
 
         '---Кнопка Перенумерация
@@ -138,7 +138,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ShowReNumber"
         .TooltipText = "Перенумерация элементов"
-        .FaceID = 2476 '786
+        .FaceId = 2476 '786
         .BeginGroup = True
     End With
     
@@ -150,7 +150,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ShowSpecifikaciya"
         .TooltipText = "Перечень оборудования из Visio в Excel"
-        .FaceID = 263 '5897
+        .FaceId = 263 '5897
         .BeginGroup = True
     End With
     
@@ -162,7 +162,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "ShowSettingsProject"
         .TooltipText = "Настройки Проекта"
-        .FaceID = 642
+        .FaceId = 642
         .BeginGroup = True
     End With
     
@@ -174,7 +174,7 @@ Private Sub AddButtons()
         .style = msoButtonAutomatic
         .OnAction = "LockSelected"
         .TooltipText = "Блокировка выделенных объектов"
-        .FaceID = 519
+        .FaceId = 519
         .BeginGroup = True
     End With
     

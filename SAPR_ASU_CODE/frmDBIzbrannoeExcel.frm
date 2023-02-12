@@ -27,6 +27,8 @@ Dim mstrVybPozVNabore(7) As String
 
 Private Sub UserForm_Initialize() ' инициализация формы
 
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+    
     lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
@@ -509,11 +511,19 @@ Private Sub cmbxMagazin_Change()
 End Sub
 
 Private Sub btnETM_Click()
-    MagazinInfo mstrShpData(0), cmbxMagazin.ListIndex
+    If mstrShpData(0) Like "Набор_*" Then
+        FindArticulInBrowser mstrVybPozVNabore(0), cmbxMagazin.ListIndex
+    Else
+        FindArticulInBrowser mstrShpData(0), cmbxMagazin.ListIndex
+    End If
 End Sub
 
 Private Sub btnAVS_Click()
-    MagazinInfo mstrShpData(0), cmbxMagazin.ListIndex
+    If mstrShpData(0) Like "Набор_*" Then
+        FindArticulInBrowser mstrVybPozVNabore(0), cmbxMagazin.ListIndex
+    Else
+        FindArticulInBrowser mstrShpData(0), cmbxMagazin.ListIndex
+    End If
 End Sub
 
 Private Sub btnFind_Click()
@@ -560,6 +570,7 @@ Private Sub tbtnBD_Click()
         tbtnBD = False
         bBlock = False
         Me.Hide
+        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
         frmDBPriceExcel.Show
     End If
 End Sub
@@ -589,10 +600,12 @@ Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.Col
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
-    oExcelApp.Application.Quit
+    ExcelAppExit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload frmDBPriceExcel
     Unload Me
 End Sub
-
+Private Sub UserForm_Terminate()
+    DelCustomCCPMenu 'Удаления контекстного меню для TextBox
+End Sub
