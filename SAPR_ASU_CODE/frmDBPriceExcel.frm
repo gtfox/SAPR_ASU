@@ -21,6 +21,7 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 Public glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 Dim mstrShpData(5) As String
+Public SA_nRows As Double
 Public bBlock As Boolean
 
 
@@ -36,7 +37,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
     lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
     lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(3)
-    lstvTablePrice.ColumnHeaders.Add , , "    " ' SubItems(4)
+'    lstvTablePrice.ColumnHeaders.Add , , "    " ' SubItems(4)
     
     cmbxMagazin.Clear
     cmbxMagazin.AddItem "ЭТМ"
@@ -55,6 +56,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
+    SA_nRows = Visio.ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Result(0)
 
     InitExcelDB
     FillExcel_mProizvoditel
@@ -102,6 +104,7 @@ Sub Fill_cmbxProizvoditel()
     For i = 0 To UBound(mProizvoditel)
         If cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) = mProizvoditel(i).Proizvoditel Then
             If mProizvoditel(i).FileName <> "" Then 'пустое имя файла - пропускаем
+                If Not wbExcelPrice Is Nothing Then wbExcelPrice.Close SaveChanges:=False
                 If mProizvoditel(i).FileName Like ":" Then
                     Set wbExcelPrice = oExcelApp.Workbooks.Open(mProizvoditel(i).FileName) 'абсолютный адрес
                 Else
@@ -112,6 +115,7 @@ Sub Fill_cmbxProizvoditel()
                 MaxColumn = WorksheetFunction.Max(CurentPrice.Artikul, CurentPrice.Nazvanie, CurentPrice.Cena, CurentPrice.Ed, CurentPrice.Kategoriya, CurentPrice.Gruppa, CurentPrice.Podgruppa)
                 MinColumn = WorksheetFunction.Min(CurentPrice.Artikul, CurentPrice.Nazvanie, CurentPrice.Cena, CurentPrice.Ed, CurentPrice.Kategoriya, CurentPrice.Gruppa, CurentPrice.Podgruppa)
                 Set RangePrice = wshPrice.Range(wshPrice.Cells(CurentPrice.FirstRow, MaxColumn), wshPrice.Cells(CurentPrice.LastRow, MinColumn))
+                ClearFilter wshPrice
                 Exit For
             End If
         End If
@@ -122,7 +126,9 @@ Private Sub cmbxProizvoditel_Change()
     If Not bBlock Then
         Fill_cmbxProizvoditel
         ClearFilter wshPrice
-        Find_ItemsByText
+        UpdateAllCmbxFilters
+        lstvTablePrice.ListItems.Clear
+'        Find_ItemsByText
     End If
 End Sub
 
@@ -180,9 +186,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
             RangePrice.AutoFilter Field:=CurentPrice.Kategoriya 'Категория
             RangePrice.AutoFilter Field:=CurentPrice.Gruppa 'Группа
             RangePrice.AutoFilter Field:=CurentPrice.Podgruppa 'Подгруппа
-            UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-            UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-            UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
+            UpdateAllCmbxFilters
     End Select
     '-------------------/ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
    
@@ -238,12 +242,13 @@ Sub Find_ItemsByText()
     Else
         RangeToFilter.AutoFilter Field:=CurentPrice.Nazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
     End If
+    
     lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshPrice, lstvTablePrice)
-    UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-    UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-    UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
+    
+    UpdateAllCmbxFilters
+    
     ReSize
-
+    
 End Sub
 
 'Заполняет lstvTable данными из БД
@@ -252,8 +257,6 @@ Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView
     Dim RangeResult As Excel.Range
     Dim RangeRow As Excel.Range
     Dim i As Double
-    Dim iold As Double
-    Dim j As Double
     Dim itmx As ListItem
     Set RangeToFill = wSheets.AutoFilter.Range
     'исключаем из диапазона автофильтра первую строку (Offset),
@@ -268,9 +271,9 @@ Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView
         itmx.SubItems(1) = RangeRow.Cells(1, CurentPrice.Nazvanie) 'Название
         itmx.SubItems(2) = RangeRow.Cells(1, CurentPrice.Cena) 'Цена
         itmx.SubItems(3) = RangeRow.Cells(1, CurentPrice.Ed) 'Единица
-        itmx.SubItems(4) = "    "
+'        itmx.SubItems(4) = "              "
         i = i + 1
-        If i = 300 Then Exit For
+        If i = SA_nRows Then Exit For
     Next
     lstvTablePrice.Visible = True
     Fill_lstvTable = RangeResult.Rows.Count & ".  Показано: " & i
@@ -285,8 +288,14 @@ Sub ClearFilter(wshWorkSheet As Excel.Worksheet)
     wshWorkSheet.Cells(CurentPrice.FirstRow, CurentPrice.Artikul).AutoFilter Field:=CurentPrice.Artikul
 End Sub
 
+'Заполнение всех фильтров
+Sub UpdateAllCmbxFilters()
+    UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
+    UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
+    UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
+End Sub
 
-
+'Добавить в избранное
 Private Sub btnFavAdd_Click()
     If mstrShpData(1) <> "" Then
         If Not bBlock Then
@@ -295,16 +304,17 @@ Private Sub btnFavAdd_Click()
             bBlock = False
             Me.Hide
         End If
-        Load frmDBAddToIzbrannoe
-        frmDBAddToIzbrannoe.run mstrShpData(0), Replace(mstrShpData(1), """", """"""), mstrShpData(2), mstrShpData(4), mstrShpData(3)
+        Load frmDBAddToIzbrannoeExcel
+        frmDBAddToIzbrannoeExcel.run mstrShpData(0), Replace(mstrShpData(1), """", """"""), mstrShpData(2), mstrShpData(4), mstrShpData(3)
     End If
 End Sub
 
+'Добавить в набор
 Private Sub btnNabAdd_Click()
     If mstrShpData(1) <> "" Then
         Me.Hide
-        Load frmDBAddToNabor
-        frmDBAddToNabor.run mstrShpData(0), Replace(mstrShpData(1), """", """"""), mstrShpData(2), mstrShpData(4), mstrShpData(3)
+        Load frmDBAddToNaborExcel
+        frmDBAddToNaborExcel.run mstrShpData(0), Replace(mstrShpData(1), """", """"""), mstrShpData(2), mstrShpData(4), mstrShpData(3)
     End If
 End Sub
 

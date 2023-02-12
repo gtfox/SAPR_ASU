@@ -209,7 +209,7 @@ Private Sub xls_query(strRange As String)
             arr(qx, qy) = Total.Cells(qx, qy) ' заполнение массива arr
         Next qy
     Next qx
-    sp.Close savechanges:=False
+    sp.Close SaveChanges:=False
     oExcel.Application.Quit
     
 

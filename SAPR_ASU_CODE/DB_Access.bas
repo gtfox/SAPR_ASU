@@ -185,7 +185,7 @@ Public Function CalcCenaNabora(lstvTable As ListView) As Double
     Dim i As Integer
     Dim Sum As Double
     For i = 1 To lstvTable.ListItems.Count
-        Sum = Sum + CDbl(lstvTable.ListItems(i).SubItems(2)) * CInt(lstvTable.ListItems(i).SubItems(5))
+        Sum = Sum + CDbl(IIf(lstvTable.ListItems(i).SubItems(2) = "", 0, lstvTable.ListItems(i).SubItems(2))) * CInt(IIf(lstvTable.ListItems(i).SubItems(5) = "", 0, lstvTable.ListItems(i).SubItems(5)))
     Next
     CalcCenaNabora = Sum
 End Function
@@ -356,7 +356,7 @@ Public Function ConvertToJPG(ImgPNG As String) As String
         .Export Left(ImgPNG, Len(ImgPNG) - 3) & "jpg", "jpg"
     End With
     
-    wb.Close savechanges:=False
+    wb.Close SaveChanges:=False
     oExcel.Application.Quit
     
     Kill ImgPNG

@@ -15,6 +15,7 @@ Public wbExcelIzbrannoe As Excel.Workbook
 Public wshIzbrannoe As Excel.Worksheet
 Public wshNabory As Excel.Worksheet
 Public wshNastrojkiPrajsov As Excel.Worksheet
+Public wshExcelEdinicyIzmereniya As Excel.Worksheet
 Public wshTemp As Excel.Worksheet
 Public mProizvoditel() As classProizvoditelBD
 Public CurentPrice As classProizvoditelBD
@@ -22,6 +23,7 @@ Public Const DBNameIzbrannoeExcel As String = "SAPR_ASU_Izbrannoe.xls" 'Имя �
 Public Const ExcelNastrojkiPrajsov As String = "НастройкиПрайсов" 'Имя листа настроек производителей
 Public Const ExcelIzbrannoe As String = "Избранное" 'Имя листа Избранное
 Public Const ExcelNabory As String = "Наборы" 'Имя листа Наборы
+Public Const ExcelEdinicyIzmereniya As String = "ЕдиницыИзмерения" 'Имя листа Единицы Измерения
 Public Const ExcelTemp As String = "temp" 'Имя листа для временных данных
 Public MaxColumn As Double
 Public MinColumn As Double
@@ -53,6 +55,7 @@ Sub InitExcelDB()
     Set wshIzbrannoe = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe)
     Set wshNabory = wbExcelIzbrannoe.Worksheets(ExcelNabory)
     Set wshNastrojkiPrajsov = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov)
+    Set wshExcelEdinicyIzmereniya = wbExcelIzbrannoe.Worksheets(ExcelEdinicyIzmereniya)
     Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
 End Sub
 
@@ -83,7 +86,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     Set FindRange = UserRange.Find(sProizvoditel, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
     If Not FindRange Is Nothing Then
         MsgBox "Такой производитель уже есть в списке: " & sProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
-        wbExcelIzbrannoe.Close savechanges:=False
+        wbExcelIzbrannoe.Close SaveChanges:=False
         oExcelApp.Quit
         Exit Sub
     End If
@@ -164,7 +167,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
         End If
     Next
 
-    wbExcelPrice.Close savechanges:=True
+    wbExcelPrice.Close SaveChanges:=True
     
     'Запись данных в лист НастройкиПрайсов
     
@@ -213,7 +216,8 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
 ' Macros        : FillExcel_cmbxProizvoditel - Заполняет ComboBox Производители из массива mProizvoditel
 '------------------------------------------------------------------------------------------------------------
     Dim i As Integer
-
+    
+    cmbx.Clear
     For i = 0 To UBound(mProizvoditel)
         If mProizvoditel(i).FileName = "" And Price Then
             'для формы Прайс пропускаем производителя, если у него нету файла
@@ -225,6 +229,22 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
 '    wbExcelIzbrannoe.Close SaveChanges:=False
 '    oExcelApp.Quit
     oExcelApp.Visible = True
+End Sub
+
+Public Sub FillCmbxEdinicy(cmbxComboBox As ComboBox)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : FillCmbxEdinicy - Заполняет ComboBox Единицы измерения из листа ЕдиницыИзмерения SAPR_ASU_Izbrannoe.xls
+'------------------------------------------------------------------------------------------------------------
+    Dim UserRange As Excel.Range
+    Dim lLastRow As Long
+    Dim i As Integer
+    
+    lLastRow = wshExcelEdinicyIzmereniya.Cells(wshExcelEdinicyIzmereniya.Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wshExcelEdinicyIzmereniya.Range("A2:A" & lLastRow)
+    cmbxComboBox.Clear
+    For i = 1 To lLastRow - 1
+        cmbxComboBox.AddItem UserRange.Cells(i, 1)
+    Next
 End Sub
 
 Public Sub ExcelConvertToString(ConvertRange As Excel.Range)

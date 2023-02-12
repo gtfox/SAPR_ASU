@@ -141,14 +141,13 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 
 End Sub
 
-Private Sub UpdateCmbxFiltersIzbrannoe(cmbxComboBox As ComboBox, Ncmbx As Integer)
+ Sub UpdateCmbxFiltersIzbrannoe(cmbxComboBox As ComboBox, Ncmbx As Integer)
     'Ncmbx = 1 - Категория
     'Ncmbx = 2 - Группа
     'Ncmbx = 3 - Подгруппа
     Dim UserRange As Excel.Range
     Dim lLastRow As Long
     Dim i As Integer
-    Dim mFilter() As String
     
     bBlock = True
     wshTemp.Cells.ClearContents
@@ -249,9 +248,9 @@ Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView
             End If
         End If
         i = i + 1
-        If i = 300 Then Exit For
+        If i = SA_nRows Then Exit For
     Next
-    Fill_lstvTable = RangeResult.Rows.Count & ".  Показано: " & i
+    Fill_lstvTable = IIf(TableType = 2, i, RangeResult.Rows.Count & ".  Показано: " & i)
     Exit Function
 err1:
     lstvTable.ListItems.Clear
@@ -275,10 +274,18 @@ End Sub
 
 Private Sub btnNabDel_Click()
     Dim UserRange As Excel.Range
+    Dim NewCena As Double
     If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(0) & vbCrLf & "Название: " & mstrVybPozVNabore(1) & vbCrLf & "Цена: " & mstrVybPozVNabore(2) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Набора") = vbYes Then
         Set UserRange = wshNabory.Columns(1).Find(What:=mstrVybPozVNabore(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         UserRange.EntireRow.Delete
         lblSostav.Caption = "Состав набора: " & Fill_lstvTable(wshNabory, lstvTableNabor, 2)
+        NewCena = CalcCenaNabora(lstvTableNabor)
+        Set UserRange = wshIzbrannoe.Columns(1).Find(What:=mstrShpData(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
+        If (UserRange Is Nothing) Or (UserRange.Value = Empty) Then
+            MsgBox "Набор не найден в избранном" & vbCrLf & vbCrLf & "Набор: " & cmbxNabor, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
+        Else
+            wshIzbrannoe.Cells(UserRange.Row, 3) = NewCena
+        End If
         lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1

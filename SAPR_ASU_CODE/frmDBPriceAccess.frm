@@ -334,9 +334,9 @@ Private Sub btnFavAdd_Click()
             bBlock = False
             Me.Hide
         End If
-        Load frmDBAddToIzbrannoe
+        Load frmDBAddToIzbrannoeAccess
         Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToIzbrannoe.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
+        frmDBAddToIzbrannoeAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
     End If
 End Sub
 
@@ -344,9 +344,9 @@ Private Sub btnNabAdd_Click()
     Dim Mstr() As String
     If mstrShpData(2) <> "" Then
         Me.Hide
-        Load frmDBAddToNabor
+        Load frmDBAddToNaborAccess
         Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToNabor.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
+        frmDBAddToNaborAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
     End If
 End Sub
 

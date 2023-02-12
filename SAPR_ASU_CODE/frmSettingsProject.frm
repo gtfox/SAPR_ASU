@@ -9,9 +9,11 @@ Private Sub btnAddPriceExcel_Click()
         MsgBox "Название производителя пустое" & vbCrLf & vbCrLf & "Необходимо ввести название производителя", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
     Else
         WizardAddPriceExcel tbProizvoditel
+        Unload Me
     End If
-    Unload Me
 End Sub
+
+
 
 Private Sub UserForm_Initialize()
     Reload_cmbx
@@ -35,6 +37,7 @@ Private Sub UserForm_Initialize()
         tbSA_PrefShkaf = .Cells("User.SA_PrefShkaf").ResultStr(0)
         tbSA_PrefMesto = .Cells("User.SA_PrefMesto").ResultStr(0)
         cbISO = .Cells("User.SA_ISO").Result(0)
+        tbSA_nRows = .Cells("User.SA_nRows").Result(0)
     End With
     MultiPage1.Value = 0
 End Sub
@@ -204,6 +207,9 @@ Private Sub CommandButton35_Click()
 End Sub
 Private Sub CommandButton36_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_PrefMesto").Formula = """" + tbSA_PrefMesto + """"
+End Sub
+Private Sub CommandButton37_Click()
+    ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Formula = tbSA_nRows
 End Sub
 Private Sub cbISO_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_ISO").Formula = cbISO

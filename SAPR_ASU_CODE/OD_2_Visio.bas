@@ -234,7 +234,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                     If aPage Is Nothing Then
                         MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
-                        wad.Close savechanges:=False
+                        wad.Close SaveChanges:=False
                         wa.Quit
                         Set wa = Nothing
                         Exit Sub
@@ -288,7 +288,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                         If aPage Is Nothing Then
                             MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
-                            wad.Close savechanges:=False
+                            wad.Close SaveChanges:=False
                             wa.Quit
                             Set wa = Nothing
                             Exit Sub
@@ -376,7 +376,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 
             Next CurPage
             
-            wad.Close savechanges:=True
+            wad.Close SaveChanges:=True
             wa.Quit
             Set wa = Nothing
             
