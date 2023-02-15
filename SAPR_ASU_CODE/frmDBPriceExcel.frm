@@ -21,9 +21,6 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 Public glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 Dim mstrShpData(5) As String
-Public SA_nRows As Double
-Public bBlock As Boolean
-
 
 'Private Sub txtNazvanie2_Change()
 '    Find_ItemsByText
@@ -57,6 +54,9 @@ Private Sub UserForm_Initialize() ' инициализация формы
     tbtnFiltr.Caption = ChrW(9650)
     tbtnBD = True
     SA_nRows = Visio.ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Result(0)
+    
+'    Set oPriceRecordSet = CreateObject("ADODB.Recordset")
+'    Set oPriceConn = CreateObject("ADODB.Connection")
 
     InitExcelDB
     FillExcel_mProizvoditel
@@ -88,13 +88,12 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
             InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
             frmDBPriceExcel.Show
         Else
-            bBlock = False
-            frmDBIzbrannoeExcel.bBlock = True
+            bBlock = True
             frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
             frmDBIzbrannoeExcel.tbtnFiltr.Value = False
             frmDBIzbrannoeExcel.Find_ItemsByText
             frmDBIzbrannoeExcel.txtArtikul.Value = ""
-            frmDBIzbrannoeExcel.bBlock = False
+            bBlock = False
             InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
             frmDBIzbrannoeExcel.Show
         End If
@@ -106,33 +105,47 @@ End Sub
 
 Sub SetVarProizvoditelPrice()
     Dim UserRange As Excel.Range
+    Dim wshTemp As Excel.Worksheet
+    Dim FilePathName As String
+    Dim mStr() As String
+    
     For i = 0 To UBound(mProizvoditel)
         If cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) = mProizvoditel(i).Proizvoditel Then
             If mProizvoditel(i).FileName <> "" Then 'пустое имя файла - пропускаем
-'                wbExcelPrice.Close SaveChanges:=True
-'                Set wbExcelPrice = Nothing
-                If mProizvoditel(i).FileName Like ":" Then
-                    Set wbExcelPrice = oExcelApp.Workbooks.Open(mProizvoditel(i).FileName) 'абсолютный адрес
+                If mProizvoditel(i).FileName Like "*:*" Then
+                    FilePathName = mProizvoditel(i).FileName 'абсолютный адрес
                 Else
-                    Set wbExcelPrice = oExcelApp.Workbooks.Open(sSAPath & mProizvoditel(i).FileName) 'относительный
+                    FilePathName = sSAPath & mProizvoditel(i).FileName 'относительный
                 End If
+                mStr = Split(FilePathName, "\")
+                On Error Resume Next
+'                wbExcelPrice.Close savechanges:=False
+'                Set wbExcelPrice = Nothing
+                Set wbExcelPrice = oExcelApp.Workbooks(mStr(UBound(mStr)))
+                If err > 0 Then
+                    Set wbExcelPrice = oExcelApp.Workbooks.Open(FilePathName)
+                End If
+                err.Clear
+                On Error GoTo 0
+                Set wshTemp = GetSheetExcel(wbExcelPrice, ExcelTemp)
+                wshTemp.Cells.ClearContents
                 Set wshPrice = wbExcelPrice.Worksheets(mProizvoditel(i).NameListExcel)
-                Set CurentPrice = mProizvoditel(i)
-                MaxColumn = WorksheetFunction.Max(CurentPrice.Artikul, CurentPrice.Nazvanie, CurentPrice.Cena, CurentPrice.Ed, CurentPrice.Kategoriya, CurentPrice.Gruppa, CurentPrice.Podgruppa)
-                MinColumn = WorksheetFunction.Min(CurentPrice.Artikul, CurentPrice.Nazvanie, CurentPrice.Cena, CurentPrice.Ed, CurentPrice.Kategoriya, CurentPrice.Gruppa, CurentPrice.Podgruppa)
-                Set RangePrice = wshPrice.Range(wshPrice.Cells(CurentPrice.FirstRow, MaxColumn), wshPrice.Cells(CurentPrice.LastRow, MinColumn))
+                Set PriceSettings = mProizvoditel(i)
+                Set RangePrice = wshPrice.AutoFilter.Range
                 ClearFilter wshPrice
+                ADODB_Excel_Connect oPriceConn, mProizvoditel(i).FileName
                 Exit For
             End If
         End If
     Next
+    Set wshTemp = Nothing
 End Sub
 
 Private Sub cmbxProizvoditel_Change()
     If Not bBlock Then
         SetVarProizvoditelPrice
         ClearFilter wshPrice
-        UpdateAllCmbxFilters
+        UpdateAllCmbxFilters wshPrice, Me, PriceSettings
         lstvTablePrice.ListItems.Clear
 '        Find_ItemsByText
     End If
@@ -140,171 +153,45 @@ End Sub
 
 Private Sub Filter_CmbxChange(Ncmbx As Integer)
     Dim fltrMode As Integer
-    
-    '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-    Select Case Ncmbx
-        Case 1
-            RangePrice.AutoFilter Field:=CurentPrice.Kategoriya, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-            RangePrice.AutoFilter Field:=CurentPrice.Gruppa 'Группа
-            RangePrice.AutoFilter Field:=CurentPrice.Podgruppa 'Подгруппа
-            UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-            UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
-        Case 2
-            RangePrice.AutoFilter Field:=CurentPrice.Gruppa, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-            If cmbxKategoriya.ListIndex = -1 Then
-                RangePrice.AutoFilter Field:=CurentPrice.Kategoriya
-                UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-            Else
-                RangePrice.AutoFilter Field:=CurentPrice.Kategoriya, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-            End If
-            UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
-        Case 3
-            '-------------------ФИЛЬТРАЦИЯ Подгруппы при разных (Категория || Группа)------------------------------------------------
-            '*    К   Гр
-            '0    0   0
-            '1    0   1
-            '2    1   0
-            '3    1   1
-            
-            fltrMode = IIf(cmbxKategoriya.ListIndex = -1, 0, 2) + IIf(cmbxGruppa.ListIndex = -1, 0, 1)
-            RangePrice.AutoFilter Field:=CurentPrice.Podgruppa, Criteria1:=cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 0) 'Подгруппа
-            Select Case fltrMode
-                Case 0
-                    RangePrice.AutoFilter Field:=CurentPrice.Kategoriya 'Категория
-                    RangePrice.AutoFilter Field:=CurentPrice.Gruppa 'Группа
-                    UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-                    UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-                Case 1
-                    RangePrice.AutoFilter Field:=CurentPrice.Kategoriya 'Категория
-                    RangePrice.AutoFilter Field:=CurentPrice.Gruppa, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-                    UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-                Case 2
-                    RangePrice.AutoFilter Field:=CurentPrice.Kategoriya, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-                    RangePrice.AutoFilter Field:=CurentPrice.Gruppa 'Группа
-                    UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-                Case 3
-                    RangePrice.AutoFilter Field:=CurentPrice.Kategoriya, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-                    RangePrice.AutoFilter Field:=CurentPrice.Gruppa, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-                Case Else
-            End Select
-            '-------------------/ФИЛЬТРАЦИЯ Подгруппы при разных (Категория || Группа)------------------------------------------------
-        Case Else
-            RangePrice.AutoFilter Field:=CurentPrice.Kategoriya 'Категория
-            RangePrice.AutoFilter Field:=CurentPrice.Gruppa 'Группа
-            RangePrice.AutoFilter Field:=CurentPrice.Podgruppa 'Подгруппа
-            UpdateAllCmbxFilters
-    End Select
-    '-------------------/ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-   
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshPrice, lstvTablePrice)
+
+    'ФИЛЬТРАЦИЯ
+    RuleFilterCmbx wshPrice, RangePrice, Me, PriceSettings, Ncmbx
+    lstvTablePrice.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oPriceRecordSet, oPriceConn, wshPrice, lstvTablePrice, PriceSettings)
+    lstvTablePrice.Visible = True
     ReSize
 
 End Sub
 
-Private Sub UpdateCmbxFiltersPrice(cmbxComboBox As ComboBox, nColumn As Long)
-    'nColumn = CurentPrice.Kategoriya - Категория
-    'nColumn = CurentPrice.Gruppa - Группа
-    'nColumn = CurentPrice.Podgruppa - Подгруппа
-    Dim UserRange As Excel.Range
-    Dim lLastRow As Long
-    Dim i As Integer
-    Dim mFilter() As String
-    
-    bBlock = True
-    wshTemp.Cells.ClearContents
-    lLastRow = wshPrice.Cells(wshPrice.Rows.Count, 1).End(xlUp).Row
-    If lLastRow > 1 Then
-        wshPrice.Range(wshPrice.Cells(CurentPrice.FirstRow, nColumn), wshPrice.Cells(lLastRow, nColumn)).Copy wshTemp.Cells(1, 1)
-        Set UserRange = wshTemp.Range(wshTemp.Cells(1, 1), wshTemp.Cells(lLastRow - 1, 1))
-        UserRange.RemoveDuplicates Columns:=1, Header:=xlNo
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
-        If lLastRow > 0 Then
-            cmbxComboBox.Clear
-            For i = 1 To lLastRow
-                cmbxComboBox.AddItem wshTemp.Cells(i, 1)
-            Next
-        End If
-    Else
-        cmbxComboBox.Clear
-    End If
-    bBlock = False
-End Sub
-
-
 'Полнотекстовый поиск
-Sub Find_ItemsByText()
+Sub Find_ItemsByText(Optional UserPress As Boolean)
     Dim RangeToFilter As Excel.Range
     
     Set RangeToFilter = RangePrice
     
     If txtArtikul.Value = "" Then
-        RangeToFilter.AutoFilter Field:=CurentPrice.Artikul
+        RangeToFilter.AutoFilter Field:=PriceSettings.StolbArtikul
     Else
-        RangeToFilter.AutoFilter Field:=CurentPrice.Artikul, Criteria1:="=*" & txtArtikul.Value & "*"
+        RangeToFilter.AutoFilter Field:=PriceSettings.StolbArtikul, Criteria1:="=*" & txtArtikul.Value & "*"
     End If
     
     If txtNazvanie2.Value = "" Then
-        RangeToFilter.AutoFilter Field:=CurentPrice.Nazvanie
+        RangeToFilter.AutoFilter Field:=PriceSettings.StolbNazvanie
     Else
-        RangeToFilter.AutoFilter Field:=CurentPrice.Nazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
+        RangeToFilter.AutoFilter Field:=PriceSettings.StolbNazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
     End If
     
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshPrice, lstvTablePrice)
+    lstvTablePrice.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oPriceRecordSet, oPriceConn, wshPrice, lstvTablePrice, PriceSettings)
+    lstvTablePrice.Visible = True
     
-    UpdateAllCmbxFilters
-    
+'    bBlock = UserPress
+'    If Not UserPress Then
+        UpdateAllCmbxFilters wshPrice, Me, PriceSettings
+'    End If
+'    bBlock = False
     ReSize
     
-End Sub
-
-'Заполняет lstvTable данными из БД
-Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView) As String
-    Dim RangeToFill As Excel.Range
-    Dim RangeResult As Excel.Range
-    Dim RangeRow As Excel.Range
-    Dim i As Double
-    Dim itmx As ListItem
-    Set RangeToFill = wSheets.AutoFilter.Range
-    'исключаем из диапазона автофильтра первую строку (Offset),
-    'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
-    'и в цикле перебираем эти сроки
-'    On Error GoTo err1
-    Set RangeResult = RangeToFill.Offset(1, 0).ReSize(RangeToFill.Rows.Count - 1, RangeToFill.Columns.Count).SpecialCells(xlCellTypeVisible) '.EntireRow
-    wbExcelPrice.Worksheets("Лист2").Range("A1").AutoFilter Field:=1
-     Set RangeToFill = wbExcelPrice.Worksheets("Лист2").AutoFilter.Range
-    
-    SQL_Query_To_Smart_Table Replace(RangeToFill.Address, "$", "")
-    
-    
-    lstvTable.ListItems.Clear
-    lstvTablePrice.Visible = False
-    For Each RangeRow In RangeResult.Rows
-        Set itmx = lstvTable.ListItems.Add(, , RangeRow.Cells(1, CurentPrice.Artikul))  'Артикул
-        itmx.SubItems(1) = RangeRow.Cells(1, CurentPrice.Nazvanie) 'Название
-        itmx.SubItems(2) = RangeRow.Cells(1, CurentPrice.Cena) 'Цена
-        itmx.SubItems(3) = RangeRow.Cells(1, CurentPrice.Ed) 'Единица
-'        itmx.SubItems(4) = "              "
-        i = i + 1
-        If i = SA_nRows Then Exit For
-    Next
-    lstvTablePrice.Visible = True
-    Fill_lstvTable = RangeResult.Rows.Count & ".  Показано: " & i
-    Exit Function
-err1:
-    lstvTable.ListItems.Clear
-End Function
-
-'Очистка фильтров
-Sub ClearFilter(wshWorkSheet As Excel.Worksheet)
-    wshWorkSheet.Cells(CurentPrice.FirstRow, CurentPrice.Artikul).AutoFilter
-    wshWorkSheet.Cells(CurentPrice.FirstRow, CurentPrice.Artikul).AutoFilter Field:=CurentPrice.Artikul
-End Sub
-
-'Заполнение всех фильтров
-Sub UpdateAllCmbxFilters()
-    UpdateCmbxFiltersPrice cmbxKategoriya, CurentPrice.Kategoriya
-    UpdateCmbxFiltersPrice cmbxGruppa, CurentPrice.Gruppa
-    UpdateCmbxFiltersPrice cmbxPodgruppa, CurentPrice.Podgruppa
 End Sub
 
 'Добавить в избранное
@@ -427,7 +314,15 @@ Private Sub tbtnFiltr_Click()
         tbtnFiltr.Caption = ChrW(9660) 'вниз
         If Not bBlock Then
             ClearFilter wshPrice
-            Find_ItemsByText
+            txtNazvanie2.Value = ""
+            txtArtikul.Value = ""
+            UpdateAllCmbxFilters wshPrice, Me, PriceSettings 'Find_ItemsByText
+            lstvTablePrice.ListItems.Clear
+            bBlock = True
+            cmbxKategoriya.ListIndex = -1
+            cmbxGruppa.ListIndex = -1
+            cmbxPodgruppa.ListIndex = -1
+            bBlock = False
         End If
     End If
     frameTab.Top = frameFilters.Top + frameFilters.Height
@@ -458,7 +353,7 @@ Private Sub btnAVS_Click()
 End Sub
 
 Private Sub btnFind_Click()
-    Find_ItemsByText
+    Find_ItemsByText True
 End Sub
 
 Private Sub cmbxKategoriya_Change()
@@ -515,6 +410,8 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBIzbrannoeExcel
+    If oPriceRecordSet.State = adStateOpen Then oPriceRecordSet.Close
+    oPriceConn.Close
     ExcelAppExit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent

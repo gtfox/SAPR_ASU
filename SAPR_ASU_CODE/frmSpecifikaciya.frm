@@ -123,7 +123,7 @@ Public Sub FindElementShemyToExcel()
     Dim sPath, sFile As String
     Dim NameSheet As String
     Dim str As Integer
-    Dim Mstr() As String
+    Dim mStr() As String
     '-------Вывод на Лист-------
     Dim shpPerechenElementov As Visio.Shape
     Dim shpRow As Visio.Shape
@@ -314,8 +314,8 @@ OutExcelNext:
     apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
     For xx = 1 To str
         If colStrokaSpecif(xx).ArtikulDB Like "Набор_*" Then
-            Mstr = Split(colStrokaSpecif(xx).KodPoziciiDB, "/")
-            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(xx).KolVo, Mstr(0), xx)
+            mStr = Split(colStrokaSpecif(xx).KodPoziciiDB, "/")
+            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(xx).KolVo, mStr(0), xx)
             str = str + NElemNabora - 1
             colStrokaSpecif.Remove xx
         End If
@@ -370,8 +370,8 @@ OutList:
     str = colStrokaSpecif.Count
     For NRow = 1 To str
         If colStrokaSpecif(NRow).ArtikulDB Like "Набор_*" Then
-            Mstr = Split(colStrokaSpecif(NRow).KodPoziciiDB, "/")
-            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(NRow).KolVo, Mstr(0), NRow)
+            mStr = Split(colStrokaSpecif(NRow).KodPoziciiDB, "/")
+            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(NRow).KolVo, mStr(0), NRow)
             If NRow < 5 Then nstr = 5 Else nstr = NRow
             str = str + NElemNabora - 1
             colStrokaSpecif.Remove NRow
@@ -424,7 +424,7 @@ Public Sub FindKabeliShemyToExcel()
     Dim sPath, sFile As String
     Dim NameSheet As String
     Dim str As Integer
-    Dim Mstr() As String
+    Dim mStr() As String
     '-------Вывод на Лист-------
     Dim shpPerechenElementov As Visio.Shape
     Dim shpRow As Visio.Shape

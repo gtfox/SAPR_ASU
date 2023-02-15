@@ -188,8 +188,8 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     DBName = DBNameIzbrannoeAccess
     
     NameQueryDef = "FilterSQLQuery"
-    
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
+
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
 
     Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
 
@@ -283,13 +283,13 @@ Sub Find_ItemsByText()
         NameQueryDef = "FilterSQLQuery"
         SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
         NameQueryDef = ""
         SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, Производители.Производитель, FilterSQLQuery.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN (Производители INNER JOIN FilterSQLQuery ON Производители.КодПроизводителя = FilterSQLQuery.ПроизводительКод) ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTableIzbrannoe, 1)
     End If
 
     ReSize
@@ -354,18 +354,18 @@ End Sub
 
 Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
     'Если в таблице ткнуть на строку с номером больше 30000 то сюда попадет первая строка!!!
-    Dim Mstr() As String
+    Dim mStr() As String
     Dim colNum As Long
     
-    Mstr = Split(Replace(Item.Key, """", ""), "/")
+    mStr = Split(Replace(Item.Key, """", ""), "/")
 
-    mstrShpData(0) = Mstr(1)
+    mstrShpData(0) = mStr(1)
     mstrShpData(1) = Item.Key
     mstrShpData(2) = Item.SubItems(1)
     mstrShpData(3) = Item
     mstrShpData(4) = Item.SubItems(4)
     mstrShpData(5) = Item.SubItems(2)
-    mstrShpData(6) = Mstr(0)
+    mstrShpData(6) = mStr(0)
     mstrShpData(7) = Item.SubItems(3)
     
     If Item.ForeColor = NaboryColor Then
@@ -420,17 +420,17 @@ Private Sub lstvTableIzbrannoe_DblClick()
 End Sub
 
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
-    Dim Mstr() As String
+    Dim mStr() As String
 
-    Mstr = Split(Replace(Item.Key, """", ""), "/")
+    mStr = Split(Replace(Item.Key, """", ""), "/")
     
-    mstrVybPozVNabore(0) = Mstr(1)
+    mstrVybPozVNabore(0) = mStr(1)
     mstrVybPozVNabore(1) = Item.Key
     mstrVybPozVNabore(2) = Item.SubItems(1)
     mstrVybPozVNabore(3) = Item
     mstrVybPozVNabore(4) = Item.SubItems(4)
     mstrVybPozVNabore(5) = Item.SubItems(2)
-    mstrVybPozVNabore(6) = Mstr(0)
+    mstrVybPozVNabore(6) = mStr(0)
     mstrVybPozVNabore(7) = Item.SubItems(3)
     
 End Sub

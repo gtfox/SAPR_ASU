@@ -209,7 +209,7 @@ Private Sub xls_query(strRange As String)
             arr(qx, qy) = Total.Cells(qx, qy) ' заполнение массива arr
         Next qy
     Next qx
-    sp.Close SaveChanges:=False
+    sp.Close savechanges:=False
     oExcel.Application.Quit
     
 
@@ -334,7 +334,7 @@ Sub AddPageSpecifikac(pName As String)
 ' Macros        : AddPageSpecifikac - Добавляет пустую страницу спецификации
 '------------------------------------------------------------------------------------------------------------
     Dim aPage As Visio.Page
-    Dim Mstr As Visio.Master
+    Dim mStr As Visio.Master
     Dim Ramka As Visio.Shape
     If GetSAPageExist(pName) Is Nothing Then
         Set aPage = ActiveDocument.Pages.Add
@@ -346,8 +346,8 @@ Sub AddPageSpecifikac(pName As String)
             .Cells("PrintPageOrientation").Formula = 2
         End With
         SetPageAction aPage
-        Set Mstr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
-        Set Ramka = ActivePage.Drop(Mstr, 0, 0)
+        Set mStr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
+        Set Ramka = ActivePage.Drop(mStr, 0, 0)
         LockTitleBlock
         ActiveDocument.Masters.Item("Рамка").Delete
     Else
@@ -890,7 +890,7 @@ Sub AddPageKJ(pName As String)
 ' Macros        : AddPageKJ - Добавляет пустую страницу кабельного журнала
 '------------------------------------------------------------------------------------------------------------
     Dim aPage As Visio.Page
-    Dim Mstr As Visio.Master
+    Dim mStr As Visio.Master
     Dim Ramka As Visio.Shape
     If GetSAPageExist(pName) Is Nothing Then
         Set aPage = ActiveDocument.Pages.Add
@@ -902,8 +902,8 @@ Sub AddPageKJ(pName As String)
             .Cells("PrintPageOrientation").Formula = 2
         End With
         SetPageAction aPage
-        Set Mstr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
-        Set Ramka = ActivePage.Drop(Mstr, 0, 0)
+        Set mStr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
+        Set Ramka = ActivePage.Drop(mStr, 0, 0)
         LockTitleBlock
         ActiveDocument.Masters.Item("Рамка").Delete
     Else

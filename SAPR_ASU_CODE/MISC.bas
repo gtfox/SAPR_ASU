@@ -371,7 +371,7 @@ Sub ConvertArticulIzbrannoe()
     lLastRow = wbExcelIzbrannoe.Sheets(ExcelNabory).Cells(wbExcelIzbrannoe.Sheets(ExcelNabory).Rows.Count, 1).End(xlUp).Row
     Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNabory).Range("A2:A" & lLastRow)
     ExcelConvertToString UserRange
-    wbExcelIzbrannoe.Close SaveChanges:=True
+    wbExcelIzbrannoe.Close savechanges:=True
     oExcelApp.Quit
 End Sub
 

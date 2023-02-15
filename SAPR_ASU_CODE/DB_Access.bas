@@ -19,13 +19,13 @@ Public Const NaboryColor   As Long = &HBD0429 'синий
     Public Declare Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
 #End If
 
-'Активация формы выбора элементов схемы из БД
-Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
-'    Load frmDBPriceAccess
-'    frmDBPriceAccess.run vsoShape 'Передали его в форму
-    Load frmDBPriceExcel
-    frmDBPriceExcel.run vsoShape 'Передали его в форму
-End Sub
+'Активация формы выбора элементов схемы из БД. Расположено в модуле DB_Excel
+'Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
+''    Load frmDBPriceAccess
+''    frmDBPriceAccess.run vsoShape 'Передали его в форму
+'    Load frmDBPriceExcel
+'    frmDBPriceExcel.run vsoShape 'Передали его в форму
+'End Sub
 
 'Function returns DBEngine for current Office Engine Type (DAO.DBEngine.60 or DAO.DBEngine.120)
 Public Function GetDBEngine() As Object
@@ -106,7 +106,7 @@ Public Sub Fill_cmbxProizvoditel(DBName As String, SQLQuery As String, cmbx As C
 End Sub
 
 'Заполняет lstvTable запросами из БД
-Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefName As String, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As Double
+ Function Fill_lstvTable_(DBName As String, SQLQuery As String, QueryDefName As String, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As Double
     'TableType=1 - Избранное
     'TableType=2 - Набор
     Dim i As Double
@@ -128,7 +128,7 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
         i = 0
         iold = 1000
         With rst
-            If .EOF Then Exit Function
+            If .EOF Then rst.Close: Exit Function
             .MoveFirst
             Do Until .EOF
                 Set itmx = lstvTable.ListItems.Add(, """" & .Fields("КодПозиции").Value & "/" & .Fields("ПроизводительКод").Value & "/" & .Fields("ЕдиницыКод").Value & """", .Fields("Артикул").Value)
@@ -163,7 +163,7 @@ Public Function Fill_lstvTable(DBName As String, SQLQuery As String, QueryDefNam
                 .MoveNext
             Loop
         End With
-        Fill_lstvTable = RecordCount 'i
+        Fill_lstvTable_ = RecordCount 'i
     '    frmDBPriceAccess.ProgressBar.Visible = False
     End If
     Set rst = Nothing
@@ -177,7 +177,7 @@ Public Function Fill_lstvTableNabor(DBName As String, IzbPozCod As String, lstvT
     SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
                 "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
                 "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
-    Fill_lstvTableNabor = Fill_lstvTable(DBName, SQLQuery, "", lstvTable, 2)
+    Fill_lstvTableNabor = Fill_lstvTable_(DBName, SQLQuery, "", lstvTable, 2)
 End Function
 
 'Считаем цену набора

@@ -10,11 +10,9 @@ Sub run(Artikul As String, Nazvanie As String, ProizvoditelID As String)
     For i = 0 To cmbxProizvoditel.ListCount - 1
         If cmbxProizvoditel.List(i, 0) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
     Next
-    frmDBIzbrannoeExcel.ClearFilter wshIzbrannoe
-    frmDBIzbrannoeExcel.ClearFilter wshNabory
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
+    ClearFilter wshIzbrannoe
+    ClearFilter wshNabory
+    UpdateAllCmbxFilters wshIzbrannoe, frmDBAddNaborExcel, IzbrannoeSettings
     InitCustomCCPMenu frmDBAddNaborExcel 'Контекстное меню для TextBox
     frmDBAddNaborExcel.Show
 End Sub

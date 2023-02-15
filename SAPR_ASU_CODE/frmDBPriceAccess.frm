@@ -205,7 +205,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     NameQueryDef = "FilterSQLQuery"
 
 'lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
 'lstvTablePrice.Visible = True
 
     Fill_FiltersByResultSQLQuery DBName, fltrKategoriya, fltrGruppa, fltrPodgruppa
@@ -292,7 +292,7 @@ Sub Find_ItemsByText()
         SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод, Прайс.ЕдиницыКод, Единицы.Единица " & _
                    "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & findWHERE & ";"
 'lstvTablePrice.Visible = False
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
 'lstvTablePrice.Visible = True
         Fill_FiltersByResultSQLQuery DBName, "", "", ""
     Else
@@ -300,7 +300,7 @@ Sub Find_ItemsByText()
         SQLQuery = "SELECT FilterSQLQuery.КодПозиции, FilterSQLQuery.Артикул, FilterSQLQuery.Название, FilterSQLQuery.Цена, FilterSQLQuery.КатегорииКод, FilterSQLQuery.ГруппыКод, FilterSQLQuery.ПодгруппыКод, FilterSQLQuery.ПроизводительКод, FilterSQLQuery.ЕдиницыКод, FilterSQLQuery.Единица " & _
                    "FROM Единицы INNER JOIN FilterSQLQuery ON Единицы.КодЕдиницы = FilterSQLQuery.ЕдиницыКод " & findWHERE & ";"
 'lstvTablePrice.Visible = False
-        lblResult.Caption = "Найдено записей: " & Fill_lstvTable(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
+        lblResult.Caption = "Найдено записей: " & Fill_lstvTable_(DBName, SQLQuery, NameQueryDef, lstvTablePrice)
 'lstvTablePrice.Visible = True
     End If
 
@@ -329,7 +329,7 @@ Private Sub Reset_FiltersCmbx()
 End Sub
 
 Private Sub btnFavAdd_Click()
-    Dim Mstr() As String
+    Dim mStr() As String
     If mstrShpData(2) <> "" Then
         If Not bBlock Then
             bBlock = True
@@ -338,18 +338,18 @@ Private Sub btnFavAdd_Click()
             Me.Hide
         End If
         Load frmDBAddToIzbrannoeAccess
-        Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToIzbrannoeAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
+        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToIzbrannoeAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
     End If
 End Sub
 
 Private Sub btnNabAdd_Click()
-    Dim Mstr() As String
+    Dim mStr() As String
     If mstrShpData(2) <> "" Then
         Me.Hide
         Load frmDBAddToNaborAccess
-        Mstr = Split(Replace(mstrShpData(1), """", ""), "/")
-        frmDBAddToNaborAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), Mstr(2)
+        mStr = Split(Replace(mstrShpData(1), """", ""), "/")
+        frmDBAddToNaborAccess.run mstrShpData(3), Replace(mstrShpData(2), """", """"""), mstrShpData(5), cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 2), mStr(2)
     End If
 End Sub
 

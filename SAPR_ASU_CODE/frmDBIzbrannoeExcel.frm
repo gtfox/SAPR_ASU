@@ -21,9 +21,7 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 Dim mstrShpData(5) As String
-Public bBlock As Boolean
 Dim mstrVybPozVNabore(7) As String
-
 
 Private Sub UserForm_Initialize() ' инициализация формы
 
@@ -35,7 +33,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(3)
     lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
+'    lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
    
     lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
     lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
@@ -44,7 +42,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(3)
     lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
     lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
-    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
+'    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
 
     cmbxMagazin.Clear
     cmbxMagazin.AddItem "ЭТМ"
@@ -66,6 +64,10 @@ Private Sub UserForm_Initialize() ' инициализация формы
 '    tbtnBD = False
     tbtnFav = True
     
+'    Set oIzbrannoeRecordSet As New ADODB.Recordset'= CreateObject("ADODB.Recordset")
+'    Set oIzbrannoeConn = CreateObject("ADODB.Connection")
+    ADODB_Excel_Connect oIzbrannoeConn, sSAPath & DBNameIzbrannoeExcel
+    
     FillExcel_cmbxProizvoditel cmbxProizvoditel
     
     ClearFilter wshIzbrannoe
@@ -81,94 +83,13 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
     Set RangeToFilter = wshIzbrannoe.Range("A2:H" & lLastRow)
     
-    '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-    Select Case Ncmbx
-        Case 1
-            RangeToFilter.AutoFilter Field:=6, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-            RangeToFilter.AutoFilter Field:=7 'Группа
-            RangeToFilter.AutoFilter Field:=8 'Подгруппа
-            UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-            UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
-        Case 2
-            RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-            If cmbxKategoriya.ListIndex = -1 Then
-                RangeToFilter.AutoFilter Field:=6
-                UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-            Else
-                RangeToFilter.AutoFilter Field:=6, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-            End If
-            UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
-        Case 3
-            '-------------------ФИЛЬТРАЦИЯ Подгруппы при разных (Категория || Группа)------------------------------------------------
-            '*    К   Гр
-            '0    0   0
-            '1    0   1
-            '2    1   0
-            '3    1   1
-            
-            fltrMode = IIf(cmbxKategoriya.ListIndex = -1, 0, 2) + IIf(cmbxGruppa.ListIndex = -1, 0, 1)
-            RangeToFilter.AutoFilter Field:=8, Criteria1:=cmbxPodgruppa.List(cmbxPodgruppa.ListIndex, 0) 'Подгруппа
-            Select Case fltrMode
-                Case 0
-                    RangeToFilter.AutoFilter Field:=6 'Категория
-                    RangeToFilter.AutoFilter Field:=7 'Группа
-                    UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-                    UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-                Case 1
-                    RangeToFilter.AutoFilter Field:=6 'Категория
-                    RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-                    UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-                Case 2
-                    RangeToFilter.AutoFilter Field:=6, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-                    RangeToFilter.AutoFilter Field:=7 'Группа
-                    UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-                Case 3
-                    RangeToFilter.AutoFilter Field:=6, Criteria1:=cmbxKategoriya.List(cmbxKategoriya.ListIndex, 0) 'Категория
-                    RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxGruppa.List(cmbxGruppa.ListIndex, 0) 'Группа
-                Case Else
-            End Select
-            '-------------------/ФИЛЬТРАЦИЯ Подгруппы при разных (Категория || Группа)------------------------------------------------
-        Case Else
-            RangeToFilter.AutoFilter Field:=6 'Категория
-            RangeToFilter.AutoFilter Field:=7 'Группа
-            RangeToFilter.AutoFilter Field:=8 'Подгруппа
-            UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-            UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-            UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
-    End Select
-    '-------------------/ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-   
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshIzbrannoe, lstvTableIzbrannoe, 1)
+    'ФИЛЬТРАЦИЯ
+    RuleFilterCmbx wshIzbrannoe, RangeToFilter, Me, IzbrannoeSettings, Ncmbx
+    lstvTableIzbrannoe.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+    lstvTableIzbrannoe.Visible = True
     ReSize
 
-End Sub
-
- Sub UpdateCmbxFiltersIzbrannoe(cmbxComboBox As ComboBox, Ncmbx As Integer)
-    'Ncmbx = 1 - Категория
-    'Ncmbx = 2 - Группа
-    'Ncmbx = 3 - Подгруппа
-    Dim UserRange As Excel.Range
-    Dim lLastRow As Long
-    Dim i As Integer
-    
-    bBlock = True
-    wshTemp.Cells.ClearContents
-    lLastRow = wshIzbrannoe.Cells(wshIzbrannoe.Rows.Count, 1).End(xlUp).Row
-    If lLastRow > 1 Then
-        wshIzbrannoe.Range(wshIzbrannoe.Cells(2, Ncmbx + 5), wshIzbrannoe.Cells(lLastRow, Ncmbx + 5)).Copy wshTemp.Cells(1, Ncmbx)
-        Set UserRange = wshTemp.Range(wshTemp.Cells(1, Ncmbx), wshTemp.Cells(lLastRow - 1, Ncmbx))
-        UserRange.RemoveDuplicates Columns:=1, Header:=xlNo
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, Ncmbx).End(xlUp).Row
-        If lLastRow > 0 Then
-            cmbxComboBox.Clear
-            For i = 1 To lLastRow
-                cmbxComboBox.AddItem wshTemp.Cells(i, Ncmbx)
-            Next
-        End If
-    Else
-        cmbxComboBox.Clear
-    End If
-    bBlock = False
 End Sub
 
 
@@ -181,87 +102,23 @@ Sub Find_ItemsByText()
     Set RangeToFilter = wshIzbrannoe.Range("A2:H" & lLastRow)
     
     If txtArtikul.Value = "" Then
-        RangeToFilter.AutoFilter Field:=1
+        RangeToFilter.AutoFilter Field:=IzbrannoeSettings.StolbArtikul
     Else
-        RangeToFilter.AutoFilter Field:=1, Criteria1:="=*" & txtArtikul.Value & "*"
+        RangeToFilter.AutoFilter Field:=IzbrannoeSettings.StolbArtikul, Criteria1:="=*" & txtArtikul.Value & "*"
     End If
     
     If txtNazvanie2.Value = "" Then
-        RangeToFilter.AutoFilter Field:=2
+        RangeToFilter.AutoFilter Field:=IzbrannoeSettings.StolbNazvanie
     Else
-        RangeToFilter.AutoFilter Field:=2, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
+        RangeToFilter.AutoFilter Field:=IzbrannoeSettings.StolbNazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
     End If
+    lstvTableIzbrannoe.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+    lstvTableIzbrannoe.Visible = True
+    UpdateAllCmbxFilters wshIzbrannoe, Me, IzbrannoeSettings
     
-'    If cmbxProizvoditel.ListIndex = -1 Then
-'        RangeToFilter.AutoFilter Field:=5
-'    Else
-'        RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0)
-'    End If
-    
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshIzbrannoe, lstvTableIzbrannoe, 1)
-    UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-    UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-    UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
     ReSize
 
-End Sub
-
-'Заполняет lstvTable данными из БД
-Public Function Fill_lstvTable(wSheets As Excel.Worksheet, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As String
-    'TableType=1 - Избранное
-    'TableType=2 - Набор
-    Dim RangeToFill As Excel.Range
-    Dim RangeResult As Excel.Range
-    Dim RangeRow As Excel.Range
-    Dim i As Double
-    Dim iold As Double
-    Dim j As Double
-    Dim itmx As ListItem
-    Set RangeToFill = wSheets.AutoFilter.Range
-    'исключаем из диапазона автофильтра первую строку (Offset),
-    'берем видимые строки(SpecialCells(xlCellTypeVisible).EntireRow)
-    'и в цикле перебираем эти сроки
-    On Error GoTo err1
-    Set RangeResult = RangeToFill.Offset(1, 0).ReSize(RangeToFill.Rows.Count - 1, RangeToFill.Columns.Count).SpecialCells(xlCellTypeVisible).EntireRow
-    lstvTable.ListItems.Clear
-    For Each RangeRow In RangeResult.Rows
-        Set itmx = lstvTable.ListItems.Add(, , RangeRow.Cells(1, 1)) 'Артикул
-        itmx.SubItems(1) = RangeRow.Cells(1, 2) 'Название
-        itmx.SubItems(2) = RangeRow.Cells(1, 3) 'Цена
-        itmx.SubItems(3) = RangeRow.Cells(1, 4) 'Единица
-        If TableType = 1 Then
-            itmx.SubItems(4) = RangeRow.Cells(1, 5) 'Производитель
-            itmx.SubItems(5) = "    "
-        ElseIf TableType = 2 Then
-            itmx.SubItems(4) = RangeRow.Cells(1, 5) 'Производитель
-            itmx.SubItems(5) = RangeRow.Cells(1, 6) 'Количество
-            itmx.SubItems(6) = "    "
-        End If
-
-        'красим наборы
-        If TableType = 1 Then
-            If RangeRow.Cells(1, 1) Like "Набор_*" Then
-                itmx.ForeColor = NaboryColor
-'               itmx.Bold = True
-                For j = 1 To itmx.ListSubItems.Count
-'                   itmx.ListSubItems(j).Bold = True
-                    itmx.ListSubItems(j).ForeColor = NaboryColor
-                Next
-            End If
-        End If
-        i = i + 1
-        If i = SA_nRows Then Exit For
-    Next
-    Fill_lstvTable = IIf(TableType = 2, i, RangeResult.Rows.Count & ".  Показано: " & i)
-    Exit Function
-err1:
-    lstvTable.ListItems.Clear
-End Function
-
-'Очистка фильтров
-Sub ClearFilter(wshWorkSheet As Excel.Worksheet)
-    wshWorkSheet.Range("A1").AutoFilter
-    wshWorkSheet.Range("A1").AutoFilter Field:=1
 End Sub
 
 Private Sub btnFavDel_Click()
@@ -280,7 +137,7 @@ Private Sub btnNabDel_Click()
     If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(0) & vbCrLf & "Название: " & mstrVybPozVNabore(1) & vbCrLf & "Цена: " & mstrVybPozVNabore(2) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Набора") = vbYes Then
         Set UserRange = wshNabory.Columns(1).Find(What:=mstrVybPozVNabore(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         UserRange.EntireRow.Delete
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(wshNabory, lstvTableNabor, 2)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
         NewCena = CalcCenaNabora(lstvTableNabor)
         Set UserRange = wshIzbrannoe.Columns(1).Find(What:=mstrShpData(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         If (UserRange Is Nothing) Or (UserRange.Value = Empty) Then
@@ -314,7 +171,7 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
         lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
         Set RangeToFilter = wshNabory.Range("A2:H" & lLastRow)
         RangeToFilter.AutoFilter Field:=7, Criteria1:=Item
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(wshNabory, lstvTableNabor, 2)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
         lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -553,10 +410,12 @@ Private Sub cmbxProizvoditel_Change()
         If cmbxProizvoditel.ListIndex = -1 Then
             RangeToFilter.AutoFilter Field:=5
         Else
-            RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0)
+            RangeToFilter.AutoFilter Field:=5, Criteria1:=cmbxProizvoditel
         End If
     End If
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wshIzbrannoe, lstvTableIzbrannoe, 1)
+    lstvTableIzbrannoe.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+    lstvTableIzbrannoe.Visible = True
     ReSize
 End Sub
 
@@ -600,6 +459,8 @@ Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.Col
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
+    If oIzbrannoeRecordSet.State = adStateOpen Then oIzbrannoeRecordSet.Close
+    oIzbrannoeConn.Close
     ExcelAppExit
     Application.EventsEnabled = -1
     ThisDocument.InitEvent

@@ -24,11 +24,9 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
         If cmbxEdinicy.List(i, 0) = EdinicaID Then cmbxEdinicy.ListIndex = i
     Next
 
-    frmDBIzbrannoeExcel.ClearFilter wshIzbrannoe
-    frmDBIzbrannoeExcel.ClearFilter wshNabory
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxKategoriya, 1
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxGruppa, 2
-    frmDBIzbrannoeExcel.UpdateCmbxFiltersIzbrannoe cmbxPodgruppa, 3
+    ClearFilter wshIzbrannoe
+    ClearFilter wshNabory
+    UpdateAllCmbxFilters wshIzbrannoe, frmDBAddToIzbrannoeExcel, IzbrannoeSettings
     InitCustomCCPMenu frmDBAddToIzbrannoeExcel 'Контекстное меню для TextBox
     frmDBAddToIzbrannoeExcel.Show
 End Sub

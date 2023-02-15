@@ -63,10 +63,7 @@ Public Sub InitCustomCCPMenu(UserForm As MSForms.UserForm)
         End If
     Next
 End Sub
-'вызов формы
-Sub Showform()
-    ufTestCCP.Show 0
-End Sub
+
 'функция удаления созданного ранее меню
 Public Sub DelCustomCCPMenu()
     On Error Resume Next 'пропускаем ошибки, если вдруг меню было удалено ранее

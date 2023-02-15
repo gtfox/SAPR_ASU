@@ -25,7 +25,7 @@ Sub UserForm_Initialize()
     cmbxNabor.style = fmStyleDropDownList
     cmbxEdinicy.style = fmStyleDropDownList
 
-    frmDBIzbrannoeExcel.ClearFilter wshNabory
+    ClearFilter wshNabory
 
     FillExcel_cmbxProizvoditel cmbxProizvoditel
 
@@ -54,7 +54,9 @@ Public Sub FillCmbxNabor(cmbxComboBox As ComboBox)
     Dim UserRange As Excel.Range
     Dim lLastRow As Long
     Dim i As Integer
+    Dim wshTemp As Excel.Worksheet
 
+    Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
     wshTemp.Cells.ClearContents
     lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 7).End(xlUp).Row
     If lLastRow > 1 Then
@@ -79,7 +81,8 @@ Private Sub btnAdd_Click()
 
 '    If cmbxNabor.ListIndex = -1 Then Exit Sub
     wshNabory.Activate
-    frmDBIzbrannoeExcel.ClearFilter wshNabory
+    ClearFilter wshNabory
+    ClearFilter wshIzbrannoe
     lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
     wshNabory.Cells(lLastRow + 1, 1) = txtArtikul.Value
     wshNabory.Cells(lLastRow + 1, 2) = txtNazvanie.Value
@@ -124,7 +127,7 @@ Sub Load_lstvTableNabor()
     Set RangeToFilter = wshNabory.Range("A2:H" & lLastRow)
     RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxNabor
     If cmbxNabor.ListIndex > -1 Then
-        lblSostav.Caption = "Состав набора: " & frmDBIzbrannoeExcel.Fill_lstvTable(wshNabory, lstvTableNabor, 2)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
     End If
     'выровнять ширину столбцов по заголовкам
     For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
