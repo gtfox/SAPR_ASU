@@ -22,57 +22,54 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 Dim mstrShpData(5) As String
 Dim mstrVybPozVNabore(7) As String
+Dim bInit As Boolean
 
 Private Sub UserForm_Initialize() ' инициализация формы
-
+    If Not bInit Then
+        lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
+        lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
+        lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
+        lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
+        lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+        lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
+    '    lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
+       
+        lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
+        lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
+        lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
+        lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
+        lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+        lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
+        lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
+    '    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
+    
+        cmbxMagazin.Clear
+        cmbxMagazin.AddItem "ЭТМ"
+        cmbxMagazin.AddItem "АВС"
+        cmbxMagazin.ListIndex = 0
+    
+        cmbxProizvoditel.style = fmStyleDropDownList
+        cmbxKategoriya.style = fmStyleDropDownList
+        cmbxGruppa.style = fmStyleDropDownList
+        cmbxPodgruppa.style = fmStyleDropDownList
+        cmbxMagazin.style = fmStyleDropDownList
+    
+        frameTab.Top = frameFilters.Top + frameFilters.Height
+        Me.Height = frameTab.Top + frameTab.Height + 36
+        Me.Top = 350
+        lblResult.Top = Me.Height - 35
+        
+        tbtnFiltr.Caption = ChrW(9650)
+    '    tbtnBD = False
+        tbtnFav = True
+        
+        FillExcel_cmbxProizvoditel cmbxProizvoditel
+        
+    '    ClearFilter wshIzbrannoe
+    '    ClearFilter wshNabory
+        bInit = True
+    End If
     InitCustomCCPMenu Me 'Контекстное меню для TextBox
-    
-    lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Название" ' SubItems(1)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Ед." ' SubItems(3)
-    lstvTableIzbrannoe.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
-'    lstvTableIzbrannoe.ColumnHeaders.Add , , "    " ' SubItems(5)
-   
-    lstvTableNabor.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
-    lstvTableNabor.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
-    lstvTableNabor.ColumnHeaders.Add , , "Название" ' SubItems(1)
-    lstvTableNabor.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-    lstvTableNabor.ColumnHeaders.Add , , "Ед." ' SubItems(3)
-    lstvTableNabor.ColumnHeaders.Add , , "Производитель" ' SubItems(4)
-    lstvTableNabor.ColumnHeaders.Add , , "Кол-во" ' SubItems(5)
-'    lstvTableNabor.ColumnHeaders.Add , , "    " ' SubItems(6)
-
-    cmbxMagazin.Clear
-    cmbxMagazin.AddItem "ЭТМ"
-    cmbxMagazin.AddItem "АВС"
-    cmbxMagazin.ListIndex = 0
-
-    cmbxProizvoditel.style = fmStyleDropDownList
-    cmbxKategoriya.style = fmStyleDropDownList
-    cmbxGruppa.style = fmStyleDropDownList
-    cmbxPodgruppa.style = fmStyleDropDownList
-    cmbxMagazin.style = fmStyleDropDownList
-
-    frameTab.Top = frameFilters.Top + frameFilters.Height
-    Me.Height = frameTab.Top + frameTab.Height + 36
-    Me.Top = 350
-    lblResult.Top = Me.Height - 35
-    
-    tbtnFiltr.Caption = ChrW(9650)
-'    tbtnBD = False
-    tbtnFav = True
-    
-'    Set oIzbrannoeRecordSet As New ADODB.Recordset'= CreateObject("ADODB.Recordset")
-'    Set oIzbrannoeConn = CreateObject("ADODB.Connection")
-    ADODB_Excel_Connect oIzbrannoeConn, sSAPath & DBNameIzbrannoeExcel
-    
-    FillExcel_cmbxProizvoditel cmbxProizvoditel
-    
-    ClearFilter wshIzbrannoe
-    ClearFilter wshNabory
-
 End Sub
 
 Private Sub Filter_CmbxChange(Ncmbx As Integer)
@@ -86,7 +83,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     'ФИЛЬТРАЦИЯ
     RuleFilterCmbx wshIzbrannoe, RangeToFilter, Me, IzbrannoeSettings, Ncmbx
     lstvTableIzbrannoe.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelIzbrannoe.name, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
     lstvTableIzbrannoe.Visible = True
     ReSize
 
@@ -112,9 +109,9 @@ Sub Find_ItemsByText()
     Else
         RangeToFilter.AutoFilter Field:=IzbrannoeSettings.StolbNazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
     End If
-    lstvTableIzbrannoe.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
-    lstvTableIzbrannoe.Visible = True
+'    lstvTableIzbrannoe.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelIzbrannoe.name, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+'    lstvTableIzbrannoe.Visible = True
     UpdateAllCmbxFilters wshIzbrannoe, Me, IzbrannoeSettings
     
     ReSize
@@ -123,10 +120,18 @@ End Sub
 
 Private Sub btnFavDel_Click()
     Dim UserRange As Excel.Range
+    InitIzbrannoeExcelDB
     If MsgBox("Удалить запись из избранного?" & vbCrLf & vbCrLf & "Артикул: " & mstrShpData(0) & vbCrLf & "Название: " & mstrShpData(1) & vbCrLf & "Цена: " & mstrShpData(2) & vbCrLf & "Производитель: " & mstrShpData(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Избранного") = vbYes Then
         Set UserRange = wshIzbrannoe.Columns(1).Find(What:=mstrShpData(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         UserRange.EntireRow.Delete
         lstvTableNabor.ListItems.Clear
+        Do  'Чистим состав набора
+            Set UserRange = wshNabory.Columns(7).Find(What:=mstrShpData(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
+            If Not UserRange Is Nothing Then
+                UserRange.EntireRow.Delete
+            End If
+        Loop While Not UserRange Is Nothing
+        wbExcelIzbrannoe.Save
         Find_ItemsByText
     End If
 End Sub
@@ -134,10 +139,11 @@ End Sub
 Private Sub btnNabDel_Click()
     Dim UserRange As Excel.Range
     Dim NewCena As Double
+    InitIzbrannoeExcelDB
     If MsgBox("Удалить запись из набора?" & vbCrLf & vbCrLf & "Артикул: " & mstrVybPozVNabore(0) & vbCrLf & "Название: " & mstrVybPozVNabore(1) & vbCrLf & "Цена: " & mstrVybPozVNabore(2) & vbCrLf & "Производитель: " & mstrVybPozVNabore(4), vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Набора") = vbYes Then
         Set UserRange = wshNabory.Columns(1).Find(What:=mstrVybPozVNabore(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         UserRange.EntireRow.Delete
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(wbExcelIzbrannoe.name, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
         NewCena = CalcCenaNabora(lstvTableNabor)
         Set UserRange = wshIzbrannoe.Columns(1).Find(What:=mstrShpData(0), LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
         If (UserRange Is Nothing) Or (UserRange.Value = Empty) Then
@@ -151,6 +157,7 @@ Private Sub btnNabDel_Click()
             Call SendMessage(lstvTableNabor.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
         Next
         Me.Height = lstvTableNabor.Top + lstvTableNabor.Height + 26
+        wbExcelIzbrannoe.Save
         Find_ItemsByText
     End If
 End Sub
@@ -171,7 +178,7 @@ Private Sub lstvTableIzbrannoe_ItemClick(ByVal Item As MSComctlLib.ListItem)
         lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
         Set RangeToFilter = wshNabory.Range("A2:H" & lLastRow)
         RangeToFilter.AutoFilter Field:=7, Criteria1:=Item
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(wbExcelIzbrannoe.name, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
         lstvTableNabor.Width = frmMinWdth
         'выровнять ширину столбцов по заголовкам
         For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -343,6 +350,11 @@ Private Sub tbtnFiltr_Click()
         cmbxProizvoditel.ListIndex = -1
         ClearFilter wshIzbrannoe
         ClearFilter wshNabory
+        bBlock = True
+        cmbxKategoriya.ListIndex = -1
+        cmbxGruppa.ListIndex = -1
+        cmbxPodgruppa.ListIndex = -1
+        bBlock = False
         Find_ItemsByText
     End If
     lblSostav.Caption = ""
@@ -414,7 +426,7 @@ Private Sub cmbxProizvoditel_Change()
         End If
     End If
     lstvTableIzbrannoe.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelIzbrannoe.name, wshIzbrannoe, lstvTableIzbrannoe, IzbrannoeSettings, 1)
     lstvTableIzbrannoe.Visible = True
     ReSize
 End Sub
@@ -429,7 +441,7 @@ Private Sub tbtnBD_Click()
         tbtnBD = False
         bBlock = False
         Me.Hide
-        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+'        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
         frmDBPriceExcel.Show
     End If
 End Sub
@@ -459,9 +471,9 @@ Private Sub lstvTableIzbrannoe_ColumnClick(ByVal ColumnHeader As MSComctlLib.Col
 End Sub
 
 Sub btnClose_Click() ' выгрузка формы
-    If oIzbrannoeRecordSet.State = adStateOpen Then oIzbrannoeRecordSet.Close
-    oIzbrannoeConn.Close
-    ExcelAppExit
+    ExcelAppQuit oExcelAppIzbrannoe
+    ExcelAppQuit oExcelAppPrice
+    KillSAExcelProcess
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload frmDBPriceExcel

@@ -8,7 +8,8 @@
 
 'Option Explicit
 Public sSAPath As String
-Public oExcelApp As Excel.Application
+Public oExcelAppPrice As Excel.Application
+Public oExcelAppIzbrannoe As Excel.Application
 Public wbExcelPrice As Excel.Workbook
 Public wshPrice As Excel.Worksheet
 Public wbExcelIzbrannoe As Excel.Workbook
@@ -30,14 +31,7 @@ Public MinColumn As Double
 Public RangePrice As Excel.Range
 Public SA_nRows As Double
 Public bBlock As Boolean
-'Public oPriceRecordSet As Object
-'Public oPriceConn As Object
-'Public oIzbrannoeRecordSet As Object
-'Public oIzbrannoeConn As Object
-Public oPriceRecordSet As New ADODB.Recordset
-Public oPriceConn As New ADODB.Connection
-Public oIzbrannoeRecordSet As New ADODB.Recordset
-Public oIzbrannoeConn As New ADODB.Connection
+Public colProcessHandle As Collection
 
 #If VBA7 Then
     Public Declare PtrSafe Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
@@ -47,19 +41,30 @@ Public oIzbrannoeConn As New ADODB.Connection
 
 'Активация формы выбора элементов схемы из БД.
 Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
+    Set colProcessHandle = New Collection
+    GetAllExcelProcess
+    sSAPath = Visio.ActiveDocument.path
 '    Load frmDBPriceAccess
 '    frmDBPriceAccess.run vsoShape 'Передали его в форму
     Load frmDBPriceExcel
     frmDBPriceExcel.run vsoShape 'Передали его в форму
 End Sub
 
-Sub InitExcelDB()
+Sub InitPricelExceDB()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : InitExcelDB - Инициализирует переменные для доступа к Excel
+' Macros        : InitPricelExceDB - Инициализирует переменные для доступа к Excel на форме прайсов
 '------------------------------------------------------------------------------------------------------------
-    sSAPath = Visio.ActiveDocument.path
-    Set oExcelApp = CreateObject("Excel.Application")
-    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+
+End Sub
+
+Sub InitIzbrannoeExcelDB()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : InitIzbrannoeExcelDB - Инициализирует переменные для доступа к Excel на форме избранного
+'------------------------------------------------------------------------------------------------------------
+    Set oExcelAppIzbrannoe = CreateObject("Excel.Application")
+    oExcelAppIzbrannoe.WindowState = xlMinimized
+    oExcelAppIzbrannoe.Visible = True
+    Set wbExcelIzbrannoe = oExcelAppIzbrannoe.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
     Set wshIzbrannoe = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe)
     Set wshNabory = wbExcelIzbrannoe.Worksheets(ExcelNabory)
     Set wshNastrojkiPrajsov = wbExcelIzbrannoe.Worksheets(ExcelNastrojkiPrajsov)
@@ -72,7 +77,36 @@ Sub InitExcelDB()
         IzbrannoeSettings.StolbKategoriya = 6
         IzbrannoeSettings.StolbGruppa = 7
         IzbrannoeSettings.StolbPodgruppa = 8
+    
+    FillExcel_mProizvoditel
+    
 End Sub
+
+Sub FillExcel_mProizvoditel()
+    Dim UserRange As Excel.Range
+    Dim lLastRow As Long
+    Dim i As Integer
+
+    lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wshNastrojkiPrajsov.Range("A2:J" & lLastRow)
+    
+    'Заполняем массив mProizvoditel Производители из Excel как базы данных САПР-АСУ
+    ReDim mProizvoditel(lLastRow - 2)
+    For i = 1 To lLastRow - 1
+        Set mProizvoditel(i - 1) = New classProizvoditelBD
+        mProizvoditel(i - 1).Proizvoditel = UserRange.Cells(i, 1)
+        mProizvoditel(i - 1).FileName = UserRange.Cells(i, 2)
+        mProizvoditel(i - 1).NameListExcel = UserRange.Cells(i, 3)
+        mProizvoditel(i - 1).StolbArtikul = UserRange.Cells(i, 4)
+        mProizvoditel(i - 1).StolbNazvanie = UserRange.Cells(i, 5)
+        mProizvoditel(i - 1).StolbCena = UserRange.Cells(i, 6)
+        mProizvoditel(i - 1).StolbEd = UserRange.Cells(i, 7)
+        mProizvoditel(i - 1).StolbKategoriya = UserRange.Cells(i, 8)
+        mProizvoditel(i - 1).StolbGruppa = UserRange.Cells(i, 9)
+        mProizvoditel(i - 1).StolbPodgruppa = UserRange.Cells(i, 10)
+    Next
+End Sub
+
 
 Sub WizardAddPriceExcel(sProizvoditel As String)
 '------------------------------------------------------------------------------------------------------------
@@ -100,12 +134,13 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     Set FindRange = UserRange.Find(sProizvoditel, LookIn:=xlValues, LookAt:=xlWhole, MatchCase:=False)
     If Not FindRange Is Nothing Then
         MsgBox "Такой производитель уже есть в списке: " & sProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
-        ExcelAppExit
+        ExcelAppQuit oExcelAppIzbrannoe
         Exit Sub
     End If
     
     'Открываем прайс
-    Set fdFileDialog = oExcelApp.FileDialog(msoFileDialogOpen)
+    Set oExcelAppPrice = CreateObject("Excel.Application")
+    Set fdFileDialog = oExcelAppPrice.FileDialog(msoFileDialogOpen)
     With fdFileDialog
         .AllowMultiSelect = False
         .InitialFileName = sSAPath
@@ -113,12 +148,11 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
         With fdFilters
             .Clear
             .Add "Excel", "*.xls"
-            .Add "Excel", "*.xlsx"
         End With
-        Chois = oExcelApp.FileDialog(msoFileDialogOpen).Show
+        Chois = oExcelAppPrice.FileDialog(msoFileDialogOpen).Show
     End With
-    If Chois = 0 Then oExcelApp.Quit: frmClose = True: Exit Sub
-    sFilePathName = oExcelApp.FileDialog(msoFileDialogOpen).SelectedItems(1)
+    If Chois = 0 Then ExcelAppQuit oExcelAppIzbrannoe: ExcelAppQuit oExcelAppPrice:  frmClose = True: Exit Sub
+    sFilePathName = oExcelAppPrice.FileDialog(msoFileDialogOpen).SelectedItems(1)
     
     If InStr(sFilePathName, sSAPath) = 1 Then 'файл в той же папке, что и проект (но может быть и глубже)
         sRelativeFileName = Replace(sFilePathName, sSAPath, "") 'относительный путь
@@ -126,13 +160,13 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
         sRelativeFileName = sFilePathName 'абсолютный путь
     End If
 
-    Set wbExcelPrice = oExcelApp.Workbooks.Open(sFilePathName)
+    Set wbExcelPrice = oExcelAppPrice.Workbooks.Open(sFilePathName)
     Load frmVyborListaExcel
     frmVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
 
-    If frmClose Then ExcelAppExit: Exit Sub
+    If frmClose Then ExcelAppQuit oExcelAppIzbrannoe: ExcelAppQuit oExcelAppPrice: Exit Sub
     Set wshPrice = wbExcelPrice.Worksheets(Excel_imya_lista)
-    oExcelApp.Visible = True
+    oExcelAppPrice.Visible = True
     wshPrice.Activate
     
     'Строка Производителя на листе НастройкиПрайсов в файле SAPR_ASU_Izbrannoe.xls
@@ -153,7 +187,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
 
     For i = 0 To 6
         On Error GoTo err1
-        Set UserRange = oExcelApp.InputBox _
+        Set UserRange = oExcelAppPrice.InputBox _
         (Prompt:=mDialogString(i), _
         Title:="Выбор ячейки", _
         Type:=8)
@@ -166,20 +200,20 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
             'Преобразование Артикула в тип Текст
             
             If i = 0 Then
-                oExcelApp.WindowState = xlMinimized
-                oExcelApp.ScreenUpdating = False
+                oExcelAppPrice.WindowState = xlMinimized
+                oExcelAppPrice.ScreenUpdating = False
                 If MsgBox("Преобразовать ""Артикул"" к типу ТЕКСТ?" & vbCrLf & vbCrLf & "Если ""Артикул"" в Excel сохранён как ЧИСЛО то возможны проблемы с поиском" & vbCrLf & vbCrLf & "Дождитесь окончания процесса...", vbYesNo + vbInformation, "САПР-АСУ: Преобразовать в ТЕКСТ?") = vbYes Then
                     wshPrice.Range("A1").AutoFilter Field:=1
                     ExcelConvertToString wshPrice.Range(wshPrice.AutoFilter.Range.Columns(UserRange.Column).Address) 'напрямую передаваяя Columns не работало...
                 End If
-                oExcelApp.ScreenUpdating = True
-                oExcelApp.WindowState = xlMaximized
+                oExcelAppPrice.ScreenUpdating = True
+                oExcelAppPrice.WindowState = xlMaximized
             End If
         Else 'выбран диапазон
-            oExcelApp.WindowState = xlMinimized
+            oExcelAppPrice.WindowState = xlMinimized
             MsgBox "Был выбран диапазон ячеек!" & vbCrLf & vbCrLf & "Необходимо выбрать одну ячейку", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
             i = i - 1
-            oExcelApp.WindowState = xlMaximized
+            oExcelAppPrice.WindowState = xlMaximized
         End If
     Next
 
@@ -192,30 +226,45 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     For i = 1 To 10
         wshNastrojkiPrajsov.Cells(lLastRow + 1, i) = mVendorData(i - 1)
     Next
-    oExcelApp.Visible = True
+    oExcelAppIzbrannoe.Visible = True
     wbExcelIzbrannoe.Save
     Exit Sub
 err1:
-    ExcelAppExit
+    ExcelAppQuit oExcelAppIzbrannoe
+    ExcelAppQuit oExcelAppPrice
 End Sub
 
 'Заполняет lstvTable данными из БД в виде Excel через ADODB
- Function Fill_lstvTable(oRecordSet As Object, oConn As Object, wshWorkSheet As Excel.Worksheet, lstvTable As ListView, PoizvoditelSettings As classProizvoditelBD, Optional ByVal TableType As Integer = 0) As String
+ Function Fill_lstvTable(FileName As String, wshWorkSheet As Excel.Worksheet, lstvTable As ListView, PoizvoditelSettings As classProizvoditelBD, Optional ByVal TableType As Integer = 0) As String
     'TableType=1 - Избранное
     'TableType=2 - Набор
+    Dim oConn As ADODB.Connection
+    Dim oRecordSet As ADODB.Recordset
+    Dim oExcelApp As Excel.Application
     Dim wshTemp As Excel.Worksheet
     Dim RangeSource As Excel.Range
+    Dim sAddress As String
     Dim i As Double
     Dim j As Double
     Dim itmx As ListItem
-
+    
+    Set oConn = New ADODB.Connection
+    Set oRecordSet = New ADODB.Recordset
+    wshWorkSheet.Range("A1").AutoFilter Field:=1
     Set RangeSource = wshWorkSheet.AutoFilter.Range
     Set wshTemp = GetSheetExcel(wshWorkSheet.Parent, ExcelTemp)
     wshTemp.Cells.ClearContents
     RangeSource.Copy wshTemp.Cells(1, 1)
     wshTemp.Cells(1, 1).AutoFilter Field:=1
-
-    ADODB_Excel_RecordSet oRecordSet, oConn, ExcelTemp, Replace(wshTemp.AutoFilter.Range.Address, "$", "")
+    sAddress = Replace(wshTemp.AutoFilter.Range.Address, "$", "")
+    Set oExcelApp = wshWorkSheet.Parent.Parent
+'    wshWorkSheet.Parent.Close SaveChanges:=True
+'    oExcelApp.Quit
+    
+    ';Mode=Read
+    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(FileName Like "*:*", FileName, sSAPath & FileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
+    oRecordSet.Open "SELECT * FROM [" & ExcelTemp & "$" & sAddress & "]", oConn
+'    oRecordSet.Open "SELECT * FROM [" & ExcelTemp & "$" & sAddress & "] WHERE ", oConn
     
     lstvTable.ListItems.Clear
     With oRecordSet
@@ -237,21 +286,24 @@ End Sub
                 If TableType = 1 Then
                     If IIf(IsNull(.Fields(PoizvoditelSettings.StolbArtikul - 1).Value), "", .Fields(PoizvoditelSettings.StolbArtikul - 1).Value) Like "Набор_*" Then
                         itmx.ForeColor = NaboryColor
-        '               itmx.Bold = True
+                       'itmx.Bold = True
                         For j = 1 To itmx.ListSubItems.Count
-        '                   itmx.ListSubItems(j).Bold = True
+                           'itmx.ListSubItems(j).Bold = True
                             itmx.ListSubItems(j).ForeColor = NaboryColor
                         Next
                     End If
                 End If
             End If
             i = i + 1
-'            If i = SA_nRows Then Exit Do
             .MoveNext
         Loop
     End With
     Fill_lstvTable = IIf(TableType = 2, i, IIf(i <= SA_nRows, i, i & ".  Показано: " & SA_nRows))
     oRecordSet.Close
+    oConn.Close
+    Set oRecordSet = Nothing
+    Set oConn = Nothing
+    Set wshTemp = Nothing
 End Function
 
 Public Sub RuleFilterCmbx(wshWorkSheet As Excel.Worksheet, RangeToFilter As Excel.Range, UserForm As MSForms.UserForm, PoizvoditelSettings As classProizvoditelBD, Ncmbx As Integer)
@@ -346,6 +398,7 @@ End Sub
         If cmbxComboBox.List(i, 0) = sCmbx Then cmbxComboBox.ListIndex = i
     Next
     bBlock = False
+    Set wshTemp = Nothing
 End Sub
 
 Public Sub UpdateAllCmbxFilters(wshWorkSheet As Excel.Worksheet, UserForm As MSForms.UserForm, PoizvoditelSettings As classProizvoditelBD)
@@ -360,57 +413,32 @@ Public Sub ClearFilter(wshWorkSheet As Excel.Worksheet)
     wshWorkSheet.Range("A1").AutoFilter Field:=1
 End Sub
 
-Public Sub ADODB_Excel_Connect(oConn As Object, FileName As String)
-    If oConn.State <> 0 Then
-        oConn.Close
-        Set oConn = Nothing
-        Set oConn = New ADODB.Connection
-    End If
+Public Sub ADODB_Excel_Connect(oConn As ADODB.Connection, FileName As String)
+    On Error Resume Next
+    oConn.Close
+    err.Clear
+    On Error GoTo 0
+    Set oConn = Nothing
+    Set oConn = New ADODB.Connection
     oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Mode=Read;Data Source=" & IIf(FileName Like "*:*", FileName, sSAPath & FileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
 End Sub
 
-Public Sub ADODB_Excel_RecordSet(oRecordSet As Object, oConn As Object, SheetName As String, Table_SourceAddress As String)
-    If oRecordSet.State <> 0 Then
-        oRecordSet.Close
-        Set oRecordSet = Nothing
-        Set oRecordSet = New ADODB.Recordset
-    End If
+Public Sub ADODB_Excel_RecordSet(oRecordSet As ADODB.Recordset, oConn As ADODB.Connection, SheetName As String, Table_SourceAddress As String)
+    On Error Resume Next
+    oRecordSet.Close
+    err.Clear
+    On Error GoTo 0
+    Set oRecordSet = Nothing
+    Set oRecordSet = New ADODB.Recordset
+    oRecordSet.CursorType = adOpenStatic
     oRecordSet.Open "SELECT * FROM [" & SheetName & "$" & Table_SourceAddress & "]", oConn
 End Sub
-
-Public Sub FillExcel_mProizvoditel()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : FillExcel_mProizvoditel - Заполняет массив mProizvoditel Производители из Excel как базы данных САПР-АСУ
-'------------------------------------------------------------------------------------------------------------
-    Dim UserRange As Excel.Range
-    Dim i As Integer
-
-    lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
-    Set UserRange = wshNastrojkiPrajsov.Range("A2:J" & lLastRow)
-    
-    ReDim mProizvoditel(lLastRow - 2)
-    For i = 1 To lLastRow - 1
-        Set mProizvoditel(i - 1) = New classProizvoditelBD
-        mProizvoditel(i - 1).Proizvoditel = UserRange.Cells(i, 1)
-        mProizvoditel(i - 1).FileName = UserRange.Cells(i, 2)
-        mProizvoditel(i - 1).NameListExcel = UserRange.Cells(i, 3)
-        mProizvoditel(i - 1).StolbArtikul = UserRange.Cells(i, 4)
-        mProizvoditel(i - 1).StolbNazvanie = UserRange.Cells(i, 5)
-        mProizvoditel(i - 1).StolbCena = UserRange.Cells(i, 6)
-        mProizvoditel(i - 1).StolbEd = UserRange.Cells(i, 7)
-        mProizvoditel(i - 1).StolbKategoriya = UserRange.Cells(i, 8)
-        mProizvoditel(i - 1).StolbGruppa = UserRange.Cells(i, 9)
-        mProizvoditel(i - 1).StolbPodgruppa = UserRange.Cells(i, 10)
-    Next
-End Sub
-
 
 Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As Boolean = False)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : FillExcel_cmbxProizvoditel - Заполняет ComboBox Производители из массива mProizvoditel
 '------------------------------------------------------------------------------------------------------------
     Dim i As Integer
-    
     cmbx.Clear
     For i = 0 To UBound(mProizvoditel)
         If mProizvoditel(i).FileName = "" And Price Then
@@ -419,10 +447,6 @@ Public Sub FillExcel_cmbxProizvoditel(cmbx As ComboBox, Optional ByVal Price As 
             cmbx.AddItem mProizvoditel(i).Proizvoditel
         End If
     Next
-    
-'    wbExcelIzbrannoe.Close SaveChanges:=False
-'    oExcelApp.Quit
-'    oExcelApp.Visible = True
 End Sub
 
 Public Sub FillCmbxEdinicy(cmbxComboBox As ComboBox)
@@ -483,12 +507,41 @@ Public Function GetSheetExcel(wbExcel As Excel.Workbook, mySheetName As String) 
     End If
 End Function
 
-
-Public Sub ExcelAppExit()
-    If Not wbExcelIzbrannoe Is Nothing Then wbExcelIzbrannoe.Close savechanges:=False
+Public Sub ExcelAppQuit(oExcelApp As Excel.Application)
+    Dim wbWbExcel As Excel.Workbook
+    On Error Resume Next
+    For Each wbWbExcel In oExcelApp.Workbooks
+        wbWbExcel.Close savechanges:=False
+    Next
     Set wbExcelIzbrannoe = Nothing
-    If Not wbExcelPrice Is Nothing Then wbExcelPrice.Close savechanges:=False
     Set wbExcelPrice = Nothing
     oExcelApp.Application.Quit
     Set oExcelApp = Nothing
+End Sub
+
+'Собираем процессы Excel открытые не нами
+Sub GetAllExcelProcess()
+    Dim Process As Object
+    For Each Process In GetObject("winmgmts:").ExecQuery("Select * from Win32_Process")
+        If Process.Caption Like "EXCEL.EXE" Then
+            colProcessHandle.Add Process.Handle, Process.Handle
+        End If
+    Next
+End Sub
+
+'Убиваем процессы Excel открытые нами
+Sub KillSAExcelProcess()
+    Dim Process As Object
+    Dim nCount As Double
+    For Each Process In GetObject("winmgmts:").ExecQuery("Select * from Win32_Process")
+        If Process.Caption Like "EXCEL.EXE" Then
+            nCount = colProcessHandle.Count
+            On Error Resume Next
+            colProcessHandle.Add Process.Handle, Process.Handle
+            If colProcessHandle.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - его надо прибить
+                colProcessHandle.Remove Process.Handle
+                Process.Terminate
+            End If
+        End If
+    Next
 End Sub

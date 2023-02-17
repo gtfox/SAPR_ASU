@@ -46,7 +46,7 @@ Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As
     Next
     
     FillCmbxNabor cmbxNabor
-    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
+'    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
     frmDBAddToNaborExcel.Show
 End Sub
 
@@ -73,6 +73,7 @@ Public Sub FillCmbxNabor(cmbxComboBox As ComboBox)
     Else
         cmbxComboBox.Clear
     End If
+    Set wshTemp = Nothing
 End Sub
 
 Private Sub btnAdd_Click()
@@ -102,7 +103,12 @@ Private Sub btnAdd_Click()
     End If
     
     wbExcelIzbrannoe.Save
-    
+
+    'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
+    FillExcel_mProizvoditel
+    frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
+    frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
+
     Unload Me
     frmDBIzbrannoeExcel.txtArtikul.Value = cmbxNabor
     frmDBIzbrannoeExcel.Find_ItemsByText
@@ -110,7 +116,7 @@ Private Sub btnAdd_Click()
     frmDBIzbrannoeExcel.lstvTableNabor.ListItems.Clear
     frmDBIzbrannoeExcel.Height = frmDBIzbrannoeExcel.frameTab.Top + frmDBIzbrannoeExcel.frameTab.Height + 36
     frmDBIzbrannoeExcel.lblSostav.Caption = ""
-    InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
+'    InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
     frmDBIzbrannoeExcel.Show
 End Sub
 
@@ -153,7 +159,12 @@ Private Sub CommandButton5_Click()
             Else
                 UserRange.EntireRow.Delete
                 wbExcelIzbrannoe.Save
+                
+                'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
                 FillExcel_mProizvoditel
+                frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
+                frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
+                
             End If
         End If
         UserForm_Initialize
@@ -168,7 +179,7 @@ End Sub
 
 Private Sub btnClose_Click()
     Unload Me
-    InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+'    InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
     frmDBPriceExcel.Show
 End Sub
 Private Sub UserForm_Terminate()

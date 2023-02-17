@@ -362,9 +362,9 @@ End Sub
 Sub ConvertArticulIzbrannoe()
     Dim lLastRow As Long
     Dim UserRange As Excel.Range
-    Set oExcelApp = CreateObject("Excel.Application")
+    Set oExcelAppIzbrannoe = CreateObject("Excel.Application")
     sSAPath = Visio.ActiveDocument.path
-    Set wbExcelIzbrannoe = oExcelApp.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    Set wbExcelIzbrannoe = oExcelAppIzbrannoe.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
     lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
     Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:A" & lLastRow)
     ExcelConvertToString UserRange
@@ -372,7 +372,7 @@ Sub ConvertArticulIzbrannoe()
     Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNabory).Range("A2:A" & lLastRow)
     ExcelConvertToString UserRange
     wbExcelIzbrannoe.Close savechanges:=True
-    oExcelApp.Quit
+    oExcelAppIzbrannoe.Quit
 End Sub
 
 Public Sub dl()

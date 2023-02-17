@@ -13,7 +13,7 @@ Sub run(Artikul As String, Nazvanie As String, ProizvoditelID As String)
     ClearFilter wshIzbrannoe
     ClearFilter wshNabory
     UpdateAllCmbxFilters wshIzbrannoe, frmDBAddNaborExcel, IzbrannoeSettings
-    InitCustomCCPMenu frmDBAddNaborExcel 'Контекстное меню для TextBox
+'    InitCustomCCPMenu frmDBAddNaborExcel 'Контекстное меню для TextBox
     frmDBAddNaborExcel.Show
 End Sub
 
@@ -31,6 +31,12 @@ Private Sub btnAdd_Click()
     wshIzbrannoe.Cells(lLastRow + 1, 8) = cmbxPodgruppa
     wshNabory.Range("G" & wshNabory.Cells(wshNabory.Rows.Count, 7).End(xlUp).Row + 1) = "Набор_" & txtArtikul.Value
     wbExcelIzbrannoe.Save
+    
+    'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
+    FillExcel_mProizvoditel
+    frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
+    frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
+    
     Unload Me
     frmDBAddToNaborExcel.FillCmbxNabor frmDBAddToNaborExcel.cmbxNabor
     frmDBAddToNaborExcel.Show
@@ -46,7 +52,12 @@ Private Sub CommandButton5_Click()
             Else
                 UserRange.EntireRow.Delete
                 wbExcelIzbrannoe.Save
+                
+                'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
                 FillExcel_mProizvoditel
+                frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
+                frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
+                
             End If
         End If
         UserForm_Initialize
@@ -55,7 +66,7 @@ End Sub
 
 Private Sub btnClose_Click()
     Unload Me
-    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
+'    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
     frmDBAddToNaborExcel.Show
 End Sub
 Private Sub UserForm_Terminate()

@@ -21,56 +21,54 @@ Private Const LVSCW_AUTOSIZE_USEHEADER As Long = -2
 Public glShape As Visio.Shape 'шейп из модуля DB
 Public pinLeft As Double, pinTop As Double, pinWidth As Double, pinHeight As Double 'Для сохранения вида окна перед созданием связи
 Dim mstrShpData(5) As String
+Dim FilePathName As String
+Dim bInit As Boolean
 
 'Private Sub txtNazvanie2_Change()
 '    Find_ItemsByText
 'End Sub
 
 Private Sub UserForm_Initialize() ' инициализация формы
-    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
+    If Not bInit Then
+        ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
+        
+        lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
+        lstvTablePrice.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
+        lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
+        lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
+        lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(3)
+    '    lstvTablePrice.ColumnHeaders.Add , , "    " ' SubItems(4)
+        
+        cmbxMagazin.Clear
+        cmbxMagazin.AddItem "ЭТМ"
+        cmbxMagazin.AddItem "АВС"
+        cmbxMagazin.ListIndex = 0
+        
+        cmbxProizvoditel.style = fmStyleDropDownList
+        cmbxKategoriya.style = fmStyleDropDownList
+        cmbxGruppa.style = fmStyleDropDownList
+        cmbxPodgruppa.style = fmStyleDropDownList
+        cmbxMagazin.style = fmStyleDropDownList
     
-    lstvTablePrice.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
-    lstvTablePrice.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
-    lstvTablePrice.ColumnHeaders.Add , , "Название" ' SubItems(1)
-    lstvTablePrice.ColumnHeaders.Add , , "Цена", , lvwColumnRight ' SubItems(2)
-    lstvTablePrice.ColumnHeaders.Add , , "Ед." ' SubItems(3)
-'    lstvTablePrice.ColumnHeaders.Add , , "    " ' SubItems(4)
-    
-    cmbxMagazin.Clear
-    cmbxMagazin.AddItem "ЭТМ"
-    cmbxMagazin.AddItem "АВС"
-    cmbxMagazin.ListIndex = 0
-    
-    cmbxProizvoditel.style = fmStyleDropDownList
-    cmbxKategoriya.style = fmStyleDropDownList
-    cmbxGruppa.style = fmStyleDropDownList
-    cmbxPodgruppa.style = fmStyleDropDownList
-    cmbxMagazin.style = fmStyleDropDownList
-
-    frameTab.Top = frameFilters.Top + frameFilters.Height
-    Me.Height = frameTab.Top + frameTab.Height + 36
-    lblResult.Top = Me.Height - 35
-    
-    tbtnFiltr.Caption = ChrW(9650)
-    tbtnBD = True
-    SA_nRows = Visio.ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Result(0)
-    
-'    Set oPriceRecordSet = CreateObject("ADODB.Recordset")
-'    Set oPriceConn = CreateObject("ADODB.Connection")
-
-    InitExcelDB
-    FillExcel_mProizvoditel
-    FillExcel_cmbxProizvoditel cmbxProizvoditel, True
-
-    Load frmDBIzbrannoeExcel
-
+        frameTab.Top = frameFilters.Top + frameFilters.Height
+        Me.Height = frameTab.Top + frameTab.Height + 36
+        lblResult.Top = Me.Height - 35
+        
+        tbtnFiltr.Caption = ChrW(9650)
+        tbtnBD = True
+        SA_nRows = Visio.ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Result(0)
+        bInit = True
+    End If
+    InitCustomCCPMenu Me 'Контекстное меню для TextBox
 End Sub
 
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
-    InitCustomCCPMenu Me 'Контекстное меню для TextBox
-
+'    InitCustomCCPMenu Me 'Контекстное меню для TextBox
+    InitIzbrannoeExcelDB
+    FillExcel_cmbxProizvoditel cmbxProizvoditel, True
+    
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBPriceExcel
     ArtikulDB = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
     If ArtikulDB <> "" Then
@@ -78,27 +76,31 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
         For i = 0 To cmbxProizvoditel.ListCount - 1
             If cmbxProizvoditel.List(i, 0) = glShape.Cells("Prop.ProizvoditelDB").ResultStr(0) Then cmbxProizvoditel.ListIndex = i
         Next
-        SetVarProizvoditelPrice
+        
         If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
+            SetVarProizvoditelPrice
             txtArtikul.Value = ArtikulDB
             tbtnFiltr.Value = False
             Find_ItemsByText
             txtArtikul.Value = ""
             bBlock = False
-            InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+'            InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
             frmDBPriceExcel.Show
         Else
             bBlock = True
+            Load frmDBIzbrannoeExcel
             frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
             frmDBIzbrannoeExcel.tbtnFiltr.Value = False
             frmDBIzbrannoeExcel.Find_ItemsByText
             frmDBIzbrannoeExcel.txtArtikul.Value = ""
             bBlock = False
-            InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
+'            InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
             frmDBIzbrannoeExcel.Show
         End If
     Else
-        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+'        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
+        ExcelAppQuit oExcelAppIzbrannoe
+        KillSAExcelProcess
         frmDBPriceExcel.Show
     End If
 End Sub
@@ -106,8 +108,7 @@ End Sub
 Sub SetVarProizvoditelPrice()
     Dim UserRange As Excel.Range
     Dim wshTemp As Excel.Worksheet
-    Dim FilePathName As String
-    Dim mStr() As String
+'    Dim mStr() As String
     
     For i = 0 To UBound(mProizvoditel)
         If cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) = mProizvoditel(i).Proizvoditel Then
@@ -117,28 +118,31 @@ Sub SetVarProizvoditelPrice()
                 Else
                     FilePathName = sSAPath & mProizvoditel(i).FileName 'относительный
                 End If
-                mStr = Split(FilePathName, "\")
-                On Error Resume Next
-'                wbExcelPrice.Close savechanges:=False
-'                Set wbExcelPrice = Nothing
-                Set wbExcelPrice = oExcelApp.Workbooks(mStr(UBound(mStr)))
-                If err > 0 Then
-                    Set wbExcelPrice = oExcelApp.Workbooks.Open(FilePathName)
-                End If
-                err.Clear
-                On Error GoTo 0
-                Set wshTemp = GetSheetExcel(wbExcelPrice, ExcelTemp)
-                wshTemp.Cells.ClearContents
-                Set wshPrice = wbExcelPrice.Worksheets(mProizvoditel(i).NameListExcel)
+'                mStr = Split(FilePathName, "\")
                 Set PriceSettings = mProizvoditel(i)
-                Set RangePrice = wshPrice.AutoFilter.Range
-                ClearFilter wshPrice
-                ADODB_Excel_Connect oPriceConn, mProizvoditel(i).FileName
+                ExcelAppQuit oExcelAppPrice
+                KillSAExcelProcess
+                
+                SetVarPrice
+                
                 Exit For
             End If
         End If
     Next
     Set wshTemp = Nothing
+End Sub
+
+Sub SetVarPrice()
+    Set oExcelAppPrice = CreateObject("Excel.Application")
+    oExcelAppPrice.WindowState = xlMinimized
+    oExcelAppPrice.Visible = True
+    Set wbExcelPrice = oExcelAppPrice.Workbooks.Open(FilePathName)
+    Set wshTemp = GetSheetExcel(wbExcelPrice, ExcelTemp)
+    wshTemp.Cells.ClearContents
+    Set wshPrice = Nothing
+    Set wshPrice = wbExcelPrice.Worksheets(PriceSettings.NameListExcel)
+    wshPrice.Range("A1").AutoFilter Field:=1
+    Set RangePrice = wshPrice.AutoFilter.Range
 End Sub
 
 Private Sub cmbxProizvoditel_Change()
@@ -157,7 +161,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     'ФИЛЬТРАЦИЯ
     RuleFilterCmbx wshPrice, RangePrice, Me, PriceSettings, Ncmbx
     lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oPriceRecordSet, oPriceConn, wshPrice, lstvTablePrice, PriceSettings)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelPrice.name, wshPrice, lstvTablePrice, PriceSettings)
     lstvTablePrice.Visible = True
     ReSize
 
@@ -182,7 +186,8 @@ Sub Find_ItemsByText(Optional UserPress As Boolean)
     End If
     
     lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(oPriceRecordSet, oPriceConn, wshPrice, lstvTablePrice, PriceSettings)
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelPrice.name, wshPrice, lstvTablePrice, PriceSettings)
+    
     lstvTablePrice.Visible = True
     
 '    bBlock = UserPress
@@ -379,7 +384,7 @@ Private Sub tbtnFav_Click()
         bBlock = False
         Me.Hide
         frmDBIzbrannoeExcel.Find_ItemsByText
-        InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
+'        InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
         frmDBIzbrannoeExcel.Show
     End If
 End Sub
@@ -410,9 +415,9 @@ End Sub
 
 Sub btnClose_Click() ' выгрузка формы
     Unload frmDBIzbrannoeExcel
-    If oPriceRecordSet.State = adStateOpen Then oPriceRecordSet.Close
-    oPriceConn.Close
-    ExcelAppExit
+    ExcelAppQuit oExcelAppPrice
+    ExcelAppQuit oExcelAppIzbrannoe
+    KillSAExcelProcess
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me
