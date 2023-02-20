@@ -113,7 +113,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     Dim fltrGruppa As String
     Dim fltrPodgruppa As String
     Dim fltrMode As Integer
-    Dim fltrWHERE As String
+    Dim fltrWhere As String
     Dim DBName As String
 
     If cmbxKategoriya.ListIndex = -1 Then
@@ -147,23 +147,23 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     
     Select Case fltrMode
         Case 0
-            fltrWHERE = ""
+            fltrWhere = ""
         Case 1
-            fltrWHERE = " WHERE " & fltrPodgruppa
+            fltrWhere = " WHERE " & fltrPodgruppa
         Case 2
-            fltrWHERE = " WHERE " & fltrGruppa
+            fltrWhere = " WHERE " & fltrGruppa
         Case 3
-            fltrWHERE = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa
+            fltrWhere = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa
         Case 4
-            fltrWHERE = " WHERE " & fltrKategoriya
+            fltrWhere = " WHERE " & fltrKategoriya
         Case 5
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa
         Case 6
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa
         Case 7
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa
         Case Else
-            fltrWHERE = ""
+            fltrWhere = ""
             fltrKategoriya = ""
             fltrGruppa = ""
             fltrPodgruppa = ""
@@ -173,7 +173,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
     Select Case Ncmbx
         Case 1
-            fltrWHERE = " WHERE " & fltrKategoriya
+            fltrWhere = " WHERE " & fltrKategoriya
             fltrGruppa = ""
             fltrPodgruppa = ""
             bBlock = True
@@ -181,7 +181,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
             cmbxPodgruppa.Clear
             bBlock = False
         Case 2
-            fltrWHERE = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa)
+            fltrWhere = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa)
             fltrPodgruppa = ""
             bBlock = True
             cmbxPodgruppa.Clear
@@ -189,7 +189,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
         Case 3
             'Работают варианты 1,3,5,7 из ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА
         Case Else
-            fltrWHERE = ""
+            fltrWhere = ""
             fltrKategoriya = ""
             fltrGruppa = ""
             fltrPodgruppa = ""
@@ -198,7 +198,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 
 
     SQLQuery = "SELECT Прайс.КодПозиции, Прайс.Артикул, Прайс.Название, Прайс.Цена, Прайс.КатегорииКод, Прайс.ГруппыКод, Прайс.ПодгруппыКод, Прайс.ПроизводительКод, Прайс.ЕдиницыКод, Единицы.Единица " & _
-                "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & fltrWHERE & ";"
+                "FROM Единицы INNER JOIN Прайс ON Единицы.КодЕдиницы = Прайс.ЕдиницыКод " & fltrWhere & ";"
                 
     DBName = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 1)
     

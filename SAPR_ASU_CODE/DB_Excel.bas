@@ -31,7 +31,11 @@ Public MinColumn As Double
 Public RangePrice As Excel.Range
 Public SA_nRows As Double
 Public bBlock As Boolean
+Public bCallUpdatecmbxKategoriya As Boolean
+Public bCallUpdatecmbxGruppa As Boolean
+Public bCallUpdatecmbxPodgruppa As Boolean
 Public colProcessHandle As Collection
+Public sLastSQLQuery As String
 
 #If VBA7 Then
     Public Declare PtrSafe Function URLDownloadToFile Lib "urlmon" Alias "URLDownloadToFileA" (ByVal pCaller As Long, ByVal szURL As String, ByVal szFileName As String, ByVal dwReserved As Long, ByVal lpfnCB As Long) As Long
@@ -43,7 +47,6 @@ Public colProcessHandle As Collection
 Public Sub AddDBFrm(vsoShape As Visio.Shape) 'Получили шейп с листа
     Set colProcessHandle = New Collection
     GetAllExcelProcess
-    sSAPath = Visio.ActiveDocument.path
 '    Load frmDBPriceAccess
 '    frmDBPriceAccess.run vsoShape 'Передали его в форму
     Load frmDBPriceExcel
@@ -61,9 +64,10 @@ Sub InitIzbrannoeExcelDB()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : InitIzbrannoeExcelDB - Инициализирует переменные для доступа к Excel на форме избранного
 '------------------------------------------------------------------------------------------------------------
+    sSAPath = Visio.ActiveDocument.path
     Set oExcelAppIzbrannoe = CreateObject("Excel.Application")
-    oExcelAppIzbrannoe.WindowState = xlMinimized
-    oExcelAppIzbrannoe.Visible = True
+'    oExcelAppIzbrannoe.WindowState = xlMinimized
+'    oExcelAppIzbrannoe.Visible = True
     Set wbExcelIzbrannoe = oExcelAppIzbrannoe.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
     Set wshIzbrannoe = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe)
     Set wshNabory = wbExcelIzbrannoe.Worksheets(ExcelNabory)
@@ -95,15 +99,15 @@ Sub FillExcel_mProizvoditel()
     For i = 1 To lLastRow - 1
         Set mProizvoditel(i - 1) = New classProizvoditelBD
         mProizvoditel(i - 1).Proizvoditel = UserRange.Cells(i, 1)
-        mProizvoditel(i - 1).FileName = UserRange.Cells(i, 2)
+        mProizvoditel(i - 1).FileName = IIf(UserRange.Cells(i, 2) Like "*:*", UserRange.Cells(i, 2), IIf(UserRange.Cells(i, 2) = "", "", sSAPath & UserRange.Cells(i, 2)))
         mProizvoditel(i - 1).NameListExcel = UserRange.Cells(i, 3)
-        mProizvoditel(i - 1).StolbArtikul = UserRange.Cells(i, 4)
-        mProizvoditel(i - 1).StolbNazvanie = UserRange.Cells(i, 5)
-        mProizvoditel(i - 1).StolbCena = UserRange.Cells(i, 6)
-        mProizvoditel(i - 1).StolbEd = UserRange.Cells(i, 7)
-        mProizvoditel(i - 1).StolbKategoriya = UserRange.Cells(i, 8)
-        mProizvoditel(i - 1).StolbGruppa = UserRange.Cells(i, 9)
-        mProizvoditel(i - 1).StolbPodgruppa = UserRange.Cells(i, 10)
+'        mProizvoditel(i - 1).StolbArtikul = UserRange.Cells(i, 4)
+'        mProizvoditel(i - 1).StolbNazvanie = UserRange.Cells(i, 5)
+'        mProizvoditel(i - 1).StolbCena = UserRange.Cells(i, 6)
+'        mProizvoditel(i - 1).StolbEd = UserRange.Cells(i, 7)
+        mProizvoditel(i - 1).StolbKategoriya = 5 'UserRange.Cells(i, 8)
+        mProizvoditel(i - 1).StolbGruppa = 6 'UserRange.Cells(i, 9)
+        mProizvoditel(i - 1).StolbPodgruppa = 7 'UserRange.Cells(i, 10)
     Next
 End Sub
 
@@ -125,7 +129,7 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     Dim UserRange As Excel.Range
     Dim FindRange As Excel.Range
 
-    InitExcelDB
+    InitIzbrannoeExcelDB
   
     'Проверяем, что такого производителя нет в списке
     lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
@@ -175,13 +179,13 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     mVendorData(2) = Excel_imya_lista 'ИмяЛиста
     
     '0-6
-    sDialogString = "Выберите ячейку в столбце ""Артикул""." & vbCrLf & "Будет выполнено преобразование Артикула в текст;" & _
-                    "Выберите ячейку в столбце ""Название"";" & _
-                    "Выберите ячейку в столбце ""Цена"";" & _
-                    "Выберите ячейку в столбце ""Единица"";" & _
-                    "Выберите ячейку в столбце ""Категория"";" & _
-                    "Выберите ячейку в столбце ""Группа"";" & _
-                    "Выберите ячейку в столбце ""Подгруппа"""
+    sDialogString = "Выберите ячейку в столбце ""Артикул""." & vbCrLf & "Будет выполнено преобразование Артикула в текст;" ' & _
+'                    "Выберите ячейку в столбце ""Название"";" & _
+'                    "Выберите ячейку в столбце ""Цена"";" & _
+'                    "Выберите ячейку в столбце ""Единица"";" & _
+'                    "Выберите ячейку в столбце ""Категория"";" & _
+'                    "Выберите ячейку в столбце ""Группа"";" & _
+'                    "Выберите ячейку в столбце ""Подгруппа"""
 
     mDialogString = Split(sDialogString, ";")
 
@@ -205,10 +209,14 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
                 If MsgBox("Преобразовать ""Артикул"" к типу ТЕКСТ?" & vbCrLf & vbCrLf & "Если ""Артикул"" в Excel сохранён как ЧИСЛО то возможны проблемы с поиском" & vbCrLf & vbCrLf & "Дождитесь окончания процесса...", vbYesNo + vbInformation, "САПР-АСУ: Преобразовать в ТЕКСТ?") = vbYes Then
                     wshPrice.Range("A1").AutoFilter Field:=1
                     ExcelConvertToString wshPrice.Range(wshPrice.AutoFilter.Range.Columns(UserRange.Column).Address) 'напрямую передаваяя Columns не работало...
+'                Else
+'                    oExcelAppPrice.Quit
+'                    Exit Sub
                 End If
                 oExcelAppPrice.ScreenUpdating = True
                 oExcelAppPrice.WindowState = xlMaximized
             End If
+            Exit For
         Else 'выбран диапазон
             oExcelAppPrice.WindowState = xlMinimized
             MsgBox "Был выбран диапазон ячеек!" & vbCrLf & vbCrLf & "Необходимо выбрать одну ячейку", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
@@ -223,9 +231,12 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     
     wshNastrojkiPrajsov.Activate
     lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
-    For i = 1 To 10
+    For i = 1 To 3
         wshNastrojkiPrajsov.Cells(lLastRow + 1, i) = mVendorData(i - 1)
     Next
+    wshNastrojkiPrajsov.Cells(lLastRow + 1, 8) = 5 'СтолбецКатегория
+    wshNastrojkiPrajsov.Cells(lLastRow + 1, 9) = 6 'СтолбецГруппа
+    wshNastrojkiPrajsov.Cells(lLastRow + 1, 10) = 7 'СтолбецПодгруппа
     oExcelAppIzbrannoe.Visible = True
     wbExcelIzbrannoe.Save
     Exit Sub
@@ -235,7 +246,7 @@ err1:
 End Sub
 
 'Заполняет lstvTable данными из БД в виде Excel через ADODB
- Function Fill_lstvTable(FileName As String, wshWorkSheet As Excel.Worksheet, lstvTable As ListView, PoizvoditelSettings As classProizvoditelBD, Optional ByVal TableType As Integer = 0) As String
+ Function Fill_lstvTable(FileName As String, wshWorkSheet As Excel.Worksheet, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As String
     'TableType=1 - Избранное
     'TableType=2 - Набор
     Dim oConn As ADODB.Connection
@@ -271,10 +282,10 @@ End Sub
         If .EOF Then .Close: Exit Function
         Do Until .EOF
             If i < SA_nRows Then
-                Set itmx = lstvTable.ListItems.Add(, , IIf(IsNull(.Fields(PoizvoditelSettings.StolbArtikul - 1).Value), "", .Fields(PoizvoditelSettings.StolbArtikul - 1).Value)) 'Артикул
-                itmx.SubItems(1) = IIf(IsNull(.Fields(PoizvoditelSettings.StolbNazvanie - 1).Value), "", .Fields(PoizvoditelSettings.StolbNazvanie - 1).Value) 'Название
-                itmx.SubItems(2) = IIf(IsNull(.Fields(PoizvoditelSettings.StolbCena - 1).Value), "", .Fields(PoizvoditelSettings.StolbCena - 1).Value) 'Цена
-                itmx.SubItems(3) = IIf(IsNull(.Fields(PoizvoditelSettings.StolbEd - 1).Value), "", .Fields(PoizvoditelSettings.StolbEd - 1).Value) 'Единица
+                Set itmx = lstvTable.ListItems.Add(, , IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value)) 'Артикул
+                itmx.SubItems(1) = IIf(IsNull(.Fields(2 - 1).Value), "", .Fields(2 - 1).Value) 'Название
+                itmx.SubItems(2) = IIf(IsNull(.Fields(3 - 1).Value), "", .Fields(3 - 1).Value) 'Цена
+                itmx.SubItems(3) = IIf(IsNull(.Fields(4 - 1).Value), "", .Fields(4 - 1).Value) 'Единица
                 If TableType = 1 Then
                     itmx.SubItems(4) = IIf(IsNull(.Fields(5 - 1).Value), "", .Fields(5 - 1).Value) 'Производитель
                 ElseIf TableType = 2 Then
@@ -284,7 +295,7 @@ End Sub
         
                 'красим наборы
                 If TableType = 1 Then
-                    If IIf(IsNull(.Fields(PoizvoditelSettings.StolbArtikul - 1).Value), "", .Fields(PoizvoditelSettings.StolbArtikul - 1).Value) Like "Набор_*" Then
+                    If IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value) Like "Набор_*" Then
                         itmx.ForeColor = NaboryColor
                        'itmx.Bold = True
                         For j = 1 To itmx.ListSubItems.Count
@@ -545,3 +556,93 @@ Sub KillSAExcelProcess()
         End If
     Next
 End Sub
+
+
+'
+
+'Получаем Recordset по запросу
+'Public Function GetRecordSet_ADODB_Excel(XlsFileName As String, SQLQuery As String) As ADODB.Recordset
+'    Dim oConn As New ADODB.Connection
+'    Dim oRecordSet As New ADODB.Recordset
+'    oConn.Mode = adModeReadWrite
+'    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
+'    oRecordSet.CursorType = adOpenStatic
+'    oRecordSet.Open SQLQuery, oConn
+'    Set GetRecordSet_ADODB_Excel = oRecordSet
+'    oRecordSet.Close
+'    oConn.Close
+'    Set oRecordSet = Nothing
+'    Set oConn = Nothing
+'End Function
+
+
+
+
+'Заполняет lstvTable данными из БД в виде Excel через ADODB
+ Function Fill_lstvTable_ADO(XlsFileName As String, SQLQuery As String, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As String
+    'TableType=1 - Избранное
+    'TableType=2 - Набор
+    Dim oConn As New ADODB.Connection
+    Dim oRecordSet As New ADODB.Recordset
+    Dim wshTemp As Excel.Worksheet
+    Dim itmx As ListItem
+    Dim i As Double
+    Dim j As Double
+    
+    
+    oConn.Mode = adModeReadWrite
+    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
+    oRecordSet.CursorType = adOpenStatic
+    oRecordSet.Open SQLQuery, oConn
+    sLastSQLQuery = Replace(SQLQuery, ";", "")
+    lstvTable.ListItems.Clear
+    With oRecordSet
+        If .RecordCount > 0 Then
+            If .EOF Then .Close: Exit Function
+            Do Until .EOF
+                If i < SA_nRows Then
+                    Set itmx = lstvTable.ListItems.Add(, , IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value)) 'Артикул
+                    itmx.SubItems(1) = IIf(IsNull(.Fields(2 - 1).Value), "", .Fields(2 - 1).Value) 'Название
+                    itmx.SubItems(2) = IIf(IsNull(.Fields(3 - 1).Value), "", .Fields(3 - 1).Value) 'Цена
+                    itmx.SubItems(3) = IIf(IsNull(.Fields(4 - 1).Value), "", .Fields(4 - 1).Value) 'Единица
+                    If TableType = 1 Then
+                        itmx.SubItems(4) = IIf(IsNull(.Fields(5 - 1).Value), "", .Fields(5 - 1).Value) 'Производитель
+                    ElseIf TableType = 2 Then
+                        itmx.SubItems(4) = IIf(IsNull(.Fields(5 - 1).Value), "", .Fields(5 - 1).Value) 'Производитель
+                        itmx.SubItems(5) = IIf(IsNull(.Fields(6 - 1).Value), "", .Fields(6 - 1).Value) 'Количество
+                    End If
+            
+                    'красим наборы
+                    If TableType = 1 Then
+                        If IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value) Like "Набор_*" Then
+                            itmx.ForeColor = NaboryColor
+                           'itmx.Bold = True
+                            For j = 1 To itmx.ListSubItems.Count
+                               'itmx.ListSubItems(j).Bold = True
+                                itmx.ListSubItems(j).ForeColor = NaboryColor
+                            Next
+                        End If
+                    End If
+                End If
+                i = i + 1
+                .MoveNext
+            Loop
+        End If
+    End With
+    Fill_lstvTable_ADO = IIf(TableType = 2, i, IIf(i <= SA_nRows, i, i & ".  Показано: " & SA_nRows))
+    
+'    Set wshTemp = GetSheetExcel(wbExcelPrice, ExcelTemp)
+'    wshTemp.Cells.ClearContents
+'    oRecordSet.MoveFirst
+'    wshTemp.Range("A2").CopyFromRecordset oRecordSet
+'    wbExcelPrice.Parent.Parent.Visible = True
+'    For i = 0 To oRecordSet.Fields.Count - 1
+'        wshTemp.Cells(1, i + 1) = oRecordSet.Fields(i).name
+'    Next
+'    ExcelAppQuit oExcelAppPrice
+    Set wshTemp = Nothing
+    oRecordSet.Close
+    oConn.Close
+    Set oRecordSet = Nothing
+    Set oConn = Nothing
+End Function

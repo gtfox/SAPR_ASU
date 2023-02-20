@@ -88,7 +88,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     Dim fltrPodgruppa As String
     Dim fltrProizvoditel As String
     Dim fltrMode As Integer
-    Dim fltrWHERE As String
+    Dim fltrWhere As String
     Dim DBName As String
 
     If cmbxKategoriya.ListIndex = -1 Then
@@ -129,26 +129,26 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
     Select Case fltrMode
         Case 0
             If cmbxProizvoditel.ListIndex = -1 Then
-                fltrWHERE = ""
+                fltrWhere = ""
             Else
-                fltrWHERE = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " WHERE Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
+                fltrWhere = "" & IIf(cmbxProizvoditel.ListIndex = -1, "", " WHERE Производители.Производитель=" & """" & cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) & """")
             End If
         Case 1
-            fltrWHERE = " WHERE " & fltrPodgruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrPodgruppa & fltrProizvoditel
         Case 2
-            fltrWHERE = " WHERE " & fltrGruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrGruppa & fltrProizvoditel
         Case 3
-            fltrWHERE = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
         Case 4
-            fltrWHERE = " WHERE " & fltrKategoriya & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrKategoriya & fltrProizvoditel
         Case 5
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa & fltrProizvoditel
         Case 6
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & fltrProizvoditel
         Case 7
-            fltrWHERE = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa & fltrProizvoditel
         Case Else
-            fltrWHERE = ""
+            fltrWhere = ""
             fltrKategoriya = ""
             fltrGruppa = ""
             fltrPodgruppa = ""
@@ -158,7 +158,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 '-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
     Select Case Ncmbx
         Case 1
-            fltrWHERE = " WHERE " & fltrKategoriya & fltrProizvoditel
+            fltrWhere = " WHERE " & fltrKategoriya & fltrProizvoditel
             fltrGruppa = ""
             fltrPodgruppa = ""
             bBlock = True
@@ -166,7 +166,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
             cmbxPodgruppa.Clear
             bBlock = False
         Case 2
-            fltrWHERE = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa) & fltrProizvoditel
+            fltrWhere = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa) & fltrProizvoditel
             fltrPodgruppa = ""
             bBlock = True
             cmbxPodgruppa.Clear
@@ -174,7 +174,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
         Case 3
             'Работают варианты 1,3,5,7 из ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА
         Case Else
-            fltrWHERE = ""
+            fltrWhere = ""
             fltrKategoriya = ""
             fltrGruppa = ""
             fltrPodgruppa = ""
@@ -183,7 +183,7 @@ Private Sub Filter_CmbxChange(Ncmbx As Integer)
 
 
         SQLQuery = "SELECT Избранное.КодПозиции, Избранное.Артикул, Избранное.Название, Избранное.Цена, Избранное.КатегорииКод, Избранное.ГруппыКод, Избранное.ПодгруппыКод, Избранное.ПроизводительКод, Производители.Производитель, Избранное.ЕдиницыКод, Единицы.Единица " & _
-                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWHERE & ";"
+                   "FROM Единицы INNER JOIN (Производители INNER JOIN Избранное ON Производители.КодПроизводителя = Избранное.ПроизводительКод) ON Единицы.КодЕдиницы = Избранное.ЕдиницыКод " & fltrWhere & ";"
                 
     DBName = DBNameIzbrannoeAccess
     
