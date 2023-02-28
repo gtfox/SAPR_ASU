@@ -24,10 +24,6 @@ Dim mstrShpData(5) As String
 Dim FilePathName As String
 Dim bInit As Boolean
 
-'Private Sub txtNazvanie2_Change()
-'    Find_ItemsByText_ADO
-'End Sub
-
 Private Sub UserForm_Initialize() ' инициализация формы
     If Not bInit Then
         ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
@@ -65,7 +61,6 @@ End Sub
 Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
-'    InitCustomCCPMenu Me 'Контекстное меню для TextBox
     InitIzbrannoeExcelDB
     FillExcel_cmbxProizvoditel cmbxProizvoditel, True
     
@@ -76,29 +71,26 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
         For i = 0 To cmbxProizvoditel.ListCount - 1
             If cmbxProizvoditel.List(i, 0) = glShape.Cells("Prop.ProizvoditelDB").ResultStr(0) Then cmbxProizvoditel.ListIndex = i
         Next
-        
         If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
             SetVarProizvoditelPrice
             txtArtikul.Value = ArtikulDB
             tbtnFiltr.Value = False
-            Find_ItemsByText_ADO PriceSettings
+            Find_ItemsByText_ADO
             txtArtikul.Value = ""
             bBlock = False
-'            InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
             frmDBPriceExcel.Show
         Else
             bBlock = True
+            cmbxProizvoditel.ListIndex = -1
             Load frmDBIzbrannoeExcel
             frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
-            frmDBIzbrannoeExcel.tbtnFiltr.Value = False
-'            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
+'            frmDBIzbrannoeExcel.tbtnFiltr.Value = False
+            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
             frmDBIzbrannoeExcel.txtArtikul.Value = ""
             bBlock = False
-'            InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
             frmDBIzbrannoeExcel.Show
         End If
     Else
-'        InitCustomCCPMenu frmDBPriceExcel 'Контекстное меню для TextBox
         ExcelAppQuit oExcelAppIzbrannoe
         KillSAExcelProcess
         frmDBPriceExcel.Show
@@ -112,28 +104,22 @@ Private Sub cmbxProizvoditel_Change()
         'закрыть прайс
         ExcelAppQuit oExcelAppPrice
         KillSAExcelProcess
-        Reset_FiltersCmbx_ADO PriceSettings
+        Reset_FiltersCmbx_ADO
         lstvTablePrice.ListItems.Clear
-'        Find_ItemsByText_ADO
     End If
 End Sub
 
 Sub SetVarProizvoditelPrice()
     Dim UserRange As Excel.Range
     Dim wshTemp As Excel.Worksheet
-'    Dim mStr() As String
     
     For i = 0 To UBound(mProizvoditel)
         If cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) = mProizvoditel(i).Proizvoditel Then
             If mProizvoditel(i).FileName <> "" Then 'пустое имя файла - пропускаем
-
-'                mStr = Split(FilePathName, "\")
                 Set PriceSettings = mProizvoditel(i)
                 ExcelAppQuit oExcelAppPrice
                 KillSAExcelProcess
-                
                 SetVarPrice
-                
                 Exit For
             End If
         End If
@@ -154,51 +140,236 @@ Sub SetVarPrice()
     Set RangePrice = wshPrice.AutoFilter.Range
 End Sub
 
-
-
-Private Sub Filter_CmbxChange(Ncmbx As Integer)
-    Dim fltrMode As Integer
-
-    'ФИЛЬТРАЦИЯ
-    RuleFilterCmbx wshPrice, RangePrice, Me, PriceSettings, Ncmbx
-    lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelPrice.name, wshPrice, lstvTablePrice, PriceSettings)
-    lstvTablePrice.Visible = True
-    ReSize
-
+Sub Reset_FiltersCmbx_ADO()
+    Dim SQLQuery As String
+    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
+    bBlock = True
+    SQLQuery = "SELECT DISTINCT Категория FROM [" & PriceSettings.NameListExcel & "$];"
+    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxKategoriya
+    SQLQuery = "SELECT DISTINCT Группа FROM [" & PriceSettings.NameListExcel & "$];"
+    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxGruppa
+    SQLQuery = "SELECT DISTINCT Подгруппа FROM [" & PriceSettings.NameListExcel & "$];"
+    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxPodgruppa
+    bBlock = False
+    lstvTablePrice.ListItems.Clear
+    lblResult.Caption = "Найдено записей: 0"
 End Sub
 
-'Полнотекстовый поиск
-Sub Find_ItemsByText(Optional UserPress As Boolean)
-    Dim RangeToFilter As Excel.Range
+ Sub Filter_CmbxChange_ADO(Ncmbx As Integer)
+    Dim SQLQuery As String
+    Dim fltrWhere As String
+    Dim fltrKategoriya As String
+    Dim fltrGruppa As String
+    Dim fltrPodgruppa As String
+    Dim fltrMode As Integer
+
+    If cmbxKategoriya.ListIndex = -1 Then
+        fltrKategoriya = ""
+    Else
+        fltrKategoriya = "Категория='" & cmbxKategoriya & "'"
+    End If
+    If cmbxGruppa.ListIndex = -1 Then
+        fltrGruppa = ""
+    Else
+        fltrGruppa = "Группа='" & cmbxGruppa & "'"
+    End If
+    If cmbxPodgruppa.ListIndex = -1 Then
+        fltrPodgruppa = ""
+    Else
+        fltrPodgruppa = "Подгруппа='" & cmbxPodgruppa & "'"
+    End If
     
-    Set RangeToFilter = RangePrice
+    fltrMode = IIf(fltrKategoriya = "", 0, 4) + IIf(fltrGruppa = "", 0, 2) + IIf(fltrPodgruppa = "", 0, 1)
+    
+'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
+    '*    К   Гр  Пг
+    '0    0   0   0
+    '1    0   0   1
+    '2    0   1   0
+    '3    0   1   1
+    '4    1   0   0
+    '5    1   0   1
+    '6    1   1   0
+    '7    1   1   1
+    
+    Select Case fltrMode
+        Case 0
+            fltrWhere = ""
+        Case 1
+            fltrWhere = " WHERE " & fltrPodgruppa
+            bCallUpdatecmbxKategoriya = True
+            bCallUpdatecmbxGruppa = True
+        Case 2
+            fltrWhere = " WHERE " & fltrGruppa
+        Case 3
+            fltrWhere = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa
+            bCallUpdatecmbxKategoriya = True
+        Case 4
+            fltrWhere = " WHERE " & fltrKategoriya
+        Case 5
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa
+            bCallUpdatecmbxGruppa = True
+        Case 6
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa
+        Case 7
+            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa
+        Case Else
+            fltrWhere = ""
+            fltrKategoriya = ""
+            fltrGruppa = ""
+            fltrPodgruppa = ""
+    End Select
+'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
+
+'-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
+    Select Case Ncmbx
+        Case 1
+            fltrWhere = " WHERE " & fltrKategoriya
+            fltrGruppa = ""
+            fltrPodgruppa = ""
+            bBlock = True
+            cmbxGruppa.Clear
+            cmbxPodgruppa.Clear
+            bBlock = False
+            bCallUpdatecmbxGruppa = True
+            bCallUpdatecmbxPodgruppa = True
+        Case 2
+            fltrWhere = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa)
+            fltrPodgruppa = ""
+            bBlock = True
+            cmbxPodgruppa.Clear
+            bBlock = False
+            bCallUpdatecmbxPodgruppa = True
+        Case 3
+            'Работают варианты 1,3,5,7 из ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА
+        Case Else
+            fltrWhere = ""
+            fltrKategoriya = ""
+            fltrGruppa = ""
+            fltrPodgruppa = ""
+    End Select
+'-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
+    SQLQuery = "SELECT * FROM [" & PriceSettings.NameListExcel & "$] " & fltrWhere & ";"
+    lstvTablePrice.Visible = False
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_ADO(PriceSettings.FileName, SQLQuery, lstvTablePrice)
+    lstvTablePrice.Visible = True
+    Fill_FiltersByResultSQLQuery_ADO
+    ReSize
+End Sub
+
+Sub Find_ItemsByText_ADO()
+    Dim SQLQuery As String
+    Dim findMode As Integer
+    Dim findWhat As String
+    Dim fltrWhere As String
+    Dim findArtikul As String
+    Dim findNazvanie As String
+    
+    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
     
     If txtArtikul.Value = "" Then
-        RangeToFilter.AutoFilter Field:=PriceSettings.StolbArtikul
+        findArtikul = ""
     Else
-        RangeToFilter.AutoFilter Field:=PriceSettings.StolbArtikul, Criteria1:="=*" & txtArtikul.Value & "*"
+        findArtikul = "Артикул LIKE '%" & txtArtikul.Value & "%'"
     End If
     
     If txtNazvanie2.Value = "" Then
-        RangeToFilter.AutoFilter Field:=PriceSettings.StolbNazvanie
+        findNazvanie = ""
     Else
-        RangeToFilter.AutoFilter Field:=PriceSettings.StolbNazvanie, Criteria1:="=*" & Replace(txtNazvanie2.Value, " ", "*") & "*"
+        findNazvanie = "Название LIKE '%" & Replace(txtNazvanie2.Value, " ", "%") & "%'"
     End If
     
+    findMode = IIf(findArtikul = "", 0, 2) + IIf(findNazvanie = "", 0, 1)
+
+    '*   Арт Наз
+    '0   0   0
+    '1   0   1
+    '2   1   0
+    '3   1   1
+
+    Select Case findMode
+        Case 0
+            findWhat = ""
+        Case 1
+            findWhat = " WHERE " & findNazvanie
+        Case 2
+            findWhat = " WHERE " & findArtikul
+        Case 3
+            findWhat = " WHERE " & findArtikul & " AND " & findNazvanie
+        Case Else
+            findWhat = ""
+    End Select
+    
+    '---ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)---
+    
+    If cmbxKategoriya.ListIndex = -1 Then
+        fltrKategoriya = ""
+    Else
+        fltrKategoriya = "Категория='" & cmbxKategoriya & "'"
+    End If
+    If cmbxGruppa.ListIndex = -1 Then
+        fltrGruppa = ""
+    Else
+        fltrGruppa = "Группа='" & cmbxGruppa & "'"
+    End If
+    If cmbxPodgruppa.ListIndex = -1 Then
+        fltrPodgruppa = ""
+    Else
+        fltrPodgruppa = "Подгруппа='" & cmbxPodgruppa & "'"
+    End If
+    
+    fltrWhere = IIf(fltrKategoriya = "", "", " AND " & fltrKategoriya) & _
+                IIf(fltrGruppa = "", "", " AND " & fltrGruppa) & _
+                IIf(fltrPodgruppa = "", "", " AND " & fltrPodgruppa)
+    SQLQuery = "SELECT * FROM [" & PriceSettings.NameListExcel & "$] " & findWhat & fltrWhere & ";"
     lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable(wbExcelPrice.name, wshPrice, lstvTablePrice, PriceSettings)
-    
+    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_ADO(PriceSettings.FileName, SQLQuery, lstvTablePrice)
     lstvTablePrice.Visible = True
-    
-'    bBlock = UserPress
-'    If Not UserPress Then
-        UpdateAllCmbxFilters wshPrice, Me, PriceSettings
-'    End If
-'    bBlock = False
+    bCallUpdatecmbxKategoriya = True
+    bCallUpdatecmbxGruppa = True
+    bCallUpdatecmbxPodgruppa = True
+    Fill_FiltersByResultSQLQuery_ADO
     ReSize
-    
 End Sub
+
+Sub Fill_FiltersByResultSQLQuery_ADO()
+    Dim SQLQuery As String
+    Dim i As Integer
+    Dim scmbxKategoriyaValue As String
+    Dim scmbxGruppaValue As String
+    Dim scmbxPodgruppaValue As String
+    
+    bBlock = True
+    If bCallUpdatecmbxKategoriya Then
+        scmbxKategoriyaValue = cmbxKategoriya
+        SQLQuery = "SELECT DISTINCT Категория FROM (" & sLastSQLQuery & ");"
+        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxKategoriya
+        For i = 0 To cmbxKategoriya.ListCount - 1
+            If cmbxKategoriya.List(i, 0) = scmbxKategoriyaValue Then cmbxKategoriya.ListIndex = i
+        Next
+        bCallUpdatecmbxKategoriya = False
+    End If
+    If bCallUpdatecmbxGruppa Then
+        scmbxGruppaValue = cmbxGruppa
+        SQLQuery = "SELECT DISTINCT Группа FROM (" & sLastSQLQuery & ");"
+        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxGruppa
+        For i = 0 To cmbxGruppa.ListCount - 1
+            If cmbxGruppa.List(i, 0) = scmbxGruppaValue Then cmbxGruppa.ListIndex = i
+        Next
+        bCallUpdatecmbxGruppa = False
+    End If
+    If bCallUpdatecmbxPodgruppa Then
+        scmbxPodgruppaValue = cmbxPodgruppa
+        SQLQuery = "SELECT DISTINCT Подгруппа FROM (" & sLastSQLQuery & ");"
+        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxPodgruppa
+        For i = 0 To cmbxPodgruppa.ListCount - 1
+            If cmbxPodgruppa.List(i, 0) = scmbxPodgruppaValue Then cmbxPodgruppa.ListIndex = i
+        Next
+        bCallUpdatecmbxPodgruppa = False
+    End If
+    bBlock = False
+End Sub
+
 
 'Добавить в избранное
 Private Sub btnFavAdd_Click()
@@ -229,7 +400,7 @@ Private Sub lstvTablePrice_ItemClick(ByVal Item As MSComctlLib.ListItem)
     mstrShpData(1) = Item.SubItems(1) 'Название
     mstrShpData(2) = Item.SubItems(2) 'Цена
     mstrShpData(3) = Item.SubItems(3) 'Единица
-    mstrShpData(4) = cmbxProizvoditel.List(cmbxProizvoditel.ListIndex, 0) 'Производитель 'cmbxProizvoditel.Value
+    mstrShpData(4) = cmbxProizvoditel 'Производитель
 End Sub
 
 Private Sub lstvTablePrice_DblClick()
@@ -308,7 +479,6 @@ Private Sub ReSize() ' изменение формы. Зависит от дли
     txtNazvanie2.Left = 3
     txtNazvanie2.Width = frameNazvanie.Width - 9
 
-
 End Sub
 
 Private Sub tbtnFiltr_Click()
@@ -319,10 +489,9 @@ Private Sub tbtnFiltr_Click()
         frameFilters.Height = 0
         tbtnFiltr.Caption = ChrW(9660) 'вниз
         If Not bBlock Then
-'            ClearFilter wshPrice
             txtNazvanie2.Value = ""
             txtArtikul.Value = ""
-            Reset_FiltersCmbx_ADO PriceSettings 'Find_ItemsByText_ADO
+            Reset_FiltersCmbx_ADO
             lstvTablePrice.ListItems.Clear
             bBlock = True
             cmbxKategoriya.ListIndex = -1
@@ -359,19 +528,19 @@ Private Sub btnAVS_Click()
 End Sub
 
 Private Sub btnFind_Click()
-    Find_ItemsByText_ADO PriceSettings
+    Find_ItemsByText_ADO
 End Sub
 
 Private Sub cmbxKategoriya_Change()
-    If Not bBlock Then Filter_CmbxChange_ADO 1, PriceSettings
+    If Not bBlock Then Filter_CmbxChange_ADO 1
 End Sub
 
 Private Sub cmbxGruppa_Change()
-    If Not bBlock Then Filter_CmbxChange_ADO 2, PriceSettings
+    If Not bBlock Then Filter_CmbxChange_ADO 2
 End Sub
 
 Private Sub cmbxPodgruppa_Change()
-    If Not bBlock Then Filter_CmbxChange_ADO 3, PriceSettings
+    If Not bBlock Then Filter_CmbxChange_ADO 3
 End Sub
 
 Private Sub tbtnBD_Click()
@@ -387,8 +556,9 @@ Private Sub tbtnFav_Click()
         
         ExcelAppQuit oExcelAppPrice
         KillSAExcelProcess
-        
-        frmDBIzbrannoeExcel.Find_ItemsByText_ADO
+        If frmDBIzbrannoeExcel.lstvTableIzbrannoe.ListItems.Count = 0 Then
+            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
+        End If
 '        InitCustomCCPMenu frmDBIzbrannoeExcel 'Контекстное меню для TextBox
         frmDBIzbrannoeExcel.Show
     End If
@@ -431,279 +601,3 @@ End Sub
 Private Sub UserForm_Terminate()
     DelCustomCCPMenu 'Удаления контекстного меню для TextBox
 End Sub
-
-'Заполняет ComboBox запросами из БД
-Public Sub Fill_ComboBox_ADO(XlsFileName As String, SQLQuery As String, cmbx As ComboBox, Optional nStolb As Double = 0)
-    Dim oConn As New ADODB.Connection
-    Dim oRecordSet As New ADODB.Recordset
-    oConn.Mode = adModeReadWrite
-    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
-    oRecordSet.CursorType = adOpenStatic
-    oRecordSet.Open SQLQuery, oConn
-    cmbx.Clear
-    cmbx.ColumnCount = 1
-    With oRecordSet
-    If .EOF Then Exit Sub
-        Do Until .EOF
-            cmbx.AddItem IIf(IsNull(.Fields(nStolb).Value), "", .Fields(nStolb).Value)
-            .MoveNext
-        Loop
-    End With
-    oRecordSet.Close
-    oConn.Close
-    Set oRecordSet = Nothing
-    Set oConn = Nothing
-End Sub
-
- Sub Reset_FiltersCmbx_ADO(PoizvoditelSettings As classProizvoditelBD)
-    Dim SQLQuery As String
-    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
-    bBlock = True
-    SQLQuery = "SELECT DISTINCT Категория " & _
-                "FROM [" & PriceSettings.NameListExcel & "$];"
-    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxKategoriya
-    SQLQuery = "SELECT DISTINCT Группа " & _
-                "FROM [" & PriceSettings.NameListExcel & "$];"
-    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxGruppa
-    SQLQuery = "SELECT DISTINCT Подгруппа " & _
-                "FROM [" & PriceSettings.NameListExcel & "$];"
-    Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxPodgruppa
-    bBlock = False
-    lstvTablePrice.ListItems.Clear
-    lblResult.Caption = "Найдено записей: 0"
-End Sub
-
- Sub Filter_CmbxChange_ADO(Ncmbx As Integer, PoizvoditelSettings As classProizvoditelBD)
-    Dim SQLQuery As String
-    Dim fltrWhere As String
-    Dim fltrKategoriya As String
-    Dim fltrGruppa As String
-    Dim fltrPodgruppa As String
-    Dim fltrMode As Integer
-
-
-    If cmbxKategoriya.ListIndex = -1 Then
-        fltrKategoriya = ""
-    Else
-        fltrKategoriya = "Категория='" & cmbxKategoriya & "'"
-    End If
-    If cmbxGruppa.ListIndex = -1 Then
-        fltrGruppa = ""
-    Else
-        fltrGruppa = "Группа='" & cmbxGruppa & "'"
-    End If
-    If cmbxPodgruppa.ListIndex = -1 Then
-        fltrPodgruppa = ""
-    Else
-        fltrPodgruppa = "Подгруппа='" & cmbxPodgruppa & "'"
-    End If
-    
-'    fltrWhere = IIf(fltrKategoriya = "", "", " " & fltrKategoriya) & IIf(fltrGruppa = "", "", " " & fltrGruppa) & IIf(fltrPodgruppa = "", "", " " & fltrPodgruppa)
-    
-    fltrMode = IIf(fltrKategoriya = "", 0, 4) + IIf(fltrGruppa = "", 0, 2) + IIf(fltrPodgruppa = "", 0, 1)
-    
-'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
-    '*    К   Гр  Пг
-    '0    0   0   0
-    '1    0   0   1
-    '2    0   1   0
-    '3    0   1   1
-    '4    1   0   0
-    '5    1   0   1
-    '6    1   1   0
-    '7    1   1   1
-    
-    Select Case fltrMode
-        Case 0
-            fltrWhere = ""
-        Case 1
-            fltrWhere = " WHERE " & fltrPodgruppa
-            bCallUpdatecmbxKategoriya = True
-            bCallUpdatecmbxGruppa = True
-        Case 2
-            fltrWhere = " WHERE " & fltrGruppa
-        Case 3
-            fltrWhere = " WHERE " & fltrGruppa & " AND " & fltrPodgruppa
-            bCallUpdatecmbxKategoriya = True
-        Case 4
-            fltrWhere = " WHERE " & fltrKategoriya
-        Case 5
-            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrPodgruppa
-            bCallUpdatecmbxGruppa = True
-        Case 6
-            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa
-        Case 7
-            fltrWhere = " WHERE " & fltrKategoriya & " AND " & fltrGruppa & " AND " & fltrPodgruppa
-        Case Else
-            fltrWhere = ""
-            fltrKategoriya = ""
-            fltrGruppa = ""
-            fltrPodgruppa = ""
-    End Select
-'-------------------ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)------------------------------------------------
-
-'-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-    Select Case Ncmbx
-        Case 1
-            fltrWhere = " WHERE " & fltrKategoriya
-            fltrGruppa = ""
-            fltrPodgruppa = ""
-            bBlock = True
-            cmbxGruppa.Clear
-            cmbxPodgruppa.Clear
-            bBlock = False
-            bCallUpdatecmbxGruppa = True
-            bCallUpdatecmbxPodgruppa = True
-        Case 2
-            fltrWhere = IIf(fltrKategoriya = "", " WHERE " & fltrGruppa, " WHERE " & fltrKategoriya & " AND " & fltrGruppa)
-            fltrPodgruppa = ""
-            bBlock = True
-            cmbxPodgruppa.Clear
-            bBlock = False
-            bCallUpdatecmbxPodgruppa = True
-        Case 3
-            'Работают варианты 1,3,5,7 из ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА
-        Case Else
-            fltrWhere = ""
-            fltrKategoriya = ""
-            fltrGruppa = ""
-            fltrPodgruppa = ""
-    End Select
-'-------------------ФИЛЬТРАЦИЯ С ПРИОРИТЕТОМ (По иерархии: Категория->Группа->Подгруппа)------------------------------------------------
-
-
-    SQLQuery = "SELECT * " & _
-                "FROM [" & PoizvoditelSettings.NameListExcel & "$] " & fltrWhere & ";"
-
-'    lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_ADO(PoizvoditelSettings.FileName, SQLQuery, lstvTablePrice)
-'    lstvTablePrice.Visible = True
-
-    Fill_FiltersByResultSQLQuery_ADO
-    ReSize
-
-    'Find_ItemsByText
-    
-End Sub
-
-Sub Find_ItemsByText_ADO(PoizvoditelSettings As classProizvoditelBD)
-    Dim SQLQuery As String
-    Dim findMode As Integer
-    Dim findWhat As String
-    Dim fltrWhere As String
-    Dim findArtikul As String
-    Dim findNazvanie As String
-    
-    If cmbxProizvoditel.ListIndex = -1 Then Exit Sub
-    
-    If txtArtikul.Value = "" Then
-        findArtikul = ""
-    Else
-        findArtikul = "Артикул LIKE '%" & txtArtikul.Value & "%'"
-    End If
-    
-    If txtNazvanie2.Value = "" Then
-        findNazvanie = ""
-    Else
-        findNazvanie = "Название LIKE '%" & Replace(txtNazvanie2.Value, " ", "%") & "%'"
-    End If
-    
-    findMode = IIf(findArtikul = "", 0, 2) + IIf(findNazvanie = "", 0, 1)
-
-    '*   Арт Наз
-    '0   0   0
-    '1   0   1
-    '2   1   0
-    '3   1   1
-
-    Select Case findMode
-        Case 0
-            findWhat = ""
-        Case 1
-            findWhat = " WHERE " & findNazvanie
-        Case 2
-            findWhat = " WHERE " & findArtikul
-        Case 3
-            findWhat = " WHERE " & findArtikul & " AND " & findNazvanie
-        Case Else
-            findWhat = ""
-    End Select
-    
-    '---ФИЛЬТРАЦИЯ БЕЗ ПРИОРИТЕТА (Нет иерархии: Категория || Группа || Подгруппа)---
-    
-    If cmbxKategoriya.ListIndex = -1 Then
-        fltrKategoriya = ""
-    Else
-        fltrKategoriya = "Категория='" & cmbxKategoriya & "'"
-    End If
-    If cmbxGruppa.ListIndex = -1 Then
-        fltrGruppa = ""
-    Else
-        fltrGruppa = "Группа='" & cmbxGruppa & "'"
-    End If
-    If cmbxPodgruppa.ListIndex = -1 Then
-        fltrPodgruppa = ""
-    Else
-        fltrPodgruppa = "Подгруппа='" & cmbxPodgruppa & "'"
-    End If
-    
-    fltrWhere = IIf(fltrKategoriya = "", "", " AND " & fltrKategoriya) & IIf(fltrGruppa = "", "", " AND " & fltrGruppa) & IIf(fltrPodgruppa = "", "", " AND " & fltrPodgruppa)
-
-    SQLQuery = "SELECT * " & _
-               "FROM [" & PoizvoditelSettings.NameListExcel & "$] " & findWhat & fltrWhere & ";"
-'    lstvTablePrice.Visible = False
-    lblResult.Caption = "Найдено записей: " & Fill_lstvTable_ADO(PoizvoditelSettings.FileName, SQLQuery, lstvTablePrice)
-'    lstvTablePrice.Visible = True
-    Fill_FiltersByResultSQLQuery_ADO
-    
-    ReSize
- 
-End Sub
-
-Sub Fill_FiltersByResultSQLQuery_ADO()
-    Dim SQLQuery As String
-
-    bBlock = True
-    If bCallUpdatecmbxKategoriya Then
-        SQLQuery = "SELECT DISTINCT Категория FROM (" & sLastSQLQuery & ");"
-        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxKategoriya
-        bCallUpdatecmbxKategoriya = False
-    End If
-    If bCallUpdatecmbxGruppa Then
-        SQLQuery = "SELECT DISTINCT Группа FROM (" & sLastSQLQuery & ");"
-        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxGruppa
-        bCallUpdatecmbxGruppa = False
-    End If
-    If bCallUpdatecmbxPodgruppa Then
-        SQLQuery = "SELECT DISTINCT Подгруппа FROM (" & sLastSQLQuery & ");"
-        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxPodgruppa
-        bCallUpdatecmbxPodgruppa = False
-    End If
-    bBlock = False
-
-End Sub
-
-
-'Sub Fill_FiltersByResultSQLQuery_ADO()
-'    Dim SQLQuery As String
-'
-'    bBlock = True
-'    If bCallUpdatecmbxKategoriya Then
-'        SQLQuery = "SELECT DISTINCT Категория FROM [" & ExcelTemp & "$];"
-'        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxKategoriya
-'        bCallUpdatecmbxKategoriya = False
-'    End If
-'    If bCallUpdatecmbxGruppa Then
-'        SQLQuery = "SELECT DISTINCT Группа FROM [" & ExcelTemp & "$];"
-'        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxGruppa
-'        bCallUpdatecmbxGruppa = False
-'    End If
-'    If bCallUpdatecmbxPodgruppa Then
-'        SQLQuery = "SELECT DISTINCT Подгруппа FROM [" & ExcelTemp & "$];"
-'        Fill_ComboBox_ADO PriceSettings.FileName, SQLQuery, cmbxPodgruppa
-'        bCallUpdatecmbxPodgruppa = False
-'    End If
-'    bBlock = False
-'
-'End Sub
-

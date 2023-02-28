@@ -25,61 +25,64 @@ Sub UserForm_Initialize()
     cmbxNabor.style = fmStyleDropDownList
     cmbxEdinicy.style = fmStyleDropDownList
 
-    ClearFilter wshNabory
-
     FillExcel_cmbxProizvoditel cmbxProizvoditel
 
 End Sub
 
-Sub run(Artikul As String, Nazvanie As String, Cena As String, ProizvoditelID As String, EdinicaID As String)
+Sub run(Artikul As String, Nazvanie As String, Cena As String, Proizvoditel As String, Edinica As String)
+    Dim SQLQuery As String
     txtArtikul.Value = Artikul
     txtNazvanie.Value = Nazvanie
     txtCena.Value = Cena
     For i = 0 To cmbxProizvoditel.ListCount - 1
-        If cmbxProizvoditel.List(i, 0) = ProizvoditelID Then cmbxProizvoditel.ListIndex = i
+        If cmbxProizvoditel.List(i, 0) = Proizvoditel Then cmbxProizvoditel.ListIndex = i
     Next
 
-    FillCmbxEdinicy cmbxEdinicy
+    SQLQuery = "SELECT ЕдиницыИзмерения FROM [" & ExcelEdinicyIzmereniya & "$];"
+    Fill_ComboBox_ADO IzbrannoeSettings.FileName, SQLQuery, cmbxEdinicy
     
     For i = 0 To cmbxEdinicy.ListCount - 1
-        If cmbxEdinicy.List(i, 0) = EdinicaID Then cmbxEdinicy.ListIndex = i
+        If cmbxEdinicy.List(i, 0) = Edinica Then cmbxEdinicy.ListIndex = i
     Next
-    
-    FillCmbxNabor cmbxNabor
+
+    SQLQuery = "SELECT DISTINCT Набор FROM [" & ExcelNabory & "$];"
+    Fill_ComboBox_ADO IzbrannoeSettings.FileName, SQLQuery, cmbxNabor
+
 '    InitCustomCCPMenu frmDBAddToNaborExcel 'Контекстное меню для TextBox
     frmDBAddToNaborExcel.Show
 End Sub
 
-Public Sub FillCmbxNabor(cmbxComboBox As ComboBox)
-    Dim UserRange As Excel.Range
-    Dim lLastRow As Long
-    Dim i As Integer
-    Dim wshTemp As Excel.Worksheet
-
-    Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
-    wshTemp.Cells.ClearContents
-    lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 7).End(xlUp).Row
-    If lLastRow > 1 Then
-        wshNabory.Range("G2:G" & lLastRow).Copy wshTemp.Cells(1, 1)
-        Set UserRange = wshTemp.Range("A1:A" & lLastRow - 1)
-        UserRange.RemoveDuplicates Columns:=1, Header:=xlNo
-        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
-        If lLastRow > 0 Then
-            cmbxComboBox.Clear
-            For i = 1 To lLastRow
-                cmbxComboBox.AddItem wshTemp.Cells(i, 1)
-            Next
-        End If
-    Else
-        cmbxComboBox.Clear
-    End If
-    Set wshTemp = Nothing
-End Sub
+'Public Sub FillCmbxNabor(cmbxComboBox As ComboBox)
+'    Dim UserRange As Excel.Range
+'    Dim lLastRow As Long
+'    Dim i As Integer
+'    Dim wshTemp As Excel.Worksheet
+'
+'    Set wshTemp = wbExcelIzbrannoe.Worksheets(ExcelTemp)
+'    wshTemp.Cells.ClearContents
+'    lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 7).End(xlUp).Row
+'    If lLastRow > 1 Then
+'        wshNabory.Range("G2:G" & lLastRow).Copy wshTemp.Cells(1, 1)
+'        Set UserRange = wshTemp.Range("A1:A" & lLastRow - 1)
+'        UserRange.RemoveDuplicates Columns:=1, Header:=xlNo
+'        lLastRow = wshTemp.Cells(wshTemp.Rows.Count, 1).End(xlUp).Row
+'        If lLastRow > 0 Then
+'            cmbxComboBox.Clear
+'            For i = 1 To lLastRow
+'                cmbxComboBox.AddItem wshTemp.Cells(i, 1)
+'            Next
+'        End If
+'    Else
+'        cmbxComboBox.Clear
+'    End If
+'    Set wshTemp = Nothing
+'End Sub
 
 Private Sub btnAdd_Click()
+    Dim EstProizvoditel As Boolean
     Dim NewCena As Double
     Dim UserRange As Excel.Range
-
+    InitIzbrannoeExcelDB
 '    If cmbxNabor.ListIndex = -1 Then Exit Sub
     wshNabory.Activate
     ClearFilter wshNabory
@@ -93,6 +96,17 @@ Private Sub btnAdd_Click()
     wshNabory.Cells(lLastRow + 1, 6) = CDbl(txtKolichestvo.Value)
     wshNabory.Cells(lLastRow + 1, 7) = cmbxNabor
 
+    For i = 0 To cmbxProizvoditel.ListCount - 1
+        If cmbxProizvoditel.List(i, 0) = cmbxProizvoditel Then EstProizvoditel = True
+    Next
+    'Добавляем производитля в базу
+    If Not EstProizvoditel Then
+        wshNastrojkiPrajsov.Activate
+        lLastRow = wshNastrojkiPrajsov.Cells(wshNastrojkiPrajsov.Rows.Count, 1).End(xlUp).Row
+        wshNastrojkiPrajsov.Cells(lLastRow + 1, 1) = cmbxProizvoditel
+        wbExcelIzbrannoe.Save
+    End If
+    
     NewCena = CalcCenaNabora(lstvTableNabor) + CDbl(txtCena.Value) * CInt(txtKolichestvo.Value)
 
     Set UserRange = wshIzbrannoe.Columns(1).Find(What:=cmbxNabor, LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
@@ -104,14 +118,15 @@ Private Sub btnAdd_Click()
     
     wbExcelIzbrannoe.Save
 
-    'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
+    'Обновляем cmbxProizvoditel на случай, если был добавлен/удален производитель
     FillExcel_mProizvoditel
-    frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
-    frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
-
+    FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
+    ExcelAppQuit oExcelAppIzbrannoe
+    KillSAExcelProcess
+    
     Unload Me
     frmDBIzbrannoeExcel.txtArtikul.Value = cmbxNabor
-    frmDBIzbrannoeExcel.Find_ItemsByText
+    frmDBIzbrannoeExcel.Find_ItemsByText_ADO
     frmDBIzbrannoeExcel.txtArtikul.Value = ""
     frmDBIzbrannoeExcel.lstvTableNabor.ListItems.Clear
     frmDBIzbrannoeExcel.Height = frmDBIzbrannoeExcel.frameTab.Top + frmDBIzbrannoeExcel.frameTab.Height + 36
@@ -125,15 +140,12 @@ Private Sub cmbxNabor_Change()
 End Sub
 
 Sub Load_lstvTableNabor()
+    Dim SQLQuery As String
     Dim colNum As Long
-    Dim RangeToFilter As Excel.Range
-    Dim lLastRow As Long
     
-    lLastRow = wshNabory.Cells(wshNabory.Rows.Count, 1).End(xlUp).Row
-    Set RangeToFilter = wshNabory.Range("A2:H" & lLastRow)
-    RangeToFilter.AutoFilter Field:=7, Criteria1:=cmbxNabor
     If cmbxNabor.ListIndex > -1 Then
-        lblSostav.Caption = "Состав набора: " & Fill_lstvTable(oIzbrannoeRecordSet, oIzbrannoeConn, wshNabory, lstvTableNabor, IzbrannoeSettings, 2)
+        SQLQuery = "SELECT * FROM [" & ExcelNabory & "$]  WHERE Набор='" & cmbxNabor & "';"
+        lblSostav.Caption = "Состав набора: " & Fill_lstvTable_ADO(IzbrannoeSettings.FileName, SQLQuery, lstvTableNabor, 2)
     End If
     'выровнять ширину столбцов по заголовкам
     For colNum = 0 To lstvTableNabor.ColumnHeaders.Count - 1
@@ -151,20 +163,26 @@ End Sub
 
 Private Sub CommandButton5_Click()
     Dim UserRange As Excel.Range
-    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel, vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
+    If MsgBox("Удалить запись?" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel & vbCrLf & vbCrLf & "Из избранного будут удалены все товары этого производителя", vbYesNo + vbCritical, "САПР-АСУ: Удаление записи из Производителей") = vbYes Then
         If cmbxProizvoditel <> "" Then
+            InitIzbrannoeExcelDB
+            
+            Do  'Чистим избранное от записей удаляемого производителя
+                Set UserRange = wshIzbrannoe.Columns(5).Find(What:=cmbxProizvoditel, LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
+                If Not UserRange Is Nothing Then
+                    UserRange.EntireRow.Delete
+                End If
+            Loop While Not UserRange Is Nothing
+            
             Set UserRange = wshNastrojkiPrajsov.Columns(1).Find(What:=cmbxProizvoditel, LookAt:=xlWhole, SearchOrder:=xlByRows, SearchDirection:=xlNext, MatchCase:=False, SearchFormat:=False)
             If (UserRange Is Nothing) Or (UserRange.Value = Empty) Then
                 MsgBox "Производитель не найден в базе" & vbCrLf & vbCrLf & "Производитель: " & cmbxProizvoditel, vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
             Else
                 UserRange.EntireRow.Delete
                 wbExcelIzbrannoe.Save
-                
-                'Обновляем cmbxProizvoditel в 2-х формах на случай, если был добавлен/удален производитель
                 FillExcel_mProizvoditel
-                frmDBPriceExcel.FillExcel_cmbxProizvoditel frmDBPriceExcel.cmbxProizvoditel, True
-                frmDBIzbrannoeExcel.FillExcel_cmbxProizvoditel frmDBIzbrannoeExcel.cmbxProizvoditel
-                
+                ExcelAppQuit oExcelAppIzbrannoe
+                KillSAExcelProcess
             End If
         End If
         UserForm_Initialize

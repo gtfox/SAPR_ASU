@@ -34,6 +34,7 @@ Public bBlock As Boolean
 Public bCallUpdatecmbxKategoriya As Boolean
 Public bCallUpdatecmbxGruppa As Boolean
 Public bCallUpdatecmbxPodgruppa As Boolean
+Public bCallUpdatecmbxProizvoditel As Boolean
 Public colProcessHandle As Collection
 Public sLastSQLQuery As String
 
@@ -81,7 +82,7 @@ Sub InitIzbrannoeExcelDB()
         IzbrannoeSettings.StolbKategoriya = 6
         IzbrannoeSettings.StolbGruppa = 7
         IzbrannoeSettings.StolbPodgruppa = 8
-    
+        IzbrannoeSettings.FileName = sSAPath & DBNameIzbrannoeExcel
     FillExcel_mProizvoditel
     
 End Sub
@@ -557,26 +558,28 @@ Sub KillSAExcelProcess()
     Next
 End Sub
 
-
-'
-
-'Получаем Recordset по запросу
-'Public Function GetRecordSet_ADODB_Excel(XlsFileName As String, SQLQuery As String) As ADODB.Recordset
-'    Dim oConn As New ADODB.Connection
-'    Dim oRecordSet As New ADODB.Recordset
-'    oConn.Mode = adModeReadWrite
-'    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
-'    oRecordSet.CursorType = adOpenStatic
-'    oRecordSet.Open SQLQuery, oConn
-'    Set GetRecordSet_ADODB_Excel = oRecordSet
-'    oRecordSet.Close
-'    oConn.Close
-'    Set oRecordSet = Nothing
-'    Set oConn = Nothing
-'End Function
-
-
-
+'Заполняет ComboBox запросами из БД в виде Excel через ADODB
+Public Sub Fill_ComboBox_ADO(XlsFileName As String, SQLQuery As String, cmbx As ComboBox, Optional nStolb As Double = 0)
+    Dim oConn As New ADODB.Connection
+    Dim oRecordSet As New ADODB.Recordset
+    oConn.Mode = adModeReadWrite
+    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
+    oRecordSet.CursorType = adOpenStatic
+    oRecordSet.Open SQLQuery, oConn
+    cmbx.Clear
+    cmbx.ColumnCount = 1
+    With oRecordSet
+    If .EOF Then Exit Sub
+        Do Until .EOF
+            cmbx.AddItem IIf(IsNull(.Fields(nStolb).Value), "", .Fields(nStolb).Value)
+            .MoveNext
+        Loop
+    End With
+    oRecordSet.Close
+    oConn.Close
+    Set oRecordSet = Nothing
+    Set oConn = Nothing
+End Sub
 
 'Заполняет lstvTable данными из БД в виде Excel через ADODB
  Function Fill_lstvTable_ADO(XlsFileName As String, SQLQuery As String, lstvTable As ListView, Optional ByVal TableType As Integer = 0) As String
@@ -589,12 +592,11 @@ End Sub
     Dim i As Double
     Dim j As Double
     
-    
     oConn.Mode = adModeReadWrite
     oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & IIf(XlsFileName Like "*:*", XlsFileName, sSAPath & XlsFileName) & ";Extended Properties=""Excel 12.0;HDR=YES"";"
     oRecordSet.CursorType = adOpenStatic
     oRecordSet.Open SQLQuery, oConn
-    sLastSQLQuery = Replace(SQLQuery, ";", "")
+    sLastSQLQuery = Replace(SQLQuery, ";", "") 'для обновления фильтров по результатам поиска
     lstvTable.ListItems.Clear
     With oRecordSet
         If .RecordCount > 0 Then

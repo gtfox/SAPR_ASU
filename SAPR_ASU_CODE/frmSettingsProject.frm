@@ -1,9 +1,4 @@
 
-
-
-
-
-
 Private Sub btnAddPriceExcel_Click()
     If tbProizvoditel = "" Then
         MsgBox "Название производителя пустое" & vbCrLf & vbCrLf & "Необходимо ввести название производителя", vbExclamation + vbOKOnly, "САПР-АСУ: Предупреждение"
