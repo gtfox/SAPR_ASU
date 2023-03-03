@@ -32,24 +32,29 @@ Public Sub AutoNum1()
         If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
         
             If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
+            
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
                         If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
-                            Select Case UserType
-                                Case typeWire 'Провода
-                                    FindMAX vsoShapeOnPage
-                                Case typeCableSH 'Кабели на схеме электрической
-                                    FindMAX vsoShapeOnPage
-                            End Select
-                            If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                            If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then    'Берём шейпы из нашего шкафа
+                        
+                            
                                 Select Case UserType
-                                    Case typeTerm 'Клеммы
-                                        If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
-                                            FindMAX vsoShapeOnPage
-                                        End If
-                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    Case typeWire 'Провода
+                                        FindMAX vsoShapeOnPage
+                                    Case typeCableSH 'Кабели на схеме электрической
                                         FindMAX vsoShapeOnPage
                                 End Select
+                                If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                                    Select Case UserType
+                                        Case typeTerm 'Клеммы
+                                            If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
+                                                FindMAX vsoShapeOnPage
+                                            End If
+                                        Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                            FindMAX vsoShapeOnPage
+                                    End Select
+                                End If
                             End If
                         End If
                     End If

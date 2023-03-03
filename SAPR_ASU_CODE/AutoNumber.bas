@@ -45,7 +45,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     Dim PageName As String
     
     Set ThePage = ActivePage.PageSheet
-    If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+    NazvanieShkafa = vsoShape.Cells("User.Shkaf").ResultStr(0)
     PageName = cListNameCxema  'Имена листов где возможна нумерация
     'Узнаем тип и буквенное обозначение элемента, который вставили на схему
     UserType = ShapeSAType(vsoShape)
@@ -60,30 +60,32 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     'Цикл поиска максимального номера существующих элементов схемы
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
+'            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
                 For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
                     If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
                         If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
-                            Select Case UserType
-                                Case typeWire 'Провода
-                                    FindMAX vsoShapeOnPage
-                                Case typeCableSH 'Кабели на схеме электрической
-                                    FindMAX vsoShapeOnPage
-                            End Select
-                            If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                            If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then    'Берём шейпы из нашего шкафа
                                 Select Case UserType
-                                    Case typeTerm 'Клеммы
-                                        If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
-                                            FindMAX vsoShapeOnPage
-                                        End If
-                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    Case typeWire 'Провода
+                                        FindMAX vsoShapeOnPage
+                                    Case typeCableSH 'Кабели на схеме электрической
                                         FindMAX vsoShapeOnPage
                                 End Select
+                                If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                                    Select Case UserType
+                                        Case typeTerm 'Клеммы
+                                            If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
+                                                FindMAX vsoShapeOnPage
+                                            End If
+                                        Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                            FindMAX vsoShapeOnPage
+                                    End Select
+                                End If
                             End If
                         End If
                     End If
                 Next
-            End If
+'            End If
         End If
     Next
 
@@ -118,7 +120,9 @@ Public Function ReNumber(colShp As Collection, StartNumber As Integer) As Intege
     Dim XPred As Double
     Dim XTekush As Double
     Dim i As Integer, ii As Integer, j As Integer, n As Integer
-
+    
+    If colShp Is Nothing Then Exit Function
+    If colShp.Count = 0 Then Exit Function
     'из коллекции передаем их в массив для сортировки
     ReDim masShape(colShp.Count - 1)
     i = 0

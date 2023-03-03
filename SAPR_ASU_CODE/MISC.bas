@@ -150,7 +150,10 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     For Each vsoShp In colShkafyMesta
         SetLocalShkafMesto vsoShp
     Next
-
+    
+    ActiveWindow.SelectAll
+    Load frmReNumber
+    frmReNumber.ReNumberShemy
 End Sub
 
 Public Sub ObjInfo()

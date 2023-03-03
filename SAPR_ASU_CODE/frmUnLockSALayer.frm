@@ -25,10 +25,10 @@ Private Sub UserForm_Initialize() ' инициализация формы
 
     ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна перед созданием связи
 
-    lstvSapes.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
-    lstvSapes.ColumnHeaders.Add , , "Шейп"
-    lstvSapes.ColumnHeaders.Add , , "Название"
-    
+    lstvShapes.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
+    lstvShapes.ColumnHeaders.Add , , "Шейп"
+    lstvShapes.ColumnHeaders.Add , , "Название"
+    Application.ActiveWindow.Page.Layers.Add "SA_LockedLayer"
     Fill_cmbxLayers
     cmbxLayers.style = fmStyleDropDownList
     If ActivePage.Layers.Count > 0 Then
@@ -41,7 +41,12 @@ Private Sub cbDeleteFromLayer_Click()
         Exit Sub
     Else
         ActivePage.Layers(cmbxLayers.text).Remove vsoShp, 0
-        Fill_lstvSapes
+        Fill_lstvShapes
+        If lstvShapes.ListItems.Count > 0 Then
+            lstvShapes.ListItems(1).Selected = True
+            lstvShapes.SetFocus
+            lstvShapes_ItemClick lstvShapes.ListItems(1)
+        End If
     End If
 End Sub
 
@@ -65,7 +70,7 @@ End Sub
 
 Private Sub cmbxLayers_Change()
     If ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).Result(0) = 1 Then cbLockUnlockLayer.Caption = "Разблокировать слой" Else cbLockUnlockLayer.Caption = "Заблокировать слой"
-    Fill_lstvSapes
+    Fill_lstvShapes
 End Sub
 
 Sub Fill_cmbxLayers()
@@ -76,13 +81,13 @@ Sub Fill_cmbxLayers()
     Next
 End Sub
 
-Sub Fill_lstvSapes()
+Sub Fill_lstvShapes()
     Dim itmx As ListItem
     Dim i As Integer
     FillCollection ActivePage.Layers(cmbxLayers.text)
-    lstvSapes.ListItems.Clear
+    lstvShapes.ListItems.Clear
     For i = 1 To colShapes.Count
-        Set itmx = lstvSapes.ListItems.Add(, colShapes.Item(i).NameID, colShapes.Item(i).NameID)
+        Set itmx = lstvShapes.ListItems.Add(, colShapes.Item(i).NameID, colShapes.Item(i).NameID)
         If colShapes.Item(i).CellExists("User.Name", 0) Then
             itmx.SubItems(1) = colShapes.Item(i).Cells("User.Name").ResultStr(0)
         Else
@@ -110,7 +115,7 @@ End Sub
 Private Sub ReSize() ' изменение высоты формы. Зависит от количества элементов в listbox
     Dim H As Single
     
-    H = lstvSapes.ListItems.Count
+    H = lstvShapes.ListItems.Count
   
     H = H * 12 + 12
     If H < 48 Then H = 48
@@ -118,12 +123,12 @@ Private Sub ReSize() ' изменение высоты формы. Зависи�
     
     Me.Height = lstvPages.Top + H + 26
 
-    lstvSapes.Height = H
+    lstvShapes.Height = H
     
 End Sub
 
-Private Sub lstvSapes_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
-    With lstvSapes
+Private Sub lstvShapes_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader) ' сортировка при клике по заголовку
+    With lstvShapes
         .Sorted = False
         .SortKey = ColumnHeader.SubItemIndex
         'изменить порядок сортировки на обратный имеющемуся
@@ -132,7 +137,7 @@ Private Sub lstvSapes_ColumnClick(ByVal ColumnHeader As MSComctlLib.ColumnHeader
     End With
 End Sub
 
-Private Sub lstvSapes_ItemClick(ByVal Item As MSComctlLib.ListItem)
+Private Sub lstvShapes_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Set vsoShp = ActivePage.Shapes.Item(Item.Key)
     If vsoShp.Parent.Type = visTypeGroup Then
         ActiveWindow.Select vsoShp, visDeselectAll + visSubSelect  ' выделение субшейпа
@@ -147,15 +152,15 @@ End Sub
 
 Private Sub lblContent_Click() ' выровнять ширину столбцов по содержимому
    Dim colNum As Long
-   For colNum = 0 To lstvSapes.ColumnHeaders.Count - 1
-      Call SendMessage(lstvSapes.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE)
+   For colNum = 0 To lstvShapes.ColumnHeaders.Count - 1
+      Call SendMessage(lstvShapes.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE)
    Next
 End Sub
 
 Private Sub lblHeaders_Click() ' выровнять ширину столбцов по заголовкам
    Dim colNum As Long
-   For colNum = 0 To lstvSapes.ColumnHeaders.Count - 1
-      Call SendMessage(lstvSapes.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
+   For colNum = 0 To lstvShapes.ColumnHeaders.Count - 1
+      Call SendMessage(lstvShapes.hWnd, LVM_SETCOLUMNWIDTH, colNum, ByVal LVSCW_AUTOSIZE_USEHEADER)
    Next
 End Sub
 
