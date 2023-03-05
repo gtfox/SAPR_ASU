@@ -344,14 +344,7 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
                 'На листе остаются только провода с уникальными именами
                 'Номера ВСЕХ проводов нужны только при рисовании схемы - для контроля правильности соединения
 '------------------------------------------------------------------------------------------------------------
-    Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
-    Dim PageName As String
     Dim vsoShapeOnPage As Visio.Shape
-    Dim ThePage As Visio.Shape
-    Set ThePage = vsoPage.PageSheet
-    
-    PageName = cListNameCxema  'Имена листов где возможна нумерация
-    If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
     
     'Цикл поиска проводов и скрытия номера
     For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
@@ -365,7 +358,6 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
             End If
         End If
     Next
-
 End Sub
 
 '------------------------------------------------------------------------------------------------------------

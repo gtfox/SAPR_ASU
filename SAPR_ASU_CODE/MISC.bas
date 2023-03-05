@@ -122,6 +122,7 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim selSelection As Visio.Selection
     Dim vsoShp As Visio.Shape
+    Dim vsoPage As Visio.Page
     Dim SAType As Integer
     Dim colElementyShemy As Collection
     Dim colShkafyMesta As Collection
@@ -129,17 +130,34 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     Set colElementyShemy = New Collection
     Set colShkafyMesta = New Collection
     
-    'Заполняем коллекции эелементов и шкафов
-    For Each vsoShp In ActivePage.Shapes
-        SAType = ShapeSAType(vsoShp)
-        Select Case SAType
-            Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
-                colElementyShemy.Add vsoShp
-            Case typeShkafMesto
-                colShkafyMesta.Add vsoShp
-        End Select
-    Next
-    
+    If vsoShape.Type = visTypePage Then
+        'Заполняем коллекции эелементов и шкафов для всего проекта
+        For Each vsoPage In ActiveDocument.Pages
+            If vsoPage.name Like cListNameCxema & "*" Then
+                For Each vsoShp In vsoPage.Shapes
+                    SAType = ShapeSAType(vsoShp)
+                    Select Case SAType
+                        Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+                            colElementyShemy.Add vsoShp
+                        Case typeShkafMesto
+                            colShkafyMesta.Add vsoShp
+                    End Select
+                Next
+            End If
+        Next
+    Else
+        'Заполняем коллекции эелементов и шкафов для страницы
+        For Each vsoShp In ActivePage.Shapes
+            SAType = ShapeSAType(vsoShp)
+            Select Case SAType
+                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+                    colElementyShemy.Add vsoShp
+                Case typeShkafMesto
+                    colShkafyMesta.Add vsoShp
+            End Select
+        Next
+    End If
+
     'Чистим все элементы
     For Each vsoShp In colElementyShemy
         vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
@@ -154,6 +172,7 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     ActiveWindow.SelectAll
     Load frmReNumber
     frmReNumber.ReNumberShemy
+    ActiveWindow.DeselectAll
 End Sub
 
 Public Sub ObjInfo()
