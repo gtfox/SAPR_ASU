@@ -173,6 +173,8 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     Load frmReNumber
     frmReNumber.ReNumberShemy
     ActiveWindow.DeselectAll
+    
+    UpdateNazvanieShkafa
 End Sub
 
 Public Sub ObjInfo()

@@ -33,7 +33,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     PinX = shpSensor.Cells("PinX").Result(0)
     PinY = shpSensor.Cells("PinY").Result(0)
     
-    NazvanieShkafa = shpSensor.ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+    NazvanieShkafa = shpSensor.Cells("User.Shkaf").ResultStr(0)
     
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     Set colWires = New Collection
@@ -543,51 +543,51 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
 
     'Цикл поиска датчиков и приводов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
-                Set colShpPage = New Collection
-                For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
+        If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
+            Set colShpPage = New Collection
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
+                If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
                     Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
                         Case typeSensor, typeActuator
                             'Собираем в коллекцию нужные для сортировки шейпы
                             colShpPage.Add vsoShapeOnPage
                         Case Else
                     End Select
-                Next
-                
-                'Сортируем то что нашли на листе
-                
-                'из коллекции передаем в массив для сортировки
-                If colShpPage.Count > 0 Then
-                    ReDim shpMas(colShpPage.Count - 1)
-                    i = 0
-                    For Each shpElement In colShpPage
-                        Set shpMas(i) = shpElement
-                        i = i + 1
-                    Next
-                
-                    ' "Сортировка вставками" массива шейпов по возрастанию коордонаты Х
-                    '--V--Сортируем по возрастанию коордонаты Х
-                    UbMas = UBound(shpMas)
-                    For j = 1 To UbMas
-                        Set shpTemp = shpMas(j)
-                        i = j
-                        'If shpMas(i) Is Nothing Then Exit Sub
-                        While shpMas(i - 1).Cells("PinX").Result("mm") > shpTemp.Cells("PinX").Result("mm") '>:возрастание, <:убывание
-                            Set shpMas(i) = shpMas(i - 1)
-                            i = i - 1
-                            If i <= 0 Then GoTo ExitWhileX
-                        Wend
-ExitWhileX:                  Set shpMas(i) = shpTemp
-                    Next
-                    '--Х--Сортировка по возрастанию коордонаты Х
-                    
-                    'Собираем отсортированные листы в коллекцию документа
-                    For i = 0 To UbMas
-                        colShpDoc.Add shpMas(i)
-                    Next
-                    Set colShpPage = Nothing
                 End If
+            Next
+            
+            'Сортируем то что нашли на листе
+            
+            'из коллекции передаем в массив для сортировки
+            If colShpPage.Count > 0 Then
+                ReDim shpMas(colShpPage.Count - 1)
+                i = 0
+                For Each shpElement In colShpPage
+                    Set shpMas(i) = shpElement
+                    i = i + 1
+                Next
+            
+                ' "Сортировка вставками" массива шейпов по возрастанию коордонаты Х
+                '--V--Сортируем по возрастанию коордонаты Х
+                UbMas = UBound(shpMas)
+                For j = 1 To UbMas
+                    Set shpTemp = shpMas(j)
+                    i = j
+                    'If shpMas(i) Is Nothing Then Exit Sub
+                    While shpMas(i - 1).Cells("PinX").Result("mm") > shpTemp.Cells("PinX").Result("mm") '>:возрастание, <:убывание
+                        Set shpMas(i) = shpMas(i - 1)
+                        i = i - 1
+                        If i <= 0 Then GoTo ExitWhileX
+                    Wend
+ExitWhileX:                  Set shpMas(i) = shpTemp
+                Next
+                '--Х--Сортировка по возрастанию коордонаты Х
+                
+                'Собираем отсортированные листы в коллекцию документа
+                For i = 0 To UbMas
+                    colShpDoc.Add shpMas(i)
+                Next
+                Set colShpPage = Nothing
             End If
         End If
     Next

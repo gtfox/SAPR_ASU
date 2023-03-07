@@ -557,41 +557,11 @@ End Sub
 
 
 Sub Fill_cmbxNazvanieShkafa()
-    Dim vsoPage As Visio.Page
-    Dim vsoShape As Visio.Shape
     Dim colNameCxema As Collection
-    Dim PageName As String
-    Dim PropPageSheet As String
-    Dim mstrPropPageSheet() As String
     Dim i As Integer
     
-    Set colNameCxema = New Collection
-    PageName = cListNameCxema
-    For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0)
-            Exit For
-        End If
-    Next
-    mstrPropPageSheet = Split(PropPageSheet, ";")
-    For i = 0 To UBound(mstrPropPageSheet)
-        On Error Resume Next
-        colNameCxema.Add mstrPropPageSheet(i), mstrPropPageSheet(i)
-        err.Clear
-        On Error GoTo 0
-    Next
-    For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.name Like PageName & "*" Then
-            For Each vsoShape In vsoPage.Shapes
-                If ShapeSATypeIs(vsoShape, typeShkafMesto) Then
-                    On Error Resume Next
-                    colNameCxema.Add vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
-                    err.Clear
-                    On Error GoTo 0
-                End If
-            Next
-        End If
-    Next
+    Set colNameCxema = GetColNazvanieShkafa
+
     cmbxNazvanieShkafa.Clear
     For i = 1 To colNameCxema.Count
         cmbxNazvanieShkafa.AddItem colNameCxema.Item(i)

@@ -488,17 +488,14 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                     nCount = colCablesTemp.Count
                     On Error Resume Next
                     colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0)))
+                    err.Clear
+                    On Error GoTo 0
                     If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
                         colCables.Add vsoCollection.Item(1).Parent
-                        nCount = colCablesTemp.Count
                     End If
                 End If
             Next
-            
-            'Отключаем On Error Resume Next
-            err.Clear
-            On Error GoTo 0
-            
+
             If colCables.Count = 0 Then Exit Sub 'MsgBox "Не найдены кабели", vbExclamation + vbOKOnly, "САПР-АСУ: Info": Exit Sub
             'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
         '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
@@ -543,7 +540,9 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 If IsEmpty(masRoute(i, 1)) Then Exit For
                 On Error GoTo er1 'Маршрут 3-5 или 5-3
                 Set shpRoute = ActivePage.Shapes(masRoute(i, 1) & "-" & masRoute(i, 2))
-
+                err.Clear
+                On Error GoTo 0
+                
                 'Находим точку на куске маршрута
                 If shpRoute.OneD Then '1-D фигура
                     'Точка по середине линии
@@ -572,13 +571,11 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 nCount = colLotok.Count
                 On Error Resume Next
                 colLotok.Add clsLotokFSA, Key
+                err.Clear
+                On Error GoTo 0
                 If colLotok.Count = nCount Then 'Если кол-во не увеличелось, значит оно уже есть - складываем длину
                     colLotok(Key).DlinaLotok = colLotok(Key).DlinaLotok + shpRoute.Cells("Prop.Dlina").Result(0)
                 End If
-                
-                'Отключаем On Error Resume Next
-                err.Clear
-                On Error GoTo 0
                 
                 'Выделяем куски маршрута
                 selLines.Select shpRoute, visSelect
@@ -1175,15 +1172,15 @@ Sub FillNazvanieShkafaInBox(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : FillNazvanieShkafaInBox - Заполняет Prop.SA_NazvanieShkafa в шейпе шкафа/коробки на плане
 '------------------------------------------------------------------------------------------------------------
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    PageName = cListNameCxema
-    For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.name Like PageName & "*" Then
-            vsoShape.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").ResultStr(0) & """"
-            Exit Sub
-        End If
+    Dim colNameCxema As Collection
+    Dim PropPageSheet As String
+    Dim i As Integer
+    
+    Set colNameCxema = GetColNazvanieShkafa
+    For i = 1 To colNameCxema.Count
+        PropPageSheet = PropPageSheet & colNameCxema.Item(i) & IIf(i = colNameCxema.Count, "", ";")
     Next
+    vsoShape.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & """"
 End Sub
 
 Sub SetGofra(vsoObject As Object)

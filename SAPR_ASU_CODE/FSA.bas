@@ -20,6 +20,7 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
 '------------------------------------------------------------------------------------------------------------
     Dim PageParent As String, NameIdParent As String, AdrParent As String
     Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageName As String
     Dim FSAvss As Document
     Dim vsoPageFSA As Visio.Page
     Dim vsoPageCxema As Visio.Page
@@ -35,6 +36,8 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     Dim DropX As Double
     Dim DropY As Double
     
+    PageName = cListNameCxema
+    
     If NazvanieShkafa = "" Then
         MsgBox "Нет шкафа для вставки. Название шкафа пустое", vbExclamation, "САПР-АСУ: Ошибка"
         Exit Sub
@@ -46,7 +49,7 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     Set colSensorOnCxema = New Collection
     Set vsoSelection = ActiveWindow.Selection
     Set vsoPageFSA = Application.ActivePage  '.Pages("Схема")
-    Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
+'    Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set FSAvss = Application.Documents.Item("SAPR_ASU_FSA.vss")
     
     DropY = ActivePage.PageSheet.Cells("PageHeight").Result(0)
@@ -57,17 +60,6 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     ActiveDocument.Masters.ItemU("SensorFSA").Shapes(1).Cells("EventDrop").Formula = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
     ActiveDocument.Masters.ItemU("SensorFSA").Shapes(1).Cells("EventMultiDrop").Formula = """"""
 
-    'Берем все листы одной схемы
-    For Each vsoPageCxema In ActiveDocument.Pages
-        If vsoPageCxema.name Like cListNameCxema & "*" Then
-            If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
-                If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
-                    colPagesCxema.Add vsoPageCxema
-                End If
-            End If
-        End If
-    Next
-
     'Находим что уже есть на ФСА (связанные датчики)
     For Each shpSensorOnFSA In vsoPageFSA.Shapes
         If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Then
@@ -76,18 +68,23 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     Next
     
     'Суем туда же все из СХЕМЫ. Одинаковое не влезает => ошибка. Что не влезло: нам оно то и нужно
-    For Each vsoPageCxema In colPagesCxema
-        For Each shpSensorOnCxema In vsoPageCxema.Shapes
-            If ShapeSATypeIs(shpSensorOnCxema, typeSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeActuator) Then
-                nCount = colSensorOnFSA.Count
-                On Error Resume Next
-                colSensorOnFSA.Add shpSensorOnCxema, shpSensorOnCxema.Cells("User.Name").ResultStr(0)
-                If colSensorOnFSA.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                    colSensorToFSA.Add shpSensorOnCxema
-                    nCount = colSensorOnFSA.Count
+    For Each vsoPageCxema In ActiveDocument.Pages
+        If vsoPageCxema.name Like PageName & "*" Then
+            For Each shpSensorOnCxema In vsoPageCxema.Shapes
+                If ShapeSATypeIs(shpSensorOnCxema, typeSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeActuator) Then
+                    If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
+                        nCount = colSensorOnFSA.Count
+                        On Error Resume Next
+                        colSensorOnFSA.Add shpSensorOnCxema, shpSensorOnCxema.Cells("User.Name").ResultStr(0)
+                        err.Clear
+                        On Error GoTo 0
+                        If colSensorOnFSA.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                            colSensorToFSA.Add shpSensorOnCxema
+                        End If
+                    End If
                 End If
-            End If
-        Next
+            Next
+        End If
     Next
 
     'Очищаем коллекцию для вставляемых датчиков

@@ -301,23 +301,10 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     Set colPagesCxema = New Collection
     Set vsoSelection = ActiveWindow.Selection
     Set vsoPageVID = Application.ActivePage  'Pages("ВИД")
-    Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
+'    Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set VIDvss = Application.Documents.Item("SAPR_ASU_VID.vss")
     
     ElementovVStroke = 10
-    
-'    NazvanieShkafa = "Схема1"
-    
-    'Берем все листы одной схемы
-    For Each vsoPageCxema In ActiveDocument.Pages
-        If vsoPageCxema.name Like cListNameCxema & "*" Then
-            If vsoPageCxema.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
-                If vsoPageCxema.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
-                    colPagesCxema.Add vsoPageCxema
-                End If
-            End If
-        End If
-    Next
     
     'Находим что уже есть на ВИДе
     For Each shpElementOnVID In vsoPageVID.Shapes
@@ -327,29 +314,35 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     Next
     
     'Суем туда же все со СХЕМЫ. Одинаковое не влезает => ошибка. Что не влезло: нам оно то и нужно
-    For Each vsoPageCxema In colPagesCxema
-        For Each shpElementOnCxema In vsoPageCxema.Shapes
-            SAType = ShapeSAType(shpElementOnCxema)
-            Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent
-                    nCount = colElementOnVID.Count
-                    On Error Resume Next
-                    colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
-                    If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                        colElementToVID.Add shpElementOnCxema
-                        nCount = colElementOnVID.Count
-                    End If
-                Case typeTerm
-                    nCount = colElementOnVID.Count
-                    On Error Resume Next
-                    colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
-                    If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                        colElementToVID.Add shpElementOnCxema
-                        nCount = colElementOnVID.Count
-                    End If
-                Case Else
-            End Select
-        Next
+    For Each vsoPageCxema In ActiveDocument.Pages
+        If vsoPageCxema.name Like PageName & "*" Then
+            For Each shpElementOnCxema In vsoPageCxema.Shapes
+                If shpElementOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
+                    SAType = ShapeSAType(shpElementOnCxema)
+                    Select Case SAType
+                        Case typeCoil, typeParent, typeElement, typePLCParent
+                            nCount = colElementOnVID.Count
+                            On Error Resume Next
+                            colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                            err.Clear
+                            On Error GoTo 0
+                            If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                                colElementToVID.Add shpElementOnCxema
+                            End If
+                        Case typeTerm
+                            nCount = colElementOnVID.Count
+                            On Error Resume Next
+                            colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                            err.Clear
+                            On Error GoTo 0
+                            If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                                colElementToVID.Add shpElementOnCxema
+                            End If
+                        Case Else
+                    End Select
+                End If
+            Next
+        End If
     Next
 '-------------------------------------------------------------------------------Клеммы---------------------------------------------------------------------------------------------
     'Клеммы шкафа собираем в отдельную коллекцию
