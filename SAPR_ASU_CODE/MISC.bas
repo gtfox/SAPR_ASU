@@ -74,6 +74,24 @@ net_takogo_shejpa:
     
 End Function
 
+Public Function ShapeByGUID(GUIDToShape As String) As Visio.Shape
+'------------------------------------------------------------------------------------------------------------
+' Function      : ShapeByGUID - По GUID находит шейп
+                'Строка типа "{2287DC42-B167-11CE-88E9-0020AFDDD917}", по ней ищется шейп на всех листах
+                'и выдается в качестве объекта-шейпа
+                'Если нет ссылки или шейпа на выход идет Nothing
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Set ShapeByGUID = Nothing
+    If GUIDToShape <> "" Then 'Если GUID есть
+        'Перебираем все листы
+        For Each vsoPage In ActiveDocument.Pages
+            On Error Resume Next
+            Set ShapeByGUID = vsoPage.Shapes(GUIDToShape)
+        Next
+    End If
+End Function
+
 Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : SetLocalShkafMesto - Задает имя шкафа и место для фигур внутри шейпа "шкаф/место"

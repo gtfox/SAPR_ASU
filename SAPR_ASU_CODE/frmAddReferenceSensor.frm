@@ -322,7 +322,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
                     Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0))  '.Cells("TheText").ResultStr("")         .Characters.Text & "/" & .Cells("User.Kontur").ResultStr(0)
-                    itmx.SubItems(1) = IIf(.Cells("User.NameChild").ResultStr(0) = "0,0000", "", .Cells("User.NameChild").ResultStr(0)) 'IIf(.Cells("User.LocationParent").ResultStr(0) = "0,0000", "", .Cells("Hyperlink.Shema.ExtraInfo").ResultStr(0))
+                    itmx.SubItems(1) = IIf(.Cells("User.NameChild").ResultStr(0) = "0,0000", "", .Cells("User.NameChild").ResultStr(0)) 'IIf(.Cells("User.LocationParent").ResultStr(0) = "0,0000", "", .Cells("Hyperlink.Shema.Frame").ResultStr(0))
                     itmx.SubItems(2) = .Cells("User.Location").ResultStr(0)
                     itmx.SubItems(3) = .ContainingPage.name
                 End With

@@ -43,10 +43,6 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
     Fill_ShapeCollection ActivePage
     Fill_lstvParent
 
-    Call lblHeaders_Click
-
-    lblResult.Caption = "Найдено фигур: " & colShapes.Count
-    
     ReSize
     
     frmAddReferenceWireLink.Show
@@ -75,12 +71,10 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
             Case typeWireLinkR 'Если макрос активировался дочерним - значит искали родителей
                 If ShapeSATypeIs(vsoShape, typeWireLinkS) Then
-
                     SelectText vsoShape, vsoPage
                 End If
             Case typeWireLinkS 'Если макрос активировался родителем - значит искали дочерних
                 If ShapeSATypeIs(vsoShape, typeWireLinkR) Then
-
                     SelectText vsoShape, vsoPage
                 End If
         End Select
@@ -126,20 +120,42 @@ Sub FindShapes() ' процедура поиска
     Else
         lstvParent.ListItems.Clear
     End If
-
-    lblResult.Caption = "Найдено фигур: " & colShapes.Count
     
     ReSize
     
-    Call lblHeaders_Click
-    
 End Sub
 
-
+Function GetAutoSize(lstvTable As ListView, Optional Visible As Boolean = True) As Single
+    Dim i As Long
+    If Visible = True Then
+        For i = 0 To lstvTable.ColumnHeaders.Count - 1
+            Call SendMessage(lstvTable.hWnd, LVM_SETCOLUMNWIDTH, i, ByVal LVSCW_AUTOSIZE_USEHEADER) 'по заголовкам
+            WidthSoder = lstvTable.ColumnHeaders.Item(i + 1).Width
+            Call SendMessage(lstvTable.hWnd, LVM_SETCOLUMNWIDTH, i, ByVal LVSCW_AUTOSIZE) 'по содержимому
+            lstvTable.ColumnHeaders.Item(i + 1).Width = WorksheetFunction.Max(WidthSoder, lstvTable.ColumnHeaders.Item(i + 1).Width)
+            GetAutoSize = GetAutoSize + lstvTable.ColumnHeaders.Item(i + 1).Width
+        Next
+        GetAutoSize = GetAutoSize + 5
+    Else
+        GetAutoSize = 0
+    End If
+End Function
 
 Private Sub ReSize() ' изменение высоты формы. Зависит от количества элементов в listbox
     Dim H As Single
+
+    lstvPages.Width = 0
+    lstvPages.Width = GetAutoSize(lstvPages)
+    lstvParent.Width = 0
+    lstvParent.Width = GetAutoSize(lstvParent)
     
+    lstvParent.Left = lstvPages.Left + lstvPages.Width + 6
+    Me.Width = IIf(lstvParent.Left + lstvParent.Width + 6 < 286, 286, lstvParent.Left + lstvParent.Width + 6)
+    lblResult.Left = Me.Width - lblResult.Width - 6
+    btnClose.Left = Me.Width - btnClose.Width - 12
+    
+    lblResult.Caption = "Найдено фигур: " & colShapes.Count
+
     H = lstvPages.ListItems.Count
     If H < lstvParent.ListItems.Count Then H = lstvParent.ListItems.Count
 
@@ -152,13 +168,6 @@ Private Sub ReSize() ' изменение высоты формы. Зависи�
     
     lstvPages.Height = H
     lstvParent.Height = H
-    
-'    H = Me.Height - 35
-'
-'    Label1.Top = H
-'    lblHeaders.Top = H
-'    lblContent.Top = H
-
     
 End Sub
 
@@ -330,7 +339,7 @@ Private Sub UserForm_Initialize() ' инициализация формы
     lstvPages.ColumnHeaders.Add , , "Страницы" ' добавить ColumnHeaders
     'Call SendMessage(lstvPages.hWnd, LVM_SETCOLUMNWIDTH, 0, ByVal LVSCW_AUTOSIZE_USEHEADER) ' выровнять ширину столбцов по заголовкам
     'Call SendMessage(lstvPages.hWnd, LVM_SETCOLUMNWIDTH, 0, ByVal LVSCW_AUTOSIZE) ' выровнять ширину столбцов по содержимому
-    lstvPages.ColumnHeaders.Item(1).Width = lstvPages.Width - 18
+'    lstvPages.ColumnHeaders.Item(1).Width = lstvPages.Width - 18
     
     lstvParent.ColumnHeaders.Add , , "Провод" ' добавить ColumnHeaders
     lstvParent.ColumnHeaders.Add , , "Связь" ' добавить ColumnHeaders

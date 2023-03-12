@@ -7,6 +7,7 @@
 '------------------------------------------------------------------------------------------------------------
 
 Option Explicit
+Public colThumbToDelete As Collection
 
 'Активация формы создания связи элементов схемы
 Public Sub AddReferenceRelayFrm(shpChild As Visio.Shape) 'Получили шейп с листа
@@ -27,8 +28,8 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 
     Dim shpParentOld As Visio.Shape
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
     Dim i As Integer
     Dim HyperLinkToChild As String
     Dim HyperLinkToParentOld As String
@@ -38,24 +39,30 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
     
     Kontaktov = shpParent.Cells("Prop.Kontaktov").Result(0)
 
     'Проверяем текущую привязку контакта к старой катушке и чистим ее в старой катушке
-    Set shpParentOld = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+'    Set shpParentOld = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    
+    Set shpParentOld = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
+    
     If Not shpParentOld Is Nothing Then
         'Ищем строку в Scratch катушки(родителя) с адресом удаляемого контакта (дочернего)
         For i = 1 To shpParentOld.Section(visSectionScratch).Count
-            If shpParentOld.CellsU("Scratch.A" & i).ResultStr(0) = HyperLinkToChild Then
+            If shpParentOld.CellsU("Scratch.A" & i).ResultStr(0) = HyperLinkToChild And shpParentOld.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).ResultStr(0) = GUIDChild Then
                 'Чистим родительский шейп
                 shpParentOld.CellsU("Scratch.A" & i).FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
                 shpParentOld.CellsU("Scratch.C" & i).FormulaForceU = ""
                 shpParentOld.CellsU("Scratch.D" & i).FormulaForceU = ""
+                shpParentOld.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).Formula = ""
                 Exit For
             End If
         Next
@@ -74,18 +81,20 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
             shpParent.CellsU("Scratch.A" & i).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
             shpParent.CellsU("Scratch.C" & i).FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
             shpParent.CellsU("Scratch.D" & i).FormulaU = AdrChild + "!User.SAType"  'Pages[Схема.3]!Sheet.4!User.SAType
+            shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).Formula = GUIDChild
             
             'Заполняем дочерний шейп
             shpChild.Cells("Prop.AutoNum").FormulaU = True 'Переводим в автонумерацию
             shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
             shpChild.CellsU("User.Number").FormulaU = AdrParent + "!Scratch.B" + CStr(i) 'Pages[Схема.3]!Sheet.4!Scratch.B2
             shpChild.CellsU("User.LocationParent").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
-            
+
             If shpChild.CellExistsU("HyperLink.Coil", False) = False Then
                shpChild.AddNamedRow visSectionHyperlink, "Coil", 0
                shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkDescription).FormulaU = """Катушка ""&User.NameParent&"": ""&User.LocationParent"
             End If
             shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
+            shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).Formula = GUIDParent
             
             Exit For
         End If
@@ -109,16 +118,20 @@ Sub DeleteRelayChild(shpChild As Visio.Shape)
     Dim mstrAdrParent() As String
     Dim HyperLinkToParent As String
     Dim HyperLinkToChild As String
+    Dim GUIDChild As String
     Dim PageChild, NameIdChild As String
     Dim i As Integer
     
     'Проверяем текущую привязку
-    Set shpParent = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+'    Set shpParent = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
+    
     If Not shpParent Is Nothing Then
     
         PageChild = shpChild.ContainingPage.NameU
         NameIdChild = shpChild.NameID
         HyperLinkToChild = PageChild + "/" + NameIdChild
+        GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
         
         'Ищем строку в Scratch катушки(родителя) с адресом удаляемого контакта (дочернего)
         For i = 1 To shpParent.Section(visSectionScratch).Count
@@ -132,7 +145,9 @@ Sub DeleteRelayChild(shpChild As Visio.Shape)
                 shpParent.CellsU("Scratch.A" & i).FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
                 shpParent.CellsU("Scratch.C" & i).FormulaForceU = ""
                 shpParent.CellsU("Scratch.D" & i).FormulaForceU = ""
-                
+                shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).Formula = ""
+                'Удаляем миниатюры у родителя, если они были
+                ThumbDelete shpParent
                 'Удаляем дочерний шейп
                 'shpChild.Delete
                 
@@ -168,28 +183,33 @@ Sub DeleteRelayParent(shpParent As Visio.Shape)
     Dim LinkPlaceParent As String
     Dim PageParent As String
     Dim NameIdParent As String
+    Dim GUIDParent As String
+    Dim GUIDChild As String
     Dim i As Integer
     
     'Set shpParent = ActivePage.Shapes("Sheet.6") 'для отладки
     
-    PageParent = shpParent.ContainingPage.NameU
-    NameIdParent = shpParent.NameID
-    LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
+'    PageParent = shpParent.ContainingPage.NameU
+'    NameIdParent = shpParent.NameID
+'    LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
 
     'Ищем строки в Scratch катушки(родителя) с адресами удаляемых контактов (дочерних)
     If shpParent.SectionExists(visSectionScratch, 0) Then
         For i = 1 To shpParent.Section(visSectionScratch).Count
-            HyperLinkToChild = shpParent.CellsU("Scratch.A" & i).ResultStr(0)
-            If (HyperLinkToChild <> "") And (HyperLinkToChild <> "0,0000") Then 'нашли в Scratch адрес удаляемого контакта
-                
+            GUIDChild = shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).ResultStr(0)
+'            HyperLinkToChild = shpParent.CellsU("Scratch.A" & i).ResultStr(0)
+            If (GUIDChild <> "") And (GUIDChild <> "0,0000") Then
+'            If (HyperLinkToChild <> "") And (HyperLinkToChild <> "0,0000") Then 'нашли в Scratch адрес удаляемого контакта
                 'Находим контакт разбивая HyperLink на имя страницы и имя шейпа
-                mstrAdrChild = Split(HyperLinkToChild, "/")
-                Set shpChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
+                Set shpChild = ShapeByGUID(GUIDChild)
+'                mstrAdrChild = Split(HyperLinkToChild, "/")
+'                Set shpChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
                 'В контакте находим ссылку на катушку
-                HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-                
+'                GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0)
+'                HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
                 'Проверяем что контакт привязан именно к нашей катушке
-                If HyperLinkToParent = LinkPlaceParent Then
+                If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
                     'Чистим дочерний шейп
                     ClearRelayChild shpChild
                 End If
@@ -220,6 +240,10 @@ Sub ClearRelayChild(shpChild As Visio.Shape)
     shpChild.CellsU("User.Number").FormulaForceU = ""
     shpChild.CellsU("User.LocationParent").FormulaForceU = ""
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaForceU = """"""
+    shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaForceU = ""
+    
+    'Удаляем миниатюры контактов, если они были
+    ThumbDelete shpChild
 
 End Sub
 
@@ -238,6 +262,7 @@ Sub ClearRelayParent(shpParent As Visio.Shape)
             shpParent.CellsU("Scratch.A" & i).FormulaU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
             shpParent.CellsU("Scratch.C" & i).FormulaU = ""
             shpParent.CellsU("Scratch.D" & i).FormulaU = ""
+            shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).FormulaU = ""
         Next
     End If
 End Sub
@@ -286,6 +311,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                     shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & DeltaY & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
                     shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinX))+Sheet." & vsoShape.id & "!PinX"
                     shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinY))+Sheet." & vsoShape.id & "!PinY"
+                    shpThumb.Cells("User.AdrSource.Prompt").FormulaU = vsoShape.UniqueID(visGetOrMakeGUID)
                 End If
                 
             Case typeCoil, typeParent 'Катушка реле
@@ -304,6 +330,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                         shpThumb.Cells("User.DeltaY").FormulaU = Chr(34) & (DeltaY + n * dN) & Chr(34) 'shpThumb.Cells("PinY").ResultStrU("in")
                         shpThumb.Cells("PinX").FormulaU = "=SETATREF(User.DeltaX,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinX))+Sheet." & vsoShape.id & "!PinX"
                         shpThumb.Cells("PinY").FormulaU = "=SETATREF(User.DeltaY,SETATREFEVAL(SETATREFEXPR(0)-Sheet." & vsoShape.id & "!PinY))+Sheet." & vsoShape.id & "!PinY"
+                        shpThumb.Cells("User.AdrSource.Prompt").FormulaU = vsoShape.UniqueID(visGetOrMakeGUID)
                         n = n + 1
                     End If
                 Next
@@ -318,7 +345,6 @@ Sub ThumbDelete(shpDelete As Visio.Shape)
                 'Собираем миниатюры контактов, если они были и ссылались на нас, и удаляем
 '------------------------------------------------------------------------------------------------------------
     Dim vsoShape As Visio.Shape
-    Dim shpThumb As Visio.Shape
     Dim colThumb As Collection
     
     Set colThumb = New Collection
@@ -326,18 +352,19 @@ Sub ThumbDelete(shpDelete As Visio.Shape)
     'Собираем миниатюры контактов, если они были, в коллекцию для удаления
     For Each vsoShape In ActivePage.Shapes
         If ShapeSATypeIs(vsoShape, typeThumb) Then
-            Set shpThumb = vsoShape
-            If shpThumb.Cells("User.AdrSource").ResultStr(0) = shpDelete.ContainingPage.id & "/" & shpDelete.id Then
-                colThumb.Add shpThumb
+            If vsoShape.Cells("User.AdrSource.Prompt").ResultStr(0) = shpDelete.UniqueID(visGetGUID) Then
+'            If vsoShape.Cells("User.AdrSource").ResultStr(0) = shpDelete.ContainingPage.id & "/" & shpDelete.id Then
+                colThumb.Add vsoShape
             End If
         End If
     Next
     'Удаляем найденные контакты
-    For Each shpThumb In colThumb
-        shpThumb.Delete
+    For Each vsoShape In colThumb
+        Application.EventsEnabled = False
+        vsoShape.Delete
+        Application.EventsEnabled = True
     Next
     Set colThumb = Nothing
-    
 End Sub
 
 Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
@@ -349,9 +376,9 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
     Dim ConnectedShape As Visio.Shape
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
-    Dim AdrNashegoShejpa As String
+'    Dim AdrNashegoShejpa As String
     
-    AdrNashegoShejpa = vsoShape.ContainingPage.NameU & "/" & vsoShape.NameID
+'    AdrNashegoShejpa = vsoShape.ContainingPage.NameU & "/" & vsoShape.NameID
     
     'Ищем провода подключенные к нам и отцепляем. Перебор FromConnects.
     For i = 1 To vsoShape.FromConnects.Count
@@ -362,7 +389,8 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
         
         If ShapeType = typeWire Then
             If CleareWire Then
-                If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoShejpa) Then 'Не Дочерний? или дочерний, но ссылается на нас
+                If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = vsoShape.UniqueID(visGetGUID)) Then 'Не Дочерний? или дочерний, но ссылается на нас (другой провод или разрыв провода)
+'                If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoShejpa) Then 'Не Дочерний? или дочерний, но ссылается на нас (другой провод или разрыв провода)
                     'Чистим Провод
                     ConnectedShape.Cells("Prop.Number").FormulaU = ""
                     ConnectedShape.Cells("Prop.SymName").FormulaU = ""
@@ -370,6 +398,7 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
                     ConnectedShape.Cells("Prop.AutoNum").FormulaU = True
                     ConnectedShape.Cells("Prop.HideNumber").FormulaU = False
                     ConnectedShape.Cells("Prop.HideName").FormulaU = True
+                    ConnectedShape.Cells("User.AdrSource.Prompt").FormulaU = ""
                     'Присваиваем номер проводу
                     'AutoNum ConnectedShape
                 End If

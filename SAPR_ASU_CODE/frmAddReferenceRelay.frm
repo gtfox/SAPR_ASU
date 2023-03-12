@@ -91,13 +91,11 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
             Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
                 Select Case ShapeSAType(vsoShape)
                     Case typeCoil, typeParent
-
                         SelectText vsoShape, vsoPage
                 End Select
             Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
                 Select Case ShapeSAType(vsoShape)
                     Case typeNO, typeNC
-
                         SelectText vsoShape, vsoPage
                 End Select
         End Select
@@ -199,8 +197,6 @@ Private Sub ReSize() ' изменение высоты формы. Зависи�
     lstvPages.Height = H
     lstvParent.Height = H
     lstvChild.Height = H
-
-
     
 End Sub
 

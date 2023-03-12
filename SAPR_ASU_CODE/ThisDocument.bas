@@ -11,24 +11,29 @@ Public SelectionMoreOne As Boolean
 
 
 
-''Перед удалением кучи шейпов сначала выкидываем миниатюры из выделения, иначе крашится, т.к.
-''в удалении шейпа сидит удаление миниатюры, что вызывает повторное срабатывание BeforeShapeDelete,
-''но уже с другим объектом, а предыдущее не завершилось...
-''Или повторное вызывается для уже удаленного объекта...
-
-''НЕ ПОМОГЛО. Какая-то х-ня творится во время удаления.
-
-'Private Sub vsoPagesEvent_BeforeSelectionDelete(ByVal Selection As IVSelection)
-'    Dim vsoShape As Visio.Shape
-'
-'    For Each vsoShape In Selection
-'        If ShapeSATypeis(vsoShape, typeThumb) Then
-'            Selection.Select vsoShape, visDeselect
-'        End If
-'    Next
-'End Sub
-
-
+'Перед удалением кучи шейпов сначала выкидываем миниатюры из выделения, иначе крашится, т.к.
+'в удалении шейпа сидит удаление миниатюры, что вызывает повторное срабатывание BeforeShapeDelete для уже удаленного объекта...
+Private Function vsoPagesEvent_QueryCancelSelectionDelete(ByVal Selection As IVSelection) As Boolean
+    Dim vsoShape As Visio.Shape
+    Dim colShape As Collection
+    Dim bThumbExist As Boolean
+    
+    Set colShape = New Collection
+    For Each vsoShape In Selection
+        If ShapeSATypeIs(vsoShape, typeThumb) Then
+            bThumbExist = True
+        Else
+            colShape.Add vsoShape
+        End If
+    Next
+    If bThumbExist And colShape.Count > 0 Then
+        ActiveWindow.DeselectAll
+        For Each vsoShape In colShape
+            ActiveWindow.Select vsoShape, visSelect
+        Next
+    End If
+'    vsoPagesEvent_QueryCancelSelectionDelete = True
+End Function
 
 'Перед удалением шейпа чистим что-либо
 Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
@@ -110,12 +115,16 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
     End If
 End Sub
 
+
+
 'Если в выделении больше 1 элемента - привязку к курсору не делаем
 Private Sub vsoPagesEvent_SelectionAdded(ByVal Selection As IVSelection)
     If Selection.Count > 1 Then
         SelectionMoreOne = True
     End If
 End Sub
+
+
 
 'Таскаем фируру за мышкой
 Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
