@@ -25,8 +25,8 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
 
     Dim shpParentOld As Visio.Shape
     Dim shpChildOld As Visio.Shape
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
     Dim i As Integer
     Dim HyperLinkToChild As String
     Dim HyperLinkToParentOld As String
@@ -37,23 +37,26 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
 
     'Проверяем текущую привязку разрыва провода(дочернего) к старому разрыву(родильскому) и чистим его в старом разрыве.
     'А еще в старом разрыве была вторая половинка - старый дочерний. Его тоже чистим.
-    Set shpParentOld = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpParentOld = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     If Not shpParentOld Is Nothing Then
         'Чистим родительский шейп
         shpParentOld.CellsU("User.LocLink").FormulaU = """"""
         shpParentOld.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
+        shpParentOld.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).Formula = ""
     End If
     
     'Находим подключенный к новому родителю дочерний шейп (если он есть)
-    Set shpChildOld = ShapeByHyperLink(shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpChildOld = ShapeByGUID(shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     If Not shpChildOld Is Nothing Then
         ClearReferenceWireLink shpChildOld
     End If
@@ -63,6 +66,7 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     'Заполняем родительский шейп
     shpParent.CellsU("User.LocLink").FormulaU = AdrChild + "!User.Location"  'Pages[Схема.3]!Sheet.4!User.Location
     shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
+    shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDChild
     
     'Заполняем дочерний шейп
     shpChild.CellsU("Prop.Number").FormulaU = AdrParent + "!Prop.Number"
@@ -70,6 +74,7 @@ Sub AddReferenceWireLink(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.CellsU("User.LocLink").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
     shpChild.CellsU("User.name").FormulaU = AdrParent + "!User.name"
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
+    shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
     shpChild.CellsU("User.Shkaf").FormulaU = AdrParent + "!User.Shkaf"
     shpChild.CellsU("User.Mesto").FormulaU = AdrParent + "!User.Mesto"
 
@@ -88,13 +93,13 @@ Sub DeleteWireLinkChild(shpChild As Visio.Shape)
     Dim i As Integer
     
     'Проверяем что разрыв провода привязан родителю
-    Set shpParent = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     If Not shpParent Is Nothing Then
             
         'Чистим родительский шейп
         shpParent.CellsU("User.LocLink").FormulaU = """"""
         shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
-    
+        shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = ""
     End If
 
     'Отключаем провод, чистим в нем ссылки, автонумерация, стрелка
@@ -114,23 +119,21 @@ Sub DeleteWireLinkParent(shpParent As Visio.Shape)
     Dim mstrAdrChild() As String
     Dim HyperLinkToParent As String
     Dim HyperLinkToChild As String
-    Dim LinkPlaceParent As String
+    Dim LinkPlaceParent As String, GUIDPlaceParent As String
     Dim PageParent, NameIdParent As String
     Dim i As Integer
     
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
+    GUIDPlaceParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     'Находим подключенный дочерний (через HyperLink)
-    Set shpChild = ShapeByHyperLink(shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpChild = ShapeByGUID(shpParent.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     If Not shpChild Is Nothing Then
-    
         'В контакте находим ссылку на катушку
-        HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-        
         'Проверяем что контакт привязан именно к нашей катушке
-        If HyperLinkToParent = LinkPlaceParent Then
+        If shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0) = LinkPlaceParent And shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) = GUIDPlaceParent Then
             ClearReferenceWireLink shpChild
         End If
     End If
@@ -154,6 +157,7 @@ Sub ClearReferenceWireLink(vsoShape As Visio.Shape)
     vsoShape.CellsU("Prop.SymName").FormulaU = """"""
     vsoShape.CellsU("User.LocLink").FormulaU = """"""
     vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """"""
+    vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = ""
     vsoShape.CellsU("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
     vsoShape.CellsU("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
 
@@ -175,7 +179,7 @@ Sub GoHyperLink(vsoShape As Visio.Shape)
 '    ActiveWindow.GetViewRect pinLeft, pinTop, pinWidth, pinHeight   'Сохраняем вид окна
 
     'Находим шейп-цель для последующего выделения
-    Set shpTarget = ShapeByHyperLink(vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
+    Set shpTarget = ShapeByGUID(vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     If Not shpParent Is Nothing Then
         'Переходим по ссылке
         vsoShape.Hyperlinks("1").Follow

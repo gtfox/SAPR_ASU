@@ -50,8 +50,6 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
     Kontaktov = shpParent.Cells("Prop.Kontaktov").Result(0)
 
     'Проверяем текущую привязку контакта к старой катушке и чистим ее в старой катушке
-'    Set shpParentOld = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
-    
     Set shpParentOld = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     
     If Not shpParentOld Is Nothing Then
@@ -123,7 +121,6 @@ Sub DeleteRelayChild(shpChild As Visio.Shape)
     Dim i As Integer
     
     'Проверяем текущую привязку
-'    Set shpParent = ShapeByHyperLink(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0))
     Set shpParent = ShapeByGUID(shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0))
     
     If Not shpParent Is Nothing Then
@@ -186,33 +183,18 @@ Sub DeleteRelayParent(shpParent As Visio.Shape)
     Dim GUIDParent As String
     Dim GUIDChild As String
     Dim i As Integer
-    
-    'Set shpParent = ActivePage.Shapes("Sheet.6") 'для отладки
-    
-'    PageParent = shpParent.ContainingPage.NameU
-'    NameIdParent = shpParent.NameID
-'    LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
+
     GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
 
     'Ищем строки в Scratch катушки(родителя) с адресами удаляемых контактов (дочерних)
     If shpParent.SectionExists(visSectionScratch, 0) Then
         For i = 1 To shpParent.Section(visSectionScratch).Count
             GUIDChild = shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).ResultStr(0)
-'            HyperLinkToChild = shpParent.CellsU("Scratch.A" & i).ResultStr(0)
-            If (GUIDChild <> "") And (GUIDChild <> "0,0000") Then
-'            If (HyperLinkToChild <> "") And (HyperLinkToChild <> "0,0000") Then 'нашли в Scratch адрес удаляемого контакта
-                'Находим контакт разбивая HyperLink на имя страницы и имя шейпа
-                Set shpChild = ShapeByGUID(GUIDChild)
-'                mstrAdrChild = Split(HyperLinkToChild, "/")
-'                Set shpChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
-                'В контакте находим ссылку на катушку
-'                GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0)
-'                HyperLinkToParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).ResultStr(0)
-                'Проверяем что контакт привязан именно к нашей катушке
-                If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
-                    'Чистим дочерний шейп
-                    ClearRelayChild shpChild
-                End If
+            Set shpChild = ShapeByGUID(GUIDChild)
+            'Проверяем что контакт привязан именно к нашей катушке
+            If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
+                'Чистим дочерний шейп
+                ClearRelayChild shpChild
             End If
         Next
     End If
@@ -376,9 +358,6 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
     Dim ConnectedShape As Visio.Shape
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
-'    Dim AdrNashegoShejpa As String
-    
-'    AdrNashegoShejpa = vsoShape.ContainingPage.NameU & "/" & vsoShape.NameID
     
     'Ищем провода подключенные к нам и отцепляем. Перебор FromConnects.
     For i = 1 To vsoShape.FromConnects.Count
@@ -390,7 +369,6 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
         If ShapeType = typeWire Then
             If CleareWire Then
                 If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = vsoShape.UniqueID(visGetGUID)) Then 'Не Дочерний? или дочерний, но ссылается на нас (другой провод или разрыв провода)
-'                If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoShejpa) Then 'Не Дочерний? или дочерний, но ссылается на нас (другой провод или разрыв провода)
                     'Чистим Провод
                     ConnectedShape.Cells("Prop.Number").FormulaU = ""
                     ConnectedShape.Cells("Prop.SymName").FormulaU = ""

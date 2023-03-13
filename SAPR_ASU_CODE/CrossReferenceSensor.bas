@@ -33,22 +33,23 @@ Sub AddReferenceSensor(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim shpParentOld As Visio.Shape
     Dim shpChildOld As Visio.Shape
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
 
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
-
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
 
     '---Отвязываем сущ ДЭ---
     'Проверяем текущую привязку ДФ к старому ДЭ и чистим ее в старом ДЭ
     'DeleteSensorChild нельзя использовать т.к. там чистится подвал, а тут этого не надо
-    Set shpParentOld = ShapeByHyperLink(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
+    Set shpParentOld = ShapeByGUID(shpChild.CellsU("Hyperlink.Shema.ExtraInfo").ResultStr(0))
     If Not shpParentOld Is Nothing Then
         ClearSensorParent shpParentOld
     End If
@@ -62,13 +63,15 @@ Sub AddReferenceSensor(shpChild As Visio.Shape, shpParent As Visio.Shape)
     'Заполняем родительский шейп
     shpParent.CellsU("Hyperlink.FSA.SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
     shpParent.CellsU("Hyperlink.FSA.Frame").FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
+    shpParent.CellsU("Hyperlink.FSA.ExtraInfo").FormulaU = GUIDChild 'AdrChild + "!Hyperlink.FSA.ExtraInfo"
     shpParent.CellsU("User.NameChild").FormulaU = AdrChild + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
     shpParent.CellsU("Hyperlink.Plan.SubAddress").FormulaU = AdrChild + "!Hyperlink.Plan.SubAddress"   'Pages[Схема.3]!Sheet.4!Hyperlink.Plan.SubAddress
     shpParent.CellsU("Hyperlink.Plan.Frame").FormulaU = AdrChild + "!Hyperlink.Plan.Frame"   'Pages[Схема.3]!Sheet.4!Hyperlink.Plan.Frame
-        
+    shpParent.CellsU("Hyperlink.Plan.ExtraInfo").FormulaU = AdrChild + "!Hyperlink.Plan.ExtraInfo"
     'Заполняем дочерний шейп
     shpChild.CellsU("Hyperlink.Shema.SubAddress").FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
     shpChild.CellsU("Hyperlink.Shema.Frame").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+    shpChild.CellsU("Hyperlink.Shema.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
 
 End Sub
@@ -82,7 +85,7 @@ Sub DeleteSensorChild(shpChild As Visio.Shape)
     Dim shpParent As Visio.Shape
 
     'Проверяем текущую привязку ДФ к ДЭ и чистим ее в ДЭ
-    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.Shema.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.Shema.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearSensorParent shpParent
     End If
@@ -101,7 +104,7 @@ Sub DeleteSensorParent(shpParent As Visio.Shape)
     Dim shpChild As Visio.Shape
     
     'Если ДЭ связан с ДФ, то сначала чистим ДФ, а потом удаляем ДЭ
-    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByGUID(shpParent.CellsU("Hyperlink.FSA.ExtraInfo").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearSensorChild shpChild
     End If
@@ -118,6 +121,7 @@ Sub ClearSensorChild(shpChild As Visio.Shape)
     'Чистим дочерний шейп
     shpChild.CellsU("Hyperlink.Shema.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpChild.CellsU("Hyperlink.Shema.Frame").FormulaForceU = """"""
+    shpChild.CellsU("Hyperlink.Shema.ExtraInfo").FormulaForceU = ""
     shpChild.CellsU("User.NameParent").FormulaForceU = ""
     
     ClearFSAPodvalParent shpChild 'чистим подвальные ссылки в датчике ФСА
@@ -135,9 +139,11 @@ Sub ClearSensorParent(shpParent As Visio.Shape)
     'Чистим родительский шейп
     shpParent.CellsU("Hyperlink.FSA.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpParent.CellsU("Hyperlink.FSA.Frame").FormulaForceU = """"""
+    shpParent.CellsU("Hyperlink.FSA.ExtraInfo").FormulaForceU = ""
     shpParent.CellsU("User.NameChild").FormulaForceU = ""
     shpParent.CellsU("Hyperlink.Plan.SubAddress").FormulaForceU = """"""
     shpParent.CellsU("Hyperlink.Plan.Frame").FormulaForceU = """"""
+    shpParent.CellsU("Hyperlink.Plan.ExtraInfo").FormulaForceU = ""
 End Sub
 
 Sub DeleteSensorChildPlan(shpChild As Visio.Shape)
@@ -149,7 +155,7 @@ Sub DeleteSensorChildPlan(shpChild As Visio.Shape)
     Dim shpParent As Visio.Shape
 
     'Проверяем текущую привязку ДП к ДФ и чистим ее в ДФ
-    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.FSA.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearSensorParentPlan shpParent
     End If
@@ -162,6 +168,7 @@ Sub ClearSensorParentPlan(shpParent As Visio.Shape)
     'Чистим родительский шейп
     shpParent.CellsU("Hyperlink.Plan.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpParent.CellsU("Hyperlink.Plan.Frame").FormulaForceU = """"""
+    shpParent.CellsU("Hyperlink.Plan.ExtraInfo").FormulaForceU = ""
 End Sub
 
 '------------------------------------------------------------------------------------------------------------
@@ -181,16 +188,18 @@ Sub AddReferenceFSAPodval(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim shpParentOld As Visio.Shape
     Dim shpChildOld As Visio.Shape
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
 
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
 
     '---Отвязываем сущ FSASensor---
     'Проверяем текущую привязку FSAPodval к старому FSASensor и чистим ее в старом FSASensor
@@ -205,11 +214,13 @@ Sub AddReferenceFSAPodval(shpChild As Visio.Shape, shpParent As Visio.Shape)
     'Заполняем родительский шейп FSASensor
     shpParent.CellsU("Hyperlink.FSA.SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
     shpParent.CellsU("Hyperlink.FSA.Frame").FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
+    shpParent.CellsU("Hyperlink.FSA.ExtraInfo").FormulaU = GUIDChild
     shpParent.CellsU("Prop.KanalNumber").FormulaU = AdrChild + "!Prop.Number"  'Pages[Схема.3]!Sheet.4!User.Name
     
     'Заполняем дочерний шейп FSAPodval
     shpChild.CellsU("Hyperlink.FSA.SubAddress").FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
     shpChild.CellsU("Hyperlink.FSA.Frame").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+    shpChild.CellsU("Hyperlink.FSA.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
     shpChild.Shapes("Pomestu").CellsU("Prop.Place").FormulaU = AdrParent + "!Prop.Place"
     shpChild.Shapes("Pomestu").CellsU("Prop.Forma").FormulaU = AdrParent + "!Prop.Forma"
@@ -228,7 +239,7 @@ Sub DeleteFSAPodvalChild(shpChild As Visio.Shape)
     Dim shpParent As Visio.Shape
 
     'Проверяем текущую привязку FSAPodval к FSASensor и чистим ее в FSASensor
-    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.FSA.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearFSAPodvalParent shpParent
     End If
@@ -243,7 +254,7 @@ Sub DeleteFSAPodvalParent(shpParent As Visio.Shape)
     Dim shpChild As Visio.Shape
 
     'Если FSASensor связан с FSAPodval, то сначала чистим FSAPodval, а потом удаляем FSASensor
-    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.FSA.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByGUID(shpParent.CellsU("Hyperlink.FSA.ExtraInfo").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearFSAPodvalChild shpChild
     End If
@@ -260,6 +271,7 @@ Sub ClearFSAPodvalChild(shpChild As Visio.Shape)
         'Чистим дочерний шейп
         shpChild.CellsU("Hyperlink.FSA.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
         shpChild.CellsU("Hyperlink.FSA.Frame").FormulaForceU = """"""
+        shpChild.CellsU("Hyperlink.FSA.ExtraInfo").FormulaForceU = ""
         shpChild.Shapes("Pomestu").CellsU("Prop.Place").FormulaForceU = "INDEX(0,Prop.Place.Format)"
         shpChild.Shapes("Pomestu").CellsU("Prop.Forma").FormulaForceU = "INDEX(0,Prop.Forma.Format)"
         shpChild.Shapes("Pomestu").CellsU("Prop.SymName").FormulaForceU = ""
@@ -276,5 +288,6 @@ Sub ClearFSAPodvalParent(shpParent As Visio.Shape)
         'Чистим родительский шейп
         shpParent.CellsU("Hyperlink.FSA.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
         shpParent.CellsU("Hyperlink.FSA.Frame").FormulaForceU = """"""
+        shpParent.CellsU("Hyperlink.FSA.ExtraInfo").FormulaForceU = ""
         shpParent.CellsU("Prop.KanalNumber").FormulaForceU = 0
 End Sub

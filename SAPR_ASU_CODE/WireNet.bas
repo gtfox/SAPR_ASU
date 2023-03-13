@@ -19,7 +19,7 @@ Sub ConnectWire(Connects As IVConnects)
     Dim shpProvod As Visio.Shape
     Dim shpSource As Visio.Shape
     Dim ShapeNaDrugomKonce As Visio.Shape
-    Dim RefNashegoProvoda As String, AdrNashegoProvoda As String, RefSource As String, AdrSource As String, kogo As String, kem As String
+    Dim RefNashegoProvoda As String, AdrNashegoProvoda As String, GUIDNashegoProvoda As String, RefSource As String, AdrSource As String, GUIDSource As String, kogo As String, kem As String
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
     Dim ShapeTypeNaDrugomKonce As Integer
@@ -42,8 +42,9 @@ Sub ConnectWire(Connects As IVConnects)
             RefSource = "Pages[" & shpSource.ContainingPage.NameU & "]!" & shpSource.NameID 'Адрес источника нумерации (к которому подключаемся)
             RefNashegoProvoda = "Pages[" & shpProvod.ContainingPage.NameU & "]!" & shpProvod.NameID 'Адрес нашего (подключаемого) провода
             AdrSource = shpSource.ContainingPage.NameU & "/" & shpSource.NameID
+            GUIDSource = shpSource.UniqueID(visGetOrMakeGUID)
             AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
-            
+            GUIDNashegoProvoda = shpProvod.UniqueID(visGetOrMakeGUID)
             
             
             Select Case shpProvod.Connects.Count 'кол-во соединенных концов у провода
@@ -64,6 +65,7 @@ Sub ConnectWire(Connects As IVConnects)
                             SetArrow 0, Connects(1) 'Убираем стрелку
                         End If
                         shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                        shpProvod.Cells("User.AdrSource.Prompt").FormulaU = GUIDSource
                         'shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
                         'shpProvod.Cells("Prop.HideName").FormulaU = True 'Скрываем название (возможно)
                     Else
@@ -83,6 +85,7 @@ Sub ConnectWire(Connects As IVConnects)
                             Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
                             Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
                             Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                            Connects.ToSheet.Cells("User.AdrSource.Prompt").FormulaU = GUIDNashegoProvoda
                             Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
                             Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
                         End If
@@ -114,6 +117,7 @@ Sub ConnectWire(Connects As IVConnects)
                             shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
                             shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
                             shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                            shpProvod.Cells("User.AdrSource.Prompt").FormulaU = GUIDSource
                             shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
                             shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
         '                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
@@ -125,6 +129,7 @@ Sub ConnectWire(Connects As IVConnects)
                                 shpProvod.Cells("Prop.SymName").FormulaU = RefSource & "!Prop.SymName" 'Получаем имя от существующего провода (к которому подсоединились)
                                 shpProvod.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
                                 shpProvod.Cells("User.AdrSource").FormulaU = Chr(34) & AdrSource & Chr(34) 'Сохраняем адрес источника номера
+                                shpProvod.Cells("User.AdrSource.Prompt").FormulaU = GUIDSource
                                 shpProvod.Cells("User.Shkaf").FormulaU = RefSource & "!User.Shkaf"
                                 shpProvod.Cells("User.Mesto").FormulaU = RefSource & "!User.Mesto"
             '                    shpProvod.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
@@ -161,6 +166,7 @@ Sub ConnectWire(Connects As IVConnects)
                                         Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записывам имя подключаемого провода в существующий (к которому подсоединились)
                                         Connects.ToSheet.Cells("Prop.AutoNum").FormulaU = False 'Убираем автонумерацию (т.к. номер получаем по ссылке от другого провода)
                                         Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                                        Connects.ToSheet.Cells("User.AdrSource.Prompt").FormulaU = GUIDNashegoProvoda
                                         Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
                                         Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
             '                            Connects.ToSheet.Cells("Prop.HideNumber").FormulaU = True 'Скрываем номер (возможно)
@@ -183,6 +189,7 @@ Sub ConnectWire(Connects As IVConnects)
                             Connects.ToSheet.Cells("Prop.Number").FormulaU = RefNashegoProvoda & "!Prop.Number" 'Записываем номер нашего провода
                             Connects.ToSheet.Cells("Prop.SymName").FormulaU = RefNashegoProvoda & "!Prop.SymName" 'Записываем имя нашего провода
                             Connects.ToSheet.Cells("User.AdrSource").FormulaU = Chr(34) & AdrNashegoProvoda & Chr(34) 'Сохраняем адрес источника номера
+                            Connects.ToSheet.Cells("User.AdrSource.Prompt").FormulaU = GUIDNashegoProvoda
                             Connects.ToSheet.Cells("User.Shkaf").FormulaU = RefNashegoProvoda & "!User.Shkaf"
                             Connects.ToSheet.Cells("User.Mesto").FormulaU = RefNashegoProvoda & "!User.Mesto"
                         End If
@@ -223,7 +230,7 @@ Sub DisconnectWire(Connects As IVConnects)
                 'Макрос вызывается событием ConnectionsDeleted
 '------------------------------------------------------------------------------------------------------------
     Dim shpProvod As Visio.Shape
-    Dim AdrNashegoProvoda As String, AdrSource As String, AdrNaDrugomKonce As String
+    Dim AdrNashegoProvoda As String, GUIDNashegoProvoda As String, AdrSource As String, GUIDSource As String, AdrNaDrugomKonce As String
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
     Dim ShapeTypeNaDrugomKonce As Integer
@@ -233,7 +240,9 @@ Sub DisconnectWire(Connects As IVConnects)
     If bUnGlue Then bUnGlue = False: Exit Sub
     
     AdrSource = Connects.ToSheet.ContainingPage.NameU & "/" & Connects.ToSheet.NameID
+    GUIDSource = Connects.ToSheet.UniqueID(visGetOrMakeGUID)
     AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
+    GUIDNashegoProvoda = shpProvod.UniqueID(visGetOrMakeGUID)
     
     ShapeType = ShapeSAType(Connects.ToSheet) 'Тип шейпа, от которого отсоединили провод
     
@@ -250,6 +259,7 @@ Sub DisconnectWire(Connects As IVConnects)
             shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
             shpProvod.Cells("Prop.AutoNum").FormulaU = False
             shpProvod.Cells("User.AdrSource").FormulaU = ""
+            shpProvod.Cells("User.AdrSource.Prompt").FormulaU = ""
             SetArrow 254, Connects(1) 'Возвращаем красную стрелку
             shpProvod.Cells("Prop.HideNumber").FormulaU = False
             shpProvod.Cells("Prop.HideName").FormulaU = True
@@ -263,12 +273,12 @@ Sub DisconnectWire(Connects As IVConnects)
                 
             'Но если он еще и Дочерний (Оторвали от Дочернего (Провод или ->))
             If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
-                If Connects.ToSheet.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then 'Дочерний?
-                'Чистим Дочерний
-    
+                If Connects.ToSheet.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda And Connects.ToSheet.Cells("User.AdrSource.Prompt").ResultStr(0) = GUIDNashegoProvoda Then 'Дочерний?
+                    'Чистим Дочерний
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = ""
                     Connects.ToSheet.Cells("Prop.SymName").FormulaU = """"""
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = ""
+                    Connects.ToSheet.Cells("User.AdrSource.Prompt").FormulaU = ""
                     Connects.ToSheet.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                     Connects.ToSheet.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     
@@ -291,12 +301,13 @@ Sub DisconnectWire(Connects As IVConnects)
             'Оторвали от Провода или ->
             If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
                 'От Дочернего
-                If Connects.ToSheet.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then 'Дочерний?
+                If Connects.ToSheet.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda And Connects.ToSheet.Cells("User.AdrSource.Prompt").ResultStr(0) = GUIDNashegoProvoda Then 'Дочерний?
                 
                     'Чистим Дочерний
                     Connects.ToSheet.Cells("Prop.Number").FormulaU = ""
                     Connects.ToSheet.Cells("Prop.SymName").FormulaU = """"""
                     Connects.ToSheet.Cells("User.AdrSource").FormulaU = ""
+                    Connects.ToSheet.Cells("User.AdrSource.Prompt").FormulaU = ""
                     Connects.ToSheet.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                     Connects.ToSheet.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     SetArrow 254, Connects(1) 'Возвращаем красную стрелку
@@ -318,6 +329,7 @@ Sub DisconnectWire(Connects As IVConnects)
                     shpProvod.Cells("Prop.Number").FormulaU = ""
                     shpProvod.Cells("Prop.SymName").FormulaU = """"""
                     shpProvod.Cells("User.AdrSource").FormulaU = ""
+                    shpProvod.Cells("User.AdrSource.Prompt").FormulaU = ""
                     shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                     shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                     shpProvod.Cells("Prop.AutoNum").FormulaU = False
@@ -331,11 +343,12 @@ Sub DisconnectWire(Connects As IVConnects)
                 For i = 1 To shpProvod.Connects.Count 'смотрим все соединения (их 2 :) )
                    If shpProvod.Connects(i).FromPart <> Connects(1).FromPart Then 'Отбрасывам то, которое только что произошло (берем другой конец)
                        AdrNaDrugomKonce = shpProvod.Connects(i).ToSheet.ContainingPage.NameU & "/" & shpProvod.Connects(i).ToSheet.NameID 'Адрес шейпа, на друм конце нашего провода
-                       If shpProvod.Cells("User.AdrSource").ResultStr(0) <> AdrNaDrugomKonce Then 'Проверка на то что мы сами не являемся дочерним и на другом конце не провод или >-
+                       If shpProvod.Cells("User.AdrSource").ResultStr(0) <> AdrNaDrugomKonce And shpProvod.Cells("User.AdrSource.Prompt").ResultStr(0) <> shpProvod.Connects(i).ToSheet.UniqueID(visGetOrMakeGUID) Then 'Проверка на то что мы сами не являемся дочерним и на другом конце не провод или >-
                             'Чистим наш
                             shpProvod.Cells("Prop.Number").FormulaU = ""
                             shpProvod.Cells("Prop.SymName").FormulaU = """"""
                             shpProvod.Cells("User.AdrSource").FormulaU = ""
+                            shpProvod.Cells("User.AdrSource.Prompt").FormulaU = ""
                             shpProvod.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                             shpProvod.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                        End If
@@ -373,10 +386,11 @@ Sub DeleteWire(DeletedShape As IVShape)
     Dim DeletedConnect As Visio.connect
     Dim ConnectedShape As Visio.Shape
     Dim i As Integer, ii As Integer
-    Dim AdrNashegoProvoda As String
+    Dim AdrNashegoProvoda As String, GUIDNashegoProvoda As String
     Dim ShapeType As Integer
 
     AdrNashegoProvoda = DeletedShape.ContainingPage.NameU & "/" & DeletedShape.NameID
+    GUIDNashegoProvoda = DeletedShape.UniqueID(visGetOrMakeGUID)
     
     'Перебор Connects
     For i = 1 To DeletedShape.Connects.Count
@@ -386,11 +400,12 @@ Sub DeleteWire(DeletedShape As IVShape)
         ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
-            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
+            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda And ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = GUIDNashegoProvoda Then
                 'Чистим Дочерний
                 ConnectedShape.Cells("Prop.Number").FormulaU = ""
                 ConnectedShape.Cells("Prop.SymName").FormulaU = """"""
                 ConnectedShape.Cells("User.AdrSource").FormulaU = ""
+                ConnectedShape.Cells("User.AdrSource.Prompt").FormulaU = ""
                 ConnectedShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                 ConnectedShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
 
@@ -427,11 +442,12 @@ Sub DeleteWire(DeletedShape As IVShape)
         ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
-            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda Then
+            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) = AdrNashegoProvoda And ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = GUIDNashegoProvoda Then
                 'Чистим Дочерний
                 ConnectedShape.Cells("Prop.Number").FormulaU = ""
                 ConnectedShape.Cells("Prop.SymName").FormulaU = """"""
                 ConnectedShape.Cells("User.AdrSource").FormulaU = ""
+                ConnectedShape.Cells("User.AdrSource.Prompt").FormulaU = ""
                 ConnectedShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                 ConnectedShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
                 'Ищем каким концом дочерний приклеен к нам
@@ -470,6 +486,7 @@ Sub ClearWire(vsoShape As Visio.Shape)
         vsoShape.CellsU("Prop.Number").FormulaU = ""
         vsoShape.CellsU("Prop.SymName").FormulaU = ""
         vsoShape.Cells("User.AdrSource").FormulaU = ""
+        vsoShape.Cells("User.AdrSource.Prompt").FormulaU = ""
         vsoShape.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
         vsoShape.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
         vsoShape.Cells("Prop.AutoNum").FormulaU = False
@@ -522,11 +539,12 @@ Sub FindZombie(shpProvod As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim DeletedConnect As Visio.connect
     Dim ConnectedShape As Visio.Shape
-    Dim AdrNashegoProvoda As String
+    Dim AdrNashegoProvoda As String, GUIDNashegoProvoda As String
     Dim i As Integer, ii As Integer
     Dim ShapeType As Integer
     
     AdrNashegoProvoda = shpProvod.ContainingPage.NameU & "/" & shpProvod.NameID
+    GUIDNashegoProvoda = shpProvod.UniqueID(visGetOrMakeGUID)
     
     'Ищем Дочерних которые ссылаются не на нас - отцепляем. Перебор FromConnects.
     For i = 1 To shpProvod.FromConnects.Count
@@ -537,7 +555,7 @@ Sub FindZombie(shpProvod As Visio.Shape)
         ShapeType = ShapeSAType(ConnectedShape)
         
         If (ShapeType = typeWire) Or (ShapeType = typeWireLinkS) Then
-            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) <> AdrNashegoProvoda Then 'Дочерний - но ссылается не нас - отцепляем
+            If ConnectedShape.Cells("User.AdrSource").ResultStr(0) <> AdrNashegoProvoda And ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = GUIDNashegoProvoda Then 'Дочерний - но ссылается не нас - отцепляем
                 'Ищем каким концом дочерний приклеен к нам
                 For ii = 1 To ConnectedShape.Connects.Count
                     If ii > ConnectedShape.Connects.Count Then Exit For
@@ -568,7 +586,8 @@ Sub WireToPLCTerm(shpProvod As Visio.Shape, shpPLCTerm As Visio.Shape, bConnect 
     'Номер контакта во входе ПЛК
     PinNumber = CInt(Right(shpPLCTerm.name, 1))
     'Находим родительский вход ПЛК
-    Set shpPLCIOParent = ShapeByHyperLink(shpPLCTerm.Parent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
+    Set shpPLCIOParent = ShapeByGUID(shpPLCTerm.Parent.CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0))
+'    Set shpPLCIOParent = ShapeByHyperLink(shpPLCTerm.Parent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
     'Пишем в него ссылку на номер провода или 0 (когда происходит отсоединение или удаление провода)
     shpPLCIOParent.CellsU("User.w" & PinNumber).FormulaU = IIf(bConnect, LinkWireNumber, 0)
 ExitSub:
