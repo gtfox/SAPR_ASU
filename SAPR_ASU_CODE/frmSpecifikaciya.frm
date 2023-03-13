@@ -481,7 +481,7 @@ FillcolStrokaKJ:
             If shpKabel.Cells("User.LinkToBox").ResultStr(0) = NazvanieShkafa Then
                 Set clsStrokaKJ = New classStrokaKabelnogoJurnala
                 Set shpSensor = FindSensorFromKabel(shpKabel)
-                Set shpKabelPL = ShapeByHyperLink(shpKabel.Cells("Hyperlink.Kabel.SubAddress").ResultStr(0))
+                Set shpKabelPL = ShapeByGUID(shpKabel.Cells("Hyperlink.Kabel.ExtraInfo").ResultStr(0))
                 clsStrokaKJ.Oboznach = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), shpKabel.Cells("Prop.Number").Result(0))
                 clsStrokaKJ.Nachalo = shpKabel.Cells("User.LinkToBox").ResultStr(0)
                 clsStrokaKJ.Konec = shpSensor.Cells("User.Name").ResultStr(0)

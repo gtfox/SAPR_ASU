@@ -34,10 +34,10 @@ Public Sub AddReferencePLCMod(shpChild As Visio.Shape, shpParent As Visio.Shape)
     Dim shpChildOld As Visio.Shape
     Dim PageParent As String
     Dim NameIdParent As String
-    Dim AdrParent As String
+    Dim AdrParent As String, GUIDParent As String
     Dim PageChild As String
     Dim NameIdChild As String
-    Dim AdrChild As String
+    Dim AdrChild As String, GUIDChild As String
     Dim HyperLinkToChild As String
     Dim HyperLinkToParentOld As String
     Dim mstrAdrParentOld() As String
@@ -48,12 +48,14 @@ Public Sub AddReferencePLCMod(shpChild As Visio.Shape, shpParent As Visio.Shape)
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
-
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
+    
     '---Отвязываемся от сущ PLCModParent (чистим родителя от себя)
     
     'Это эквивалентно действиям перед удалением себя DeletePLCModChild только в конце удаления непроисходит
@@ -64,12 +66,12 @@ Public Sub AddReferencePLCMod(shpChild As Visio.Shape, shpParent As Visio.Shape)
     
     'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
     For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-        If shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) Like "" Then 'нашли первую пустую строку в родительском
+        If shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) = "" Then 'нашли первую пустую строку в родительском
         
             'Заполняем родительский шейп
             shpParent.CellsU("Hyperlink." & i & ".SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
             shpParent.CellsU("Hyperlink." & i & ".Frame").FormulaU = "Pages[" + shpChild.Parent.ContainingPage.NameU + "]!" + shpChild.Parent.NameID + "!User.Location"
-            
+            shpParent.CellsU("Hyperlink." & i & ".ExtraInfo").FormulaU = GUIDChild
             shpParent.CellsU("Hyperlink." & i & ".Description").FormulaU = """Модуль ПЛК  " & PageChild & ": """ & Chr(38) & "Hyperlink." & i & ".Frame"
             shpParent.CellsU("Hyperlink." & i & ".Invisible").FormulaU = "STRSAME(Hyperlink." & i & ".SubAddress,"""")"
             Exit For
@@ -82,7 +84,7 @@ Public Sub AddReferencePLCMod(shpChild As Visio.Shape, shpParent As Visio.Shape)
                 'Заполняем родительский шейп
                 shpParent.CellsU("Hyperlink." & (i + 1) & ".SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
                 shpParent.CellsU("Hyperlink." & (i + 1) & ".Frame").FormulaU = "Pages[" + shpChild.Parent.ContainingPage.NameU + "]!" + shpChild.Parent.NameID + "!User.Location"
-                
+                shpParent.CellsU("Hyperlink." & (i + 1) & ".ExtraInfo").FormulaU = GUIDChild
                 shpParent.CellsU("Hyperlink." & (i + 1) & ".Description").FormulaU = """Модуль ПЛК  " & PageChild & ": """ & Chr(38) & "Hyperlink." & (i + 1) & ".Frame"
                 shpParent.CellsU("Hyperlink." & (i + 1) & ".Invisible").FormulaU = "STRSAME(Hyperlink." & (i + 1) & ".SubAddress,"""")"
                 
@@ -93,7 +95,7 @@ Public Sub AddReferencePLCMod(shpChild As Visio.Shape, shpParent As Visio.Shape)
     'Заполняем дочерний шейп
     shpChild.CellsU("Hyperlink.PLCMod.SubAddress").FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
     shpChild.CellsU("Hyperlink.PLCMod.Frame").FormulaU = "Pages[" + shpParent.Parent.ContainingPage.NameU + "]!" + shpParent.Parent.NameID + "!User.Location" 'Ссылка на ПЛК а не на модуль
-    
+    shpChild.CellsU("Hyperlink.PLCMod.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("Hyperlink.PLCMod.Description").FormulaU = """Модуль ПЛК  " & PageParent & ": """ & Chr(38) & "Hyperlink.PLCMod.Frame"
     shpChild.CellsU("Hyperlink.PLCMod.Invisible").FormulaU = "STRSAME(Hyperlink.PLCMod.SubAddress,"""")"
     
@@ -116,13 +118,14 @@ Sub DeletePLCModChild(shpChild As Visio.Shape)
     Dim HyperLinkToChild As String
     Dim PageChild As String
     Dim NameIdChild As String
-    Dim AdrChild As String
+    Dim AdrChild As String, GUIDChild As String
     Dim i As Integer
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
     HyperLinkToChild = PageChild + "/" + NameIdChild
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
     
     'Перебираем все PLCIOChild внутри PLCModChild и чистим ссылки во всех связанных PLCIOParent
     For Each shpPLCIOChild In shpChild.Shapes
@@ -132,15 +135,16 @@ Sub DeletePLCModChild(shpChild As Visio.Shape)
     Next
 
     'Проверяем текущую привязку PLCModChild к старому PLCModParent и чистим ее в старом PLCModParent
-    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.PLCMod.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then
         
         'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
         For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-            If shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) Like HyperLinkToChild Then 'нашли дочернего в родительском
+            If shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) = HyperLinkToChild And shpParent.CellsU("Hyperlink." & i & ".ExtraInfo").ResultStr(0) = GUIDChild Then 'нашли дочернего в родительском
                 'Чистим родительский шейп
                 shpParent.CellsU("Hyperlink." & i & ".SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
                 shpParent.CellsU("Hyperlink." & i & ".Frame").FormulaForceU = ""
+                shpParent.CellsU("Hyperlink." & i & ".ExtraInfo").FormulaForceU = ""
             End If
         Next
     End If
@@ -160,7 +164,7 @@ Sub DeletePLCModParent(shpParent As Visio.Shape)
     Dim mstrAdrChild() As String
     Dim HyperLinkToChild As String
     Dim HyperLinkToParent As String
-    Dim LinkPlaceParent As String
+    Dim LinkPlaceParent As String, GUIDPlaceParent As String
     Dim PageParent As String
     Dim NameIdParent As String
     Dim i As Integer
@@ -168,6 +172,7 @@ Sub DeletePLCModParent(shpParent As Visio.Shape)
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     LinkPlaceParent = PageParent + "/" + NameIdParent 'Для проверки ссылки в дочернем
+    GUIDPlaceParent = shpParent.UniqueID(visGetOrMakeGUID)
 
     'Перебираем все PLCIOParent внутри PLCModParent и чистим ссылки во всех связанных PLCIOChild
     For Each shpPLCIOParent In shpParent.Shapes
@@ -178,16 +183,15 @@ Sub DeletePLCModParent(shpParent As Visio.Shape)
 
     'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
     For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-        Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0))
+        Set shpChild = ShapeByGUID(shpParent.CellsU("Hyperlink." & i & ".ExtraInfo").ResultStr(0))
         If Not shpChild Is Nothing Then
-        
             'В PLCModChild находим ссылку на PLCModParent
-            HyperLinkToParent = shpChild.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0)
             'Проверяем что он привязан именно к нашей нам
-            If HyperLinkToParent = LinkPlaceParent Then
+            If shpChild.CellsU("Hyperlink.PLCMod.SubAddress").ResultStr(0) = LinkPlaceParent And shpChild.CellsU("Hyperlink.PLCMod.ExtraInfo").ResultStr(0) = GUIDPlaceParent Then
                 'Чистим дочерний шейп
                 shpChild.CellsU("Hyperlink.PLCMod.SubAddress").FormulaForceU = """"""
                 shpChild.CellsU("Hyperlink.PLCMod.Frame").FormulaForceU = ""
+                shpChild.CellsU("Hyperlink.PLCMod.ExtraInfo").FormulaForceU = ""
                 shpChild.CellsU("User.NameParent").FormulaU = ""
                 shpChild.CellsU("User.LocationParent").FormulaU = ""
                 shpChild.CellsU("Prop.Model").FormulaU = ""
@@ -218,6 +222,7 @@ Sub ClearPLCModChild(shpChild As Visio.Shape)
     'Чистим дочерний шейп
     shpChild.CellsU("Hyperlink.PLCMod.SubAddress").FormulaForceU = """"""
     shpChild.CellsU("Hyperlink.PLCMod.Frame").FormulaForceU = ""
+    shpChild.CellsU("Hyperlink.PLCMod.ExtraInfo").FormulaForceU = ""
     shpChild.CellsU("User.NameParent").FormulaU = ""
     shpChild.CellsU("User.LocationParent").FormulaU = ""
     shpChild.CellsU("Prop.Model").FormulaU = ""
@@ -242,10 +247,11 @@ Sub ClearPLCModParent(shpParent As Visio.Shape)
     
     'Перебираем ссылки на подключенные PLCModChild в родительском шейпе
     For i = 1 To shpParent.Section(visSectionHyperlink).Count 'Ищем строку в Hyperlink
-        If Not shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) Like "" Then 'нашли дочернего в родительском
+        If Not shpParent.CellsU("Hyperlink." & i & ".SubAddress").ResultStr(0) = "" Then 'нашли дочернего в родительском
             'Чистим родительский шейп
             shpParent.CellsU("Hyperlink." & i & ".SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
             shpParent.CellsU("Hyperlink." & i & ".Frame").FormulaForceU = ""
+            shpParent.CellsU("Hyperlink." & i & ".ExtraInfo").FormulaForceU = ""
         End If
     Next
 End Sub
@@ -267,8 +273,8 @@ Sub AddReferencePLCIO(shpChild As Visio.Shape, shpParent As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim shpParentOld As Visio.Shape
     Dim shpChildOld As Visio.Shape
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
     Dim HyperLinkToParentOld As String
     Dim mstrAdrParentOld() As String
     Dim HyperLinkToChildOld As String
@@ -277,12 +283,12 @@ Sub AddReferencePLCIO(shpChild As Visio.Shape, shpParent As Visio.Shape)
     PageParent = shpParent.ContainingPage.NameU
     NameIdParent = shpParent.NameID
     AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+    GUIDParent = shpParent.UniqueID(visGetOrMakeGUID)
     
     PageChild = shpChild.ContainingPage.NameU
     NameIdChild = shpChild.NameID
     AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
-    
-    '
+    GUIDChild = shpChild.UniqueID(visGetOrMakeGUID)
 
     '---Отвязываемся от сущ PLCIOParent (чистим родителя от себя)---
     'Это эквивалентно действиям перед удалением себя DeletePLCIOChild только в конце удаления непроисходит
@@ -298,17 +304,19 @@ Sub AddReferencePLCIO(shpChild As Visio.Shape, shpParent As Visio.Shape)
     'Заполняем родительский шейп
     shpParent.CellsU("Hyperlink.IO.SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
     shpParent.CellsU("Hyperlink.IO.Frame").FormulaU = "Pages[" + shpChild.Parent.Parent.ContainingPage.NameU + "]!" + shpChild.Parent.Parent.NameID + "!User.Location" 'Ссылка на ПЛК а не на модуль
+    shpParent.CellsU("Hyperlink.IO.ExtraInfo").FormulaU = GUIDChild
     shpParent.CellsU("Hyperlink.IO.Description").FormulaU = """Вх./Вых. ПЛК  " & PageChild & ": """ & Chr(38) & "Hyperlink.IO.Frame"
     shpParent.CellsU("Hyperlink.IO.Invisible").FormulaU = "STRSAME(Hyperlink.IO.SubAddress,"""")"
 
     'Заполняем дочерний шейп
     shpChild.CellsU("Hyperlink.IO.SubAddress").FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
     shpChild.CellsU("Hyperlink.IO.Frame").FormulaU = "Pages[" + shpParent.Parent.Parent.ContainingPage.NameU + "]!" + shpParent.Parent.Parent.NameID + "!User.Location" 'Ссылка на ПЛК а не на модуль
-    
+    shpChild.CellsU("Hyperlink.IO.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("Hyperlink.IO.Description").FormulaU = """Вх./Вых. ПЛК  " & PageParent & ": """ & Chr(38) & "Hyperlink.IO.Frame"
     shpChild.CellsU("Hyperlink.IO.Invisible").FormulaU = "STRSAME(Hyperlink.IO.SubAddress,"""")"
     
     shpChild.CellsU("User.AdrParent").FormulaU = """" + AdrParent + """"
+    shpChild.CellsU("User.AdrParent.Prompt").FormulaU = GUIDParent
     shpChild.CellsU("Prop.AutoNum").FormulaU = True
 
 End Sub
@@ -324,7 +332,7 @@ Sub DeletePLCIOChild(shpChild As Visio.Shape)
     Dim HyperLinkToParent As String
 
     'Проверяем текущую привязку typePLCIOChild к typePLCIOParent и чистим ее в typePLCIOParent
-    Set shpParent = ShapeByHyperLink(shpChild.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
+    Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then
         ClearPLCIOParent shpParent
     End If
@@ -346,7 +354,7 @@ Sub DeletePLCIOParent(shpParent As Visio.Shape)
     Dim LinkPlaceParent As String
     
     'Если typePLCIOParent связан с typePLCIOChild, то сначала чистим typePLCIOChild, а потом удаляем typePLCIOParent
-    Set shpChild = ShapeByHyperLink(shpParent.CellsU("Hyperlink.IO.SubAddress").ResultStr(0))
+    Set shpChild = ShapeByGUID(shpParent.CellsU("Hyperlink.IO.ExtraInfo").ResultStr(0))
     If Not shpChild Is Nothing Then
         ClearPLCIOChild shpChild
     End If
@@ -365,7 +373,9 @@ Sub ClearPLCIOChild(shpChild As Visio.Shape)
     'Чистим дочерний шейп
     shpChild.CellsU("Hyperlink.IO.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpChild.CellsU("Hyperlink.IO.Frame").FormulaForceU = ""
+    shpChild.CellsU("Hyperlink.IO.ExtraInfo").FormulaForceU = ""
     shpChild.CellsU("User.AdrParent").FormulaForceU = """"""
+    shpChild.CellsU("User.AdrParent.Prompt").FormulaForceU = ""
     shpChild.CellsU("Prop.AutoNum").FormulaU = False
 
 End Sub
@@ -380,6 +390,7 @@ Sub ClearPLCIOParent(shpParent As Visio.Shape)
     'Чистим родительский шейп
     shpParent.CellsU("Hyperlink.IO.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
     shpParent.CellsU("Hyperlink.IO.Frame").FormulaForceU = ""
+    shpParent.CellsU("Hyperlink.IO.ExtraInfo").FormulaForceU = ""
     shpParent.CellsU("User.w1").Formula = 0
     shpParent.CellsU("User.w2").Formula = 0
     shpParent.CellsU("User.w3").Formula = 0

@@ -278,7 +278,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     Dim cellKlemma As Visio.Cell
     Dim PageParent As String
     Dim NameIdParent As String
-    Dim AdrParent As String
+    Dim AdrParent As String, GUIDParent As String
 '    Dim NazvanieShkafa As String
     Dim SymName As String
     Dim SAType As Integer
@@ -304,6 +304,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
 '    Set vsoPageCxema = ActiveDocument.Pages(cListNameCxema)
     Set VIDvss = Application.Documents.Item("SAPR_ASU_VID.vss")
     
+    PageName = cListNameCxema
     ElementovVStroke = 10
     
     'Находим что уже есть на ВИДе
@@ -415,6 +416,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
         PageParent = shpElementOnCxema.ContainingPage.NameU
         NameIdParent = shpElementOnCxema.NameID
         AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
+        GUIDParent = shpElementOnCxema.UniqueID(visGetOrMakeGUID)
 
         Select Case SAType
             Case typeCoil, typeParent, typeElement ', typePLCParent
@@ -423,6 +425,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
                 shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
                 shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
                 shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
                 shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
                 dX = shpElementOnVID.Cells("Width").Result(0)
@@ -480,6 +483,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("PLC"), DropX, DropY)
                 shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
                 shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
                 shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text
                 shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
                 dX = shpElementOnVID.Cells("Width").Result(0)

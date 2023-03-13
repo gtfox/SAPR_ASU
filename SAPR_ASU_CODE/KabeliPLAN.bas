@@ -43,7 +43,7 @@ Sub AddRouteCablesOnPlan()
             Set colCablesTemp = New Collection
 
             'Находим датчик на схеме
-            Set shpSensor = ShapeByHyperLink(shpSensorFSA.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
+            Set shpSensor = ShapeByGUID(shpSensorFSA.Cells("Hyperlink.Shema.ExtraInfo").ResultStr(0))
             If Not shpSensor Is Nothing Then
 
                 'Находим кабели на плане (чтобы не проложить повторно)
@@ -463,7 +463,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             Set shpSensorFSATemp = clsShapePoint.ShapeOnFSA
             
             'Находим датчик на схеме
-            Set shpSensor = ShapeByHyperLink(shpSensorFSATemp.Cells("Hyperlink.Shema.SubAddress").ResultStr(0))
+            Set shpSensor = ShapeByGUID(shpSensorFSATemp.Cells("Hyperlink.Shema.ExtraInfo").ResultStr(0))
             If Not shpSensor Is Nothing Then
                 MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
             Else
@@ -668,6 +668,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
                 shpKabel.Cells("Prop.Dlina").FormulaU = "Pages[" + shpKabelPL.ContainingPage.NameU + "]!" + shpKabelPL.NameID + "!Prop.Dlina"
                 shpKabel.Cells("Hyperlink.Kabel.SubAddress").FormulaU = """" + shpKabelPL.ContainingPage.NameU + "/" + shpKabelPL.NameID + """"
                 shpKabel.Cells("Hyperlink.Kabel.Frame").FormulaU = """" + shpKabelPL.Cells("Prop.SymName").ResultStr(0) + CStr(shpKabelPL.Cells("Prop.Number").Result(0)) + """"
+                shpKabel.Cells("Hyperlink.Kabel.ExtraInfo").FormulaU = shpKabelPL.UniqueID(visGetOrMakeGUID)
                 
                 vsoLayer1.Remove shpKabelPL, 0
             Next
@@ -899,8 +900,8 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
 ' Macros        : AddSensorsFSAOnPlan - Копирует все датчики из ФСА на ПЛАН
                 'Копирует все датчики из ФСА на ПЛАН, если датчик уже есть, то не копирут его.
 '------------------------------------------------------------------------------------------------------------
-    Dim PageParent As String, NameIdParent As String, AdrParent As String
-    Dim PageChild  As String, NameIdChild As String, AdrChild As String
+    Dim PageParent As String, NameIdParent As String, AdrParent As String, GUIDParent As String
+    Dim PageChild  As String, NameIdChild As String, AdrChild As String, GUIDChild As String
     Dim vsoPagePlan As Visio.Page
     Dim vsoPageFSA As Visio.Page
     Dim colPagesFSA As Collection
@@ -967,7 +968,8 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         PageParent = shpSensorOnFSA.ContainingPage.NameU
         NameIdParent = shpSensorOnFSA.NameID
         AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
-
+        GUIDParent = shpSensorOnFSA.UniqueID(visGetOrMakeGUID)
+        
         shpSensorOnFSA.CellsU("EventDrop").FormulaU = """"""
         shpSensorOnFSA.CellsU("EventMultiDrop").FormulaU = """"""
         
@@ -991,9 +993,11 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             PageChild = .ContainingPage.NameU
             NameIdChild = .NameID
             AdrChild = "Pages[" + PageChild + "]!" + NameIdChild
+            GUIDChild = .UniqueID(visGetOrMakeGUID)
             
             shpSensorOnFSA.CellsU("Hyperlink.Plan.SubAddress").FormulaU = """" + PageChild + "/" + NameIdChild + """" ' "Схема.3/Sheet.4"
             shpSensorOnFSA.CellsU("Hyperlink.Plan.Frame").FormulaU = AdrChild + "!User.Location"   'Pages[Схема.3]!Sheet.4!User.Location
+            shpSensorOnFSA.CellsU("Hyperlink.Plan.ExtraInfo").FormulaU = GUIDChild
             
             ActiveWindow.Selection.Move DropX + .Cells("Width").Result(0) * 2, 0
             DropX = DropX + .Cells("Width").Result(0) * 2
@@ -1006,10 +1010,13 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             .Cells("User.NameParent").Formula = AdrParent + "!User.NameParent"
             .Cells("Hyperlink.Shema.SubAddress").Formula = AdrParent + "!Hyperlink.Shema.SubAddress"
             .Cells("Hyperlink.Shema.Frame").Formula = AdrParent + "!Hyperlink.Shema.Frame"
+            .Cells("Hyperlink.Shema.ExtraInfo").Formula = AdrParent + "!Hyperlink.Shema.ExtraInfo"
             .Cells("Hyperlink.FSA.SubAddress").Formula = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
             .Cells("Hyperlink.FSA.Frame").Formula = AdrParent + "!User.Location"
+            .Cells("Hyperlink.FSA.ExtraInfo").Formula = GUIDParent
             .Cells("Hyperlink.Plan.SubAddress").Formula = """"""
             .Cells("Hyperlink.Plan.Frame").Formula = """"""
+            .Cells("Hyperlink.Plan.ExtraInfo").Formula = ""
             .Cells("Prop.Place").Formula = AdrParent + "!Prop.Place"
             .Cells("Prop.AutoNum").Formula = 0
             .Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
