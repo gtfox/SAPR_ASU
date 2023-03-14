@@ -8,8 +8,6 @@ Private Sub btnAddPriceExcel_Click()
     End If
 End Sub
 
-
-
 Private Sub UserForm_Initialize()
     InitCustomCCPMenu Me 'Контекстное меню для TextBox
     Reload_cmbx
@@ -95,7 +93,6 @@ Sub Del_DocumentSheet(strFamiliyaToDel As String)
     End With
 End Sub
 
-
 Private Sub CommandButton22_Click()
     Add_cmbx cmbxSA_FR_Razrabotal
 End Sub
@@ -132,78 +129,40 @@ End Sub
 Private Sub CommandButton33_Click()
     Add_cmbx cmbxSA_FR_Utverdil
 End Sub
-Private Sub CommandButton1_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Shifr").Formula = """" + tbSA_FR_Shifr + """"
+Private Sub CommandButton38_Click()
+    With ActiveDocument.DocumentSheet
+        .Cells("User.SA_FR_Shifr").Formula = """" + Replace(tbSA_FR_Shifr, """", """""") + """"
+        .Cells("User.SA_FR_Zakazchik").Formula = """" + Replace(tbSA_FR_Zakazchik, """", """""") + """"
+        .Cells("User.SA_FR_OpisaniePoekta").Formula = """" + Replace(tbSA_FR_OpisaniePoekta, """", """""") + """"
+        .Cells("User.SA_FR_Stadia").Formula = """" + Replace(tbSA_FR_Stadia, """", """""") + """"
+        .Cells("User.SA_FR_ProekOrg").Formula = """" + Replace(tbSA_FR_ProekOrg, """", """""") + """"
+        .Cells("User.SA_FR_OOO").Formula = """" + Replace(tbSA_FR_OOO, """", """""") + """"
+        .Cells("User.SA_FR_OoOoOo").Formula = """" + Replace(tbSA_FR_OoOoOo, """", """""") + """"
+        .Cells("User.SA_FR_Razrabotal").Formula = """" + cmbxSA_FR_Razrabotal + """"
+        .Cells("User.SA_FR_Proveril").Formula = """" + cmbxSA_FR_Proveril + """"
+        .Cells("User.SA_FR_Gip").Formula = """" + cmbxSA_FR_Gip + """"
+        .Cells("User.SA_FR_NachOtdela").Formula = """" + cmbxSA_FR_NachOtdela + """"
+        .Cells("User.SA_FR_NKontr").Formula = """" + cmbxSA_FR_NKontr + """"
+        .Cells("User.SA_FR_Utverdil").Formula = """" + cmbxSA_FR_Utverdil + """"
+        .Cells("User.SA_FR_Data").Formula = """" + Replace(tbSA_FR_Data, """", """""") + """"
+    End With
 End Sub
-Private Sub CommandButton10_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Gip").Formula = """" + cmbxSA_FR_Gip + """"
+
+Private Sub CommandButton39_Click()
+    With ActiveDocument.DocumentSheet
+        .Cells("User.SA_PoleA").FormulaU = CStr(tbSA_PoleA + " mm")
+        .Cells("User.SA_PoleVert").Formula = CStr(tbSA_PoleVert + " mm")
+        .Cells("User.SA_Pole1").Formula = CStr(tbSA_Pole1 + " mm")
+        .Cells("User.SA_PoleGor").Formula = CStr(tbSA_PoleGor + " mm")
+        .Cells("User.SA_Stranica").Formula = """" + tbSA_Stranica + """"
+        .Cells("User.SA_Adres").Formula = """" + tbSA_Adres + """"
+        .Cells("User.SA_PrefMesto").Formula = """" + tbSA_PrefMesto + """"
+        .Cells("User.SA_PrefShkaf").Formula = """" + tbSA_PrefShkaf + """"
+        .Cells("User.SA_PrefElement").Formula = """" + tbSA_PrefElement + """"
+        .Cells("User.SA_FR_OffsetFrame").Formula = CStr(tbSA_FR_OffsetFrame + " mm")
+    End With
 End Sub
-Private Sub CommandButton11_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_NachOtdela").Formula = """" + cmbxSA_FR_NachOtdela + """"
-End Sub
-Private Sub CommandButton12_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_NKontr").Formula = """" + cmbxSA_FR_NKontr + """"
-End Sub
-Private Sub CommandButton13_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Utverdil").Formula = """" + cmbxSA_FR_Utverdil + """"
-End Sub
-Private Sub CommandButton14_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Data").Formula = """" + tbSA_FR_Data + """"
-End Sub
-Private Sub CommandButton15_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PoleA").FormulaU = CStr(tbSA_PoleA + " mm")
-End Sub
-Private Sub CommandButton16_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PoleVert").Formula = CStr(tbSA_PoleVert + " mm")
-End Sub
-Private Sub CommandButton17_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_Pole1").Formula = CStr(tbSA_Pole1 + " mm")
-End Sub
-Private Sub CommandButton18_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PoleGor").Formula = CStr(tbSA_PoleGor + " mm")
-End Sub
-Private Sub CommandButton19_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_Stranica").Formula = """" + tbSA_Stranica + """"
-End Sub
-Private Sub CommandButton2_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Zakazchik").Formula = """" + tbSA_FR_Zakazchik + """"
-End Sub
-Private Sub CommandButton20_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_Adres").Formula = """" + tbSA_Adres + """"
-End Sub
-Private Sub CommandButton21_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_OffsetFrame").Formula = CStr(tbSA_FR_OffsetFrame + " mm")
-End Sub
-Private Sub CommandButton3_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_OpisaniePoekta").Formula = """" + tbSA_FR_OpisaniePoekta + """"
-End Sub
-Private Sub CommandButton4_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Stadia").Formula = """" + tbSA_FR_Stadia + """"
-End Sub
-Private Sub CommandButton5_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_ProekOrg").Formula = """" + tbSA_FR_ProekOrg + """"
-End Sub
-Private Sub CommandButton6_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_OOO").Formula = """" + tbSA_FR_OOO + """"
-End Sub
-Private Sub CommandButton7_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_OoOoOo").Formula = """" + tbSA_FR_OoOoOo + """"
-End Sub
-Private Sub CommandButton8_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Razrabotal").Formula = """" + cmbxSA_FR_Razrabotal + """"
-End Sub
-Private Sub CommandButton9_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_FR_Proveril").Formula = """" + cmbxSA_FR_Proveril + """"
-End Sub
-Private Sub CommandButton34_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PrefElement").Formula = """" + tbSA_PrefElement + """"
-End Sub
-Private Sub CommandButton35_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PrefShkaf").Formula = """" + tbSA_PrefShkaf + """"
-End Sub
-Private Sub CommandButton36_Click()
-    ActiveDocument.DocumentSheet.Cells("User.SA_PrefMesto").Formula = """" + tbSA_PrefMesto + """"
-End Sub
+
 Private Sub CommandButton37_Click()
     ActiveDocument.DocumentSheet.Cells("User.SA_nRows").Formula = tbSA_nRows
 End Sub

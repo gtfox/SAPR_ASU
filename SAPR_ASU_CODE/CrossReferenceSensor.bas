@@ -73,7 +73,12 @@ Sub AddReferenceSensor(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.CellsU("Hyperlink.Shema.Frame").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
     shpChild.CellsU("Hyperlink.Shema.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
-
+    'Ссылка на описание из схемы
+    If shpChild.Shapes("Desc").CellExists("Fields.Value", 0) Then
+        shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)"
+    Else
+        shpChild.Shapes("Desc").Characters.AddCustomFieldU "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)", visFmtNumGenNoUnits
+    End If
 End Sub
 
 Sub DeleteSensorChild(shpChild As Visio.Shape)
@@ -123,6 +128,7 @@ Sub ClearSensorChild(shpChild As Visio.Shape)
     shpChild.CellsU("Hyperlink.Shema.Frame").FormulaForceU = """"""
     shpChild.CellsU("Hyperlink.Shema.ExtraInfo").FormulaForceU = ""
     shpChild.CellsU("User.NameParent").FormulaForceU = ""
+    shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = ""
     
     ClearFSAPodvalParent shpChild 'чистим подвальные ссылки в датчике ФСА
     
@@ -227,7 +233,12 @@ Sub AddReferenceFSAPodval(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.Shapes("Pomestu").CellsU("Prop.SymName").FormulaU = AdrParent + "!Prop.SymName"
     shpChild.Shapes("Pomestu").CellsU("Prop.Number").FormulaU = AdrParent + "!Prop.Number"
     shpChild.Shapes("Pomestu").CellsU("Prop.NameKontur").FormulaU = AdrParent + "!Prop.NameKontur"
-
+    'Ссылка на описание из ФСА
+    If shpChild.Shapes("Desc").CellExists("Fields.Value", 0) Then
+        shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)"
+    Else
+        shpChild.Shapes("Desc").Characters.AddCustomFieldU "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)", visFmtNumGenNoUnits
+    End If
 End Sub
 
 Sub DeleteFSAPodvalChild(shpChild As Visio.Shape)
@@ -277,6 +288,7 @@ Sub ClearFSAPodvalChild(shpChild As Visio.Shape)
         shpChild.Shapes("Pomestu").CellsU("Prop.SymName").FormulaForceU = ""
         shpChild.Shapes("Pomestu").CellsU("Prop.Number").FormulaForceU = ""
         shpChild.Shapes("Pomestu").CellsU("Prop.NameKontur").FormulaForceU = ""
+        shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = ""
 
 End Sub
 

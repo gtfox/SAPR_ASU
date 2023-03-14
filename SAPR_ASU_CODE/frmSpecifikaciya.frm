@@ -83,17 +83,36 @@ Private Sub UserForm_Initialize()
         .Value = IIf(NazvanieFSA = "", 0, 1)
     End With
 
-    If NazvanieShkafa <> "" Then
-        obVybCx.Value = True
+    If ActivePage.name Like cListNameCxema & "*" Then
+        mpRazdel.Pages("pgCx").Enabled = True
+        mpRazdel.Pages("pgFSA").Enabled = False
+        mpRazdel.Pages("pgCxKJ").Enabled = False
+        If NazvanieShkafa <> "" Then
+            obVybCx.Value = True
+        End If
+    ElseIf ActivePage.name Like cListNameFSA & "*" Then
+        mpRazdel.Pages("pgCx").Enabled = False
+        mpRazdel.Pages("pgFSA").Enabled = True
+        mpRazdel.Pages("pgCxKJ").Enabled = False
+        If NazvanieFSA <> "" Then
+            obVybFSA.Value = True
+        End If
+    ElseIf ActivePage.name Like cListNameKJ & "*" Then
+        mpRazdel.Pages("pgCx").Enabled = False
+        mpRazdel.Pages("pgFSA").Enabled = False
+        mpRazdel.Pages("pgCxKJ").Enabled = True
         obVybCxKJ.Value = True
+    Else
+        mpRazdel.Pages("pgCx").Enabled = False
+        mpRazdel.Pages("pgFSA").Enabled = False
+        mpRazdel.Pages("pgCxKJ").Enabled = False
     End If
-    If NazvanieFSA <> "" Then
-        obVybFSA.Value = True
-    End If
-    
+
     obNaListFSA.Value = True
     obNaListCx.Value = True
     obNaListCxKJ.Value = True
+    
+
 End Sub
 
 Public Sub FindElementShemyToExcel()

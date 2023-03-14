@@ -498,6 +498,12 @@ Sub AddSAPageNext()
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
     End If
+    If PageName = cListNameSpec Then ' "С" 'Спецификация оборудования, изделий и материалов
+        shpRamka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
+        shpRamka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
+        shpRamka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
+        ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").Result(0) + 1
+    End If
     
     SetPageAction vsoPageNew
     
@@ -534,7 +540,11 @@ Sub DelSAPage()
         DoEvents
 err:
         ActivePage.Delete 0
-        
+
+        If PageName = cListNameSpec Then ' "С" 'Спецификация оборудования, изделий и материалов
+            ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = IIf(ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").Result(0) > 0, ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").Result(0) - 1, 0)
+        End If
+
         If PageNumber = 1 Then Exit Sub
         
         'Ищем страницы раздела больше текущей
@@ -555,6 +565,7 @@ err:
             vsoPage.name = PageName & "." & CStr(GetPageNumber(vsoPage.name) - 1) & IIf(GetPageDesc(vsoPage.name) = "", "", "." & GetPageDesc(vsoPage.name))
         Wend
         If NameActivePage Like cListNameCxema & "*" Then UpdateNazvanieShkafa
+        If NameActivePage Like cListNameFSA & "*" Then UpdateNazvanieFSA
     End If
 End Sub
 
@@ -827,7 +838,7 @@ Sub SetNazvanieFSA(vsoObject As Object) 'SetValueToSelSections
     Dim SectionNumber As Long
     SectionNumber = visSectionProp 'Prop 243
     arrRowName = Array("SA_NazvanieFSA")
-    arrRowValue = Array("""Название ФСА""|""Нумерация элементов идет в пределах одной ФСА""|1|""""|INDEX(0,Prop.SA_NazvanieFSA.Format)|""""|FALSE|FALSE|1049|0")
+    arrRowValue = Array("""Название ФСА""|""Нумерация элементов идет в пределах одной ФСА""|4|""""|INDEX(0,Prop.SA_NazvanieFSA.Format)|""""|FALSE|FALSE|1049|0")
     SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber
 End Sub
 
@@ -854,13 +865,17 @@ Function GetColNazvanieShkafa() As Collection
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like PageName & "*" Then
             On Error Resume Next
-            colNameCxema.Add vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) <> "" Then
+                colNameCxema.Add vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+            End If
             err.Clear
             On Error GoTo 0
             For Each vsoShape In vsoPage.Shapes
                 If ShapeSATypeIs(vsoShape, typeShkafMesto) Then
                     On Error Resume Next
-                    colNameCxema.Add vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+                    If vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) <> "" Then
+                        colNameCxema.Add vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
+                    End If
                     err.Clear
                     On Error GoTo 0
                 End If
@@ -889,6 +904,55 @@ Sub NazvanieShkafaSetToAll(PropPageSheet As String)
                     vsoShape.Cells("Prop.SA_NazvanieShkafa").Formula = """" & NazvanieShkafaValue & """"
                 End If
             Next
+        End If
+    Next
+End Sub
+
+Sub UpdateNazvanieFSA()
+    Dim colNameFSA As Collection
+    Dim PropPageSheet As String
+    Dim i As Integer
+    
+    Set colNameFSA = GetColNazvanieFSA
+    For i = 1 To colNameFSA.Count
+        PropPageSheet = PropPageSheet & colNameFSA.Item(i) & IIf(i = colNameFSA.Count, "", ";")
+    Next
+    NazvanieFSASetToAll PropPageSheet
+End Sub
+
+Function GetColNazvanieFSA() As Collection
+    Dim vsoPage As Visio.Page
+    Dim vsoShape As Visio.Shape
+    Dim colNameFSA As Collection
+    Dim PageName As String
+    
+    Set colNameFSA = New Collection
+    PageName = cListNameFSA
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.name Like PageName & "*" Then
+            On Error Resume Next
+            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0) <> "" Then
+                colNameFSA.Add vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0), vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
+            End If
+            err.Clear
+            On Error GoTo 0
+        End If
+    Next
+    Set GetColNazvanieFSA = colNameFSA
+End Function
+
+Sub NazvanieFSASetToAll(PropPageSheet As String)
+    Dim vsoPage As Visio.Page
+    Dim vsoShape As Visio.Shape
+    Dim PageName As String
+    Dim NazvanieFSAValue As String
+    Dim i As Integer
+    PageName = cListNameFSA
+    For Each vsoPage In ActiveDocument.Pages
+        If vsoPage.name Like PageName & "*" Then
+            NazvanieFSAValue = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)
+            vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
+            vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = """" & NazvanieFSAValue & """"
         End If
     Next
 End Sub

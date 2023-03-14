@@ -93,6 +93,12 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
             End If
             shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + PageParent + "/" + NameIdParent + """" ' "Схема.3/Sheet.4"
             shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).Formula = GUIDParent
+            'Ссылка на описание из катушки
+            If shpChild.Shapes("Desc").CellExists("Fields.Value", 0) Then
+                shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)"
+            Else
+                shpChild.Shapes("Desc").Characters.AddCustomFieldU "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpParent.Shapes("Desc").NameID + "!TheText)", visFmtNumGenNoUnits
+            End If
             
             Exit For
         End If
@@ -223,7 +229,7 @@ Sub ClearRelayChild(shpChild As Visio.Shape)
     shpChild.CellsU("User.LocationParent").FormulaForceU = ""
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaForceU = """"""
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaForceU = ""
-    
+    shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = ""
     'Удаляем миниатюры контактов, если они были
     ThumbDelete shpChild
 

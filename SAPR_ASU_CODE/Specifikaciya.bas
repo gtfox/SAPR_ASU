@@ -85,16 +85,17 @@ Private Sub del_sp()
     Set colPage = New Collection
     'Спецификацию в колекцию
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.name, cListNameSpec & ".") > 0 Then
+        If dp.name Like cListNameSpec & ".*" Then
             colPage.Add dp
         End If
     Next
     'удаляем все страницы которые нашли выше
     For Each dp In colPage
-        dp.Delete (1)
+        dp.Delete 1
     Next
-    On Error Resume Next
-    ActiveDocument.Pages.Item(cListNameSpec).Delete (1)
+    ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameSpec)
+    ActiveWindow.SelectAll
+    ActiveWindow.Selection.Delete
     ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
 End Sub
 
@@ -789,17 +790,17 @@ Private Sub del_kj()
     Set colPage = New Collection
     'Кабельный журнал в колекцию
     For Each dp In ActiveDocument.Pages
-        If InStr(1, dp.name, cListNameKJ & ".") > 0 Then
+        If dp.name Like cListNameKJ & ".*" Then
             colPage.Add dp
         End If
     Next
     'удаляем все страницы которые нашли выше
     For Each dp In colPage
-        dp.Delete (1)
+        dp.Delete 1
     Next
-    On Error Resume Next
-    ActiveDocument.Pages.Item(cListNameKJ).Delete (1)
-'    ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
+    ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameKJ)
+    ActiveWindow.SelectAll
+    ActiveWindow.Selection.Delete
 End Sub
 
 Public Sub fill_table_KJ()

@@ -59,6 +59,7 @@ Private Sub btnAddRazdel_Click()
     Dim Setka As Visio.Master
     Dim colPagesAll As Collection
     Dim colNameCxema As Collection
+    Dim colNameFSA As Collection
     Dim PropPageSheet As String
     Dim PageName As String
     Dim PageNumber As Integer
@@ -67,6 +68,7 @@ Private Sub btnAddRazdel_Click()
     Dim i As Integer
 
     Set colNameCxema = New Collection
+    Set colNameFSA = New Collection
     Set Ramka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
     Set Setka = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("SETKA KOORD")
     If cmbxPageName.ListIndex = -1 Then Exit Sub
@@ -136,16 +138,19 @@ Private Sub btnAddRazdel_Click()
         Case cListNameOD ' "ОД" 'Общие указания
         Case cListNameFSA ' "ФСА" 'Схема функциональная автоматизации
             SetNazvanieFSA vsoPageNew.PageSheet
-            If cmbxNazvanieFSA.ListIndex = -1 Then NazvanieFSAAdd
             For i = 0 To cmbxNazvanieFSA.ListCount - 1
-                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieFSA.List(i) = "", "", cmbxNazvanieFSA.List(i) & IIf(i = cmbxNazvanieFSA.ListCount - 1, "", ";"))
+                On Error Resume Next
+                colNameFSA.Add cmbxNazvanieFSA.List(i), cmbxNazvanieFSA.List(i)
+            Next
+            colNameFSA.Add cmbxNazvanieFSA, cmbxNazvanieFSA
+            err.Clear
+            On Error GoTo 0
+            For i = 1 To colNameFSA.Count
+                PropPageSheet = PropPageSheet & colNameFSA.Item(i) & IIf(i = colNameFSA.Count, "", ";")
             Next
             vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
-            If cmbxNazvanieFSA.ListIndex <> -1 Then
-                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListIndex & ",Prop.SA_NazvanieFSA.Format)"
-            Else
-                vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = "INDEX(" & cmbxNazvanieFSA.ListCount - 1 & ",Prop.SA_NazvanieFSA.Format)"
-            End If
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").FormulaU = """" & cmbxNazvanieFSA & """"
+            NazvanieFSASetToAll PropPageSheet
         Case cListNamePlan ' "План" 'План расположения оборудования и приборов КИП
         Case cListNameCxema ' "Схема" 'Схема электрическая принципиальная
             SetNazvanieShkafa vsoPageNew.PageSheet
@@ -167,6 +172,10 @@ Private Sub btnAddRazdel_Click()
         Case cListNameSVP ' "СВП" 'Схема соединения внешних проводок
         Case cListNameKJ  ' "КЖ" 'Кабельный журнал
         Case cListNameSpec ' "С" 'Спецификация оборудования, изделий и материалов
+            shpRamka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
+            shpRamka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
+            shpRamka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
+            ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = 1
         Case Else
     End Select
     
@@ -196,22 +205,14 @@ Sub Fill_cmbxNazvanieShkafa()
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    Dim PropPageSheet As String
-    Dim mstrPropPageSheet() As String
+    Dim colNameFSA As Collection
     Dim i As Integer
-    PageName = cListNameFSA
-    For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.name Like PageName & "*" Then
-            PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
-            Exit For
-        End If
-    Next
+    
+    Set colNameFSA = GetColNazvanieFSA
+
     cmbxNazvanieFSA.Clear
-    mstrPropPageSheet = Split(PropPageSheet, ";")
-    For i = 0 To UBound(mstrPropPageSheet)
-        cmbxNazvanieFSA.AddItem mstrPropPageSheet(i)
+    For i = 1 To colNameFSA.Count
+        cmbxNazvanieFSA.AddItem colNameFSA.Item(i)
     Next
     cmbxNazvanieFSA.text = ""
 End Sub
@@ -230,33 +231,6 @@ Sub Fill_cmbxNaimenovLista()
     Next
 End Sub
 
-
-Private Sub btnNazvanieFSAAdd_Click()
-    If cmbxNazvanieFSA.text = "" Then
-        MsgBox "Название ФСА пустое" & vbNewLine & "Введите название ФСА... ", vbExclamation, "САПР-АСУ: Название ФСА пустое"
-    Else
-        If MsgBox("Добавить ФСА: " & cmbxNazvanieFSA.text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbInformation, "САПР-АСУ: Добавить название ФСА") = vbYes Then
-            NazvanieFSAAdd
-        End If
-    End If
-End Sub
-
-Sub NazvanieFSAAdd()
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    Dim PropPageSheet As String
-    If cmbxNazvanieFSA.text <> "" Then
-        PageName = cListNameFSA
-        For Each vsoPage In ActiveDocument.Pages
-            If vsoPage.name Like PageName & "*" Then
-                PropPageSheet = vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").ResultStr(0)
-                vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & IIf(PropPageSheet = "", "", ";") & cmbxNazvanieFSA.text & """"
-            End If
-        Next
-        Fill_cmbxNazvanieFSA
-    End If
-End Sub
-
 Private Sub btnNaimenovanieAdd2Master_Click()
     Dim Ramka As Visio.Shape
     Dim PropShapeSheet As String
@@ -265,28 +239,6 @@ Private Sub btnNaimenovanieAdd2Master_Click()
         PropShapeSheet = Ramka.Cells("Prop.Type.Format").ResultStr(0)
         Ramka.Cells("Prop.Type.Format").Formula = """" & PropShapeSheet & ";" & cmbxNaimenovLista.text & """"
         Fill_cmbxNaimenovLista
-    End If
-End Sub
-
-Private Sub btnNazvanieFSADel_Click()
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    Dim PropPageSheet As String
-    Dim i As Integer
-    If MsgBox("Удалить ФСА: " & cmbxNazvanieFSA.text & vbNewLine & vbNewLine & "Это повлияет на все листы ФСА в документе!", vbYesNo + vbCritical, "САПР-АСУ: Удалить название ФСА") = vbYes Then
-        If cmbxNazvanieFSA.ListIndex <> -1 Then
-            cmbxNazvanieFSA.RemoveItem cmbxNazvanieFSA.ListIndex
-            For i = 0 To cmbxNazvanieFSA.ListCount - 1
-                PropPageSheet = PropPageSheet & IIf(cmbxNazvanieFSA.List(i) = "", "", cmbxNazvanieFSA.List(i) & IIf(i = cmbxNazvanieFSA.ListCount - 1, "", ";"))
-            Next
-            PageName = cListNameFSA
-            For Each vsoPage In ActiveDocument.Pages
-                If vsoPage.name Like PageName & "*" Then
-                    vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA.Format").Formula = """" & PropPageSheet & """"
-                End If
-            Next
-            Fill_cmbxNazvanieFSA
-        End If
     End If
 End Sub
 
