@@ -569,6 +569,44 @@ Sub FindZombie(shpProvod As Visio.Shape)
     Next
 End Sub
 
+Sub HideWireNumChildOnPage()
+    HideWireNumChild ActivePage
+End Sub
+
+Sub HideWireNumChildInDoc()
+    Dim vsoPage As Visio.Page
+    Dim PageName As String
+    PageName = cListNameCxema  'Имена листов
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
+            HideWireNumChild vsoPage
+        End If
+    Next
+End Sub
+
+
+Public Sub HideWireNumChild(vsoPage As Visio.Page)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : HideWireNumChild - Скрывает номера в дочерних проводах (номера полученные по ссылке)
+                'На листе остаются только провода с уникальными именами
+                'Номера ВСЕХ проводов нужны только при рисовании схемы - для контроля правильности соединения
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoShapeOnPage As Visio.Shape
+    
+    'Цикл поиска проводов и скрытия номера
+    For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+        If ShapeSATypeIs(vsoShapeOnPage, typeWire) Then     'Если в шейпе есть тип, то проверяем чтобы был провод
+            If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 0 Then    'Отсеиваем шейпы нумеруемые в автомате
+                If vsoShapeOnPage.Cells("Prop.Number").FormulaU Like "*!*" Then 'Находим дочерние
+                    'Прячем номер/название
+                    vsoShapeOnPage.Cells("Prop.HideNumber").FormulaU = True
+                    vsoShapeOnPage.Cells("Prop.HideName").FormulaU = True
+                End If
+            End If
+        End If
+    Next
+End Sub
+
 Sub WireToPLCTerm(shpProvod As Visio.Shape, shpPLCTerm As Visio.Shape, bConnect As Boolean)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : WireToPLCTerm - При подключении провода к клемме входа ПЛК (дочернего)

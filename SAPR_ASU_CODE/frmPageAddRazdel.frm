@@ -105,7 +105,7 @@ Private Sub btnAddRazdel_Click()
     End If
 
     Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
-    ActiveDocument.Masters.Item("Рамка").Delete
+'    ActiveDocument.Masters.Item("Рамка").Delete
         
     If cmbxNaimenovLista.ListIndex = -1 Then
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"

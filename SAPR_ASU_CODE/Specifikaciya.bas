@@ -350,7 +350,7 @@ Sub AddPageSpecifikac(pName As String)
         Set mStr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
         Set Ramka = ActivePage.Drop(mStr, 0, 0)
         LockTitleBlock
-        ActiveDocument.Masters.Item("Рамка").Delete
+'        ActiveDocument.Masters.Item("Рамка").Delete
     Else
         ActiveWindow.Page = ActiveDocument.Pages(pName)
         ActiveWindow.SelectAll
@@ -906,7 +906,7 @@ Sub AddPageKJ(pName As String)
         Set mStr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
         Set Ramka = ActivePage.Drop(mStr, 0, 0)
         LockTitleBlock
-        ActiveDocument.Masters.Item("Рамка").Delete
+'        ActiveDocument.Masters.Item("Рамка").Delete
     Else
         ActiveWindow.Page = ActiveDocument.Pages(pName)
         ActiveWindow.SelectAll

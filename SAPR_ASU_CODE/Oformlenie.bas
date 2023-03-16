@@ -371,7 +371,7 @@ Function AddSAPage(PageName As String) As Visio.Page
         Set vsoPage = ActiveDocument.Pages.Add
         vsoPage.name = PageName
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
-        ActiveDocument.Masters.Item("Рамка").Delete
+'        ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
 
     Else
@@ -393,7 +393,7 @@ Function AddSAPage(PageName As String) As Visio.Page
         End If
         
         Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
-        ActiveDocument.Masters.Item("Рамка").Delete
+'        ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
 
     End If
@@ -403,6 +403,8 @@ Function AddSAPage(PageName As String) As Visio.Page
     vsoPage.PageSheet.Cells("PageHeight").Formula = "297 MM"
     vsoPage.PageSheet.Cells("Paperkind").Formula = 8
     vsoPage.PageSheet.Cells("PrintPageOrientation").Formula = 2
+    
+    SetRamkaProp shpRamka
     
     SetPageAction vsoPage
     
@@ -477,7 +479,7 @@ Sub AddSAPageNext()
     'Положение новой страницы сразу за текущей
     vsoPageNew.Index = Index + 1
     Set shpRamka = vsoPageNew.Drop(Ramka, 0, 0)
-    ActiveDocument.Masters.Item("Рамка").Delete
+'    ActiveDocument.Masters.Item("Рамка").Delete
     shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
     shpRamka.Cells("Prop.Type").Formula = shpRamkaSource.Cells("Prop.Type").Formula
     shpRamka.Cells("Prop.CNUM").Formula = shpRamkaSource.Cells("Prop.CNUM").Formula
@@ -504,6 +506,8 @@ Sub AddSAPageNext()
         shpRamka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
         ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").Result(0) + 1
     End If
+    
+    SetRamkaProp shpRamka
     
     SetPageAction vsoPageNew
     
@@ -653,7 +657,7 @@ Sub CopySAPage()
     End If
     
     SetPageAction vsoPageNew
-
+    'TODO Сделать смещение после вставки
     Application.ActiveWindow.Page = vsoPageSource
     ActiveWindow.DeselectAll
 '    ActiveWindow.SelectAll
@@ -955,4 +959,53 @@ Sub NazvanieFSASetToAll(PropPageSheet As String)
             vsoPage.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = """" & NazvanieFSAValue & """"
         End If
     Next
+End Sub
+
+Sub SetTheDocInAllFrame()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetTheDocInAllFrame - Перезаписывает формулы с TheDoc!Var чтобы они обновлялись во всех рамках
+'               Gennady Tumanov
+'               VisioPort blog: Опасные ссылки на TheDoc в Visio
+'               https://visioport.epizy.com/blog/34-thedocref.html
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim shpRamka As Visio.Shape
+
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        On Error Resume Next
+        Set shpRamka = vsoPage.Shapes("Рамка")
+        err.Clear
+        On Error GoTo 0
+        SetRamkaProp shpRamka
+    Next
+End Sub
+
+Sub SetRamkaProp(shpRamka As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SetRamkaProp - Перезаписывает формулы с TheDoc!Var чтобы они обновлялись в рамке
+'               Gennady Tumanov
+'               VisioPort blog: Опасные ссылки на TheDoc в Visio
+'               https://visioport.epizy.com/blog/34-thedocref.html
+'------------------------------------------------------------------------------------------------------------
+    If Not shpRamka Is Nothing Then
+        With shpRamka.Shapes("FORMA3")
+            .Shapes("Razrabotal").Cells("Prop.date").Formula = .Shapes("Razrabotal").Cells("Prop.date").Formula
+            .Shapes("Razrabotal").Cells("Prop.Row_2").Formula = .Shapes("Razrabotal").Cells("Prop.Row_2").Formula
+            
+            .Shapes("Proveril").Cells("Prop.date").Formula = .Shapes("Proveril").Cells("Prop.date").Formula
+            .Shapes("Proveril").Cells("Prop.Row_2").Formula = .Shapes("Proveril").Cells("Prop.Row_2").Formula
+            
+            .Shapes("gip").Cells("Prop.date").Formula = .Shapes("gip").Cells("Prop.date").Formula
+            .Shapes("gip").Cells("Prop.Row_2").Formula = .Shapes("gip").Cells("Prop.Row_2").Formula
+            
+            .Shapes("NachOtdela").Cells("Prop.date").Formula = .Shapes("NachOtdela").Cells("Prop.date").Formula
+            .Shapes("NachOtdela").Cells("Prop.Row_2").Formula = .Shapes("NachOtdela").Cells("Prop.Row_2").Formula
+            
+            .Shapes("Utverdil").Cells("Prop.date").Formula = .Shapes("Utverdil").Cells("Prop.date").Formula
+            .Shapes("Utverdil").Cells("Prop.Row_2").Formula = .Shapes("Utverdil").Cells("Prop.Row_2").Formula
+            
+            .Shapes("NKontr").Cells("Prop.date").Formula = .Shapes("NKontr").Cells("Prop.date").Formula
+            .Shapes("NKontr").Cells("Prop.Row_2").Formula = .Shapes("NKontr").Cells("Prop.Row_2").Formula
+        End With
+    End If
 End Sub

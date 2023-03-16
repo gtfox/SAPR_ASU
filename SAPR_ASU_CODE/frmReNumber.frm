@@ -334,46 +334,50 @@ Return
 
 RenTerm:
     If cbKlemCx Or bTermSelect Then
-        If colCxem(NazvanieShkafa).colTermNames.Count > 0 Then
-            For Each ItemCol In colCxem(NazvanieShkafa).colTermNames
-                mstrNames = Split(ItemCol, ";")
-                NumberKlemmnik = CInt(mstrNames(0))
-                SymNameKlemmnik = mstrNames(1)
-                NextTerm = 0
-                For Each List In colCxem(NazvanieShkafa).colListov
-                    'По фильтрам заполняем коллецию для перенумерации
-                    Set colItems = New Collection
-                    For Each vsoShapeOnPage In List.colTerms
-                        If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = NumberKlemmnik And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymNameKlemmnik Then
-                            colItems.Add vsoShapeOnPage
-                        End If
+        If Not colCxem(NazvanieShkafa).colTermNames Is Nothing Then
+            If colCxem(NazvanieShkafa).colTermNames.Count > 0 Then
+                For Each ItemCol In colCxem(NazvanieShkafa).colTermNames
+                    mstrNames = Split(ItemCol, ";")
+                    NumberKlemmnik = CInt(mstrNames(0))
+                    SymNameKlemmnik = mstrNames(1)
+                    NextTerm = 0
+                    For Each List In colCxem(NazvanieShkafa).colListov
+                        'По фильтрам заполняем коллецию для перенумерации
+                        Set colItems = New Collection
+                        For Each vsoShapeOnPage In List.colTerms
+                            If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = NumberKlemmnik And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymNameKlemmnik Then
+                                colItems.Add vsoShapeOnPage
+                            End If
+                        Next
+                        NextTerm = ReNumber(colItems, NextTerm)
                     Next
-                    NextTerm = ReNumber(colItems, NextTerm)
                 Next
-            Next
+            End If
         End If
     End If
 Return
 
 RenElement:
     If cbElCx Or cbDatCx Or bElementSelect Then
-        If colCxem(NazvanieShkafa).colElementNames.Count > 0 Then
-            For Each ItemCol In colCxem(NazvanieShkafa).colElementNames
-                mstrNames = Split(ItemCol, ";")
-                SAType = CInt(mstrNames(0))
-                SymName = mstrNames(1)
-                NextElement = 0
-                For Each List In colCxem(NazvanieShkafa).colListov
-                    'По фильтрам заполняем коллецию для перенумерации
-                    Set colItems = New Collection
-                    For Each vsoShapeOnPage In List.colElements
-                        If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName Then
-                            colItems.Add vsoShapeOnPage
-                        End If
+        If Not colCxem(NazvanieShkafa).colElementNames Is Nothing Then
+            If colCxem(NazvanieShkafa).colElementNames.Count > 0 Then
+                For Each ItemCol In colCxem(NazvanieShkafa).colElementNames
+                    mstrNames = Split(ItemCol, ";")
+                    SAType = CInt(mstrNames(0))
+                    SymName = mstrNames(1)
+                    NextElement = 0
+                    For Each List In colCxem(NazvanieShkafa).colListov
+                        'По фильтрам заполняем коллецию для перенумерации
+                        Set colItems = New Collection
+                        For Each vsoShapeOnPage In List.colElements
+                            If vsoShapeOnPage.Cells("User.SAType").Result(0) = SAType And vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName Then
+                                colItems.Add vsoShapeOnPage
+                            End If
+                        Next
+                        NextElement = ReNumber(colItems, NextElement)
                     Next
-                    NextElement = ReNumber(colItems, NextElement)
                 Next
-            Next
+            End If
         End If
     End If
 Return

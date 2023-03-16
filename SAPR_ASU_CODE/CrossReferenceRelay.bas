@@ -255,6 +255,28 @@ Sub ClearRelayParent(shpParent As Visio.Shape)
     End If
 End Sub
 
+Sub AddLocThumbAllInDoc()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : AddLocThumbAllInDoc - Добавляет миниатюры контактов под реле во всём документе
+                'Вставляет под катушку реле миниатюры всех активных контактов
+                'Вставляет под контакт реле миниатюру катушки реле
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim vsoShapeOnPage As Visio.Shape
+    Dim PageName As String
+    PageName = cListNameCxema  'Имена листов
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+                Select Case ShapeSAType(vsoShapeOnPage)
+                    Case typeNO, typeNC, typeCoil, typeParent
+                        AddLocThumb vsoShapeOnPage
+                End Select
+            Next
+        End If
+    Next
+End Sub
+
 Sub AddLocThumb(vsoShape As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : AddLocThumb - Добавляет миниатюры контактов под реле

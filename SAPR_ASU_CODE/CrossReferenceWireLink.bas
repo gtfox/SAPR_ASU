@@ -160,7 +160,6 @@ Sub ClearReferenceWireLink(vsoShape As Visio.Shape)
     vsoShape.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = ""
     vsoShape.CellsU("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
     vsoShape.CellsU("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
-
 End Sub
 
 

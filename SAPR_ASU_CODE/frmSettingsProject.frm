@@ -146,6 +146,7 @@ Private Sub CommandButton38_Click()
         .Cells("User.SA_FR_Utverdil").Formula = """" + cmbxSA_FR_Utverdil + """"
         .Cells("User.SA_FR_Data").Formula = """" + Replace(tbSA_FR_Data, """", """""") + """"
     End With
+    SetTheDocInAllFrame
 End Sub
 
 Private Sub CommandButton39_Click()

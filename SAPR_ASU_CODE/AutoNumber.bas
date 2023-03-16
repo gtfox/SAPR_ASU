@@ -265,9 +265,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
     UserType = ShapeSAType(vsoShape)
     If vsoShape.CellExists("Prop.SymName", 0) Then SymName = vsoShape.Cells("Prop.SymName").ResultStr(0)
     If vsoShape.CellExists("Prop.NameKontur", 0) Then NameKontur = vsoShape.Cells("Prop.NameKontur").ResultStr(0)
-    
-    
-    
+
     'Чистим номер, чтобы он не участвовал в поиске
     vsoShape.Cells("Prop.Number").FormulaU = 0
     
@@ -317,72 +315,4 @@ Sub FindMAXFSA(vsoShapeOnPage As Visio.Shape)
 End Sub
 
 
-
-Sub ReNumberFSA()
-
-End Sub
-
-Sub HideWireNumChildOnPage()
-    HideWireNumChild ActivePage
-End Sub
-
-Sub HideWireNumChildInDoc()
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    PageName = cListNameCxema  'Имена листов
-    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            HideWireNumChild vsoPage
-        End If
-    Next
-End Sub
-
-
-Public Sub HideWireNumChild(vsoPage As Visio.Page)
-'------------------------------------------------------------------------------------------------------------
-' Macros        : HideWireNumChild - Скрывает номера в дочерних проводах (номера полученные по ссылке)
-                'На листе остаются только провода с уникальными именами
-                'Номера ВСЕХ проводов нужны только при рисовании схемы - для контроля правильности соединения
-'------------------------------------------------------------------------------------------------------------
-    Dim vsoShapeOnPage As Visio.Shape
-    
-    'Цикл поиска проводов и скрытия номера
-    For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
-        If ShapeSATypeIs(vsoShapeOnPage, typeWire) Then     'Если в шейпе есть тип, то проверяем чтобы был провод
-            If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 0 Then    'Отсеиваем шейпы нумеруемые в автомате
-                If vsoShapeOnPage.Cells("Prop.Number").FormulaU Like "*!*" Then 'Находим дочерние
-                    'Прячем номер/название
-                    vsoShapeOnPage.Cells("Prop.HideNumber").FormulaU = True
-                    vsoShapeOnPage.Cells("Prop.HideName").FormulaU = True
-                End If
-            End If
-        End If
-    Next
-End Sub
-
-'------------------------------------------------------------------------------------------------------------
-' Macros        : ExtractOboz - Функция определения неизменяемой части обозначения
-' Author        : Shishok
-' Date          : 2014.12.01
-' Description   : Определения неизменяемой части обозначения Например: 1, ГР1, р, Гр1.1, ППР1-1, Выкл, П122.1 или типа того
-' Link          : https://visio.getbb.ru/viewtopic.php?p=5904#p5904, https://github.com/shishok, https://disk.yandex.ru/d/qbpj9WI9d2eqF
-'------------------------------------------------------------------------------------------------------------
-Function ExtractOboz(Oboz) ' Функция определения неизменяемой части обозначения
-
-Dim ObozF As String, i As Integer, Flag As Boolean
-Flag = Oboz Like "*[-.,/\]*"
-
-For i = 1 To Len(Oboz)
-    If Not Flag And Mid(Oboz, i, 1) Like "[a-zA-Zа-яА-Я ]" Then GoSub AddChar
-    If Flag And Mid(Oboz, i, 1) Like "[a-zA-Zа-яА-Я0-9 ]" Then GoSub AddChar
-    If Flag And Mid(Oboz, i, 1) Like "[-.,/\]" Then GoSub AddChar
-Next
-    
-ExtractOboz = ObozF
-Exit Function
-
-AddChar:
-    ObozF = ObozF + Mid(Oboz, i, 1)
-Return
-End Function
 
