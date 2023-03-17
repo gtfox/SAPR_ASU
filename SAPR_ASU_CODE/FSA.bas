@@ -72,7 +72,7 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
         If vsoPageCxema.name Like PageName & "*" Then
             For Each shpSensorOnCxema In vsoPageCxema.Shapes
                 If ShapeSATypeIs(shpSensorOnCxema, typeSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeActuator) Then
-                    If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
+                    If shpSensorOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
                         nCount = colSensorOnFSA.Count
                         On Error Resume Next
                         colSensorOnFSA.Add shpSensorOnCxema, shpSensorOnCxema.Cells("User.Name").ResultStr(0)

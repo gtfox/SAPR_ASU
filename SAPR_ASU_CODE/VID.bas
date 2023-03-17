@@ -318,29 +318,31 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     For Each vsoPageCxema In ActiveDocument.Pages
         If vsoPageCxema.name Like PageName & "*" Then
             For Each shpElementOnCxema In vsoPageCxema.Shapes
-                If shpElementOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
-                    SAType = ShapeSAType(shpElementOnCxema)
-                    Select Case SAType
-                        Case typeCoil, typeParent, typeElement, typePLCParent
-                            nCount = colElementOnVID.Count
-                            On Error Resume Next
-                            colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
-                            err.Clear
-                            On Error GoTo 0
-                            If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                                colElementToVID.Add shpElementOnCxema
-                            End If
-                        Case typeTerm
-                            nCount = colElementOnVID.Count
-                            On Error Resume Next
-                            colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
-                            err.Clear
-                            On Error GoTo 0
-                            If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                                colElementToVID.Add shpElementOnCxema
-                            End If
-                        Case Else
-                    End Select
+                If vsoShapeOnPage.CellExists("User.Shkaf", 0) Then
+                    If shpElementOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
+                        SAType = ShapeSAType(shpElementOnCxema)
+                        Select Case SAType
+                            Case typeCoil, typeParent, typeElement, typePLCParent
+                                nCount = colElementOnVID.Count
+                                On Error Resume Next
+                                colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                                err.Clear
+                                On Error GoTo 0
+                                If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                                    colElementToVID.Add shpElementOnCxema
+                                End If
+                            Case typeTerm
+                                nCount = colElementOnVID.Count
+                                On Error Resume Next
+                                colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                                err.Clear
+                                On Error GoTo 0
+                                If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                                    colElementToVID.Add shpElementOnCxema
+                                End If
+                            Case Else
+                        End Select
+                    End If
                 End If
             Next
         End If

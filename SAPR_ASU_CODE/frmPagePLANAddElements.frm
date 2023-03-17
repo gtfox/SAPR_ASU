@@ -1,7 +1,7 @@
 Option Explicit
 
 Private Sub UserForm_Initialize()
-    cmbxNazvanieFSA.style = fmStyleDropDownList
+'    cmbxNazvanieFSA.style = fmStyleDropDownList
     Fill_cmbxNazvanieFSA
 End Sub
 

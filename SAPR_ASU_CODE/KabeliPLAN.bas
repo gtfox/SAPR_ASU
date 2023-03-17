@@ -1028,7 +1028,17 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
             .Cells("Controls.Impuls").FormulaU = "BOUND(Width*0.5,0,FALSE,Width*-0.6667,Width*-0.6667,FALSE,Width*0.5,Width*0.5,FALSE,Width*1.6667,Width*1.6667)"
             .Cells("Controls.Impuls.Y").FormulaU = "BOUND(Height*0.5,0,FALSE,Height*-0.6667,Height*-0.6667,FALSE,Height*0.5,Height*0.5,FALSE,Height*1.6667,Height*1.6667)"
             .Cells("User.SAType").FormulaU = typePlanSensor
-            
+            'Ссылка на описание из схемы
+            If .Shapes("Desc").CellExists("Fields.Value", 0) Then
+                .Shapes("Desc").Cells("Fields.Value").FormulaU = "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpSensorOnFSA.Shapes("Desc").NameID + "!TheText)"
+            Else
+                .Shapes("Desc").Characters.AddCustomFieldU "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpSensorOnFSA.Shapes("Desc").NameID + "!TheText)", visFmtNumGenNoUnits
+            End If
+            'Настройка описания
+            .Cells("Controls.DescPos").FormulaU = "Width*-4.375"
+            .Cells("Controls.DescPos.Y").FormulaU = "Height*2.1666666666667"
+            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = "24.375 mm"
+            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "12.5 mm"
         End With
         'Собираем в коллецию вставленные датчики
         colSensorOnPLAN.Add ActiveWindow.Selection(1)
@@ -1122,18 +1132,25 @@ Public Sub VynoskaPlan(Connects As IVConnects)
 ExitWhile:    Set masShape(i) = CabTemp
        Next
        '--Х--Сортировка по возрастанию номеров проводов
-       
-       strProvoda = "("
         
-       For i = 0 To UbMas
-           strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & ";"
-       Next
-                       
-       strProvoda = Left(strProvoda, Len(strProvoda) - 1)
-       If Len(strProvoda) > 1 Then
-           strProvoda = strProvoda & ")"
-       End If
-       
+        Select Case ShapeSAType(shpVynoska)
+            Case typeVynoskaPL
+                strProvoda = "("
+                For i = 0 To UbMas
+                    strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & ";"
+                Next
+                strProvoda = Left(strProvoda, Len(strProvoda) - 1)
+                If Len(strProvoda) > 1 Then
+                    strProvoda = strProvoda & ")"
+                End If
+            Case typeVynoska2PL
+                strProvoda = vbTab
+                For i = 0 To UbMas
+                    strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & vbTab
+                Next
+                strProvoda = Left(strProvoda, Len(strProvoda) - 1)
+        End Select
+
     Else
         strProvoda = ""
     End If
@@ -1147,6 +1164,25 @@ ExitWhile:    Set masShape(i) = CabTemp
     End If
     
     shpVynoska.Cells("Prop.Provoda").FormulaU = """" & strProvoda & """"
+    If i > 3 Then i = 3
+    i = i * 5
+    If ShapeSATypeIs(shpVynoska, typeVynoska2PL) Then
+       shpVynoska.Shapes("Provoda").Cells("Width").FormulaU = _
+       "BOUND(" & i & " mm,0,FALSE,5 mm*" & shpVynoska.NameID & "!User.PageScale,5 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,10 mm*" & shpVynoska.NameID & "!User.PageScale,10 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,15 mm*" & shpVynoska.NameID & "!User.PageScale,15 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,20 mm*" & shpVynoska.NameID & "!User.PageScale,20 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,25 mm*" & shpVynoska.NameID & "!User.PageScale,25 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,30 mm*" & shpVynoska.NameID & "!User.PageScale,30 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,35 mm*" & shpVynoska.NameID & "!User.PageScale,35 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,40 mm*" & shpVynoska.NameID & "!User.PageScale,40 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,45 mm*" & shpVynoska.NameID & "!User.PageScale,45 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,50 mm*" & shpVynoska.NameID & "!User.PageScale,50 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,55 mm*" & shpVynoska.NameID & "!User.PageScale,55 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,60 mm*" & shpVynoska.NameID & "!User.PageScale,60 mm*" _
+        & shpVynoska.NameID & "!User.PageScale,FALSE,65 mm*" & shpVynoska.NameID & "!User.PageScale,65 mm*" _
+        & shpVynoska.NameID & "!User.PageScale)"
+    End If
     
 End Sub
  

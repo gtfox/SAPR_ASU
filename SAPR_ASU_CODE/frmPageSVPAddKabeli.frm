@@ -3,7 +3,7 @@
 Option Explicit
 
 Private Sub UserForm_Initialize()
-    cmbxNazvanieShkafa.style = fmStyleDropDownList
+'    cmbxNazvanieShkafa.style = fmStyleDropDownList
     Fill_cmbxNazvanieShkafa
 End Sub
 
@@ -24,7 +24,9 @@ Sub Fill_cmbxNazvanieShkafa()
     For i = 1 To colNameCxema.Count
         cmbxNazvanieShkafa.AddItem colNameCxema.Item(i)
     Next
-    cmbxNazvanieShkafa.text = ""
+    If colNameCxema.Count > 0 Then
+        cmbxNazvanieShkafa.ListIndex = 0
+    End If
 End Sub
 
 Private Sub btnClose_Click()

@@ -35,6 +35,7 @@ Public Const typeCableVP As Integer = 80 'Кабель вне шкафа на с
 Public Const typeCablePL As Integer = 90 'Кабель вне шкафа на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
 Public Const typeVynoskaPL As Integer = 95 'Выноска на ПЛАНЕ оборудования и КИП (Не нумеруется)
+Public Const typeVynoska2PL As Integer = 96 'Выноска2 на ПЛАНЕ оборудования и КИП (Не нумеруется)
 
 Public Const typeActuator As Integer = 100 'Привод вне шкафа. Аналогичен typeSensor M (Электродвигатель), YA (Клапан электромагнитный)
 Public Const typeSensor As Integer = 110 'Датчик вне шкафа. Содержит несколько Входов/Выходов. (Родительский) RK (Датчик температуры TE) TC (Термопара TE), BP (Датчик давления PT), SP (Реле давления PS), BL (Датчик пламени BE), SQ (Концевик GS), SK (Термостат TS), UZ (Частотник UZ), BN (Сигнализатор загазованности QN)
