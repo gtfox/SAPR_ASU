@@ -318,7 +318,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     For Each vsoPageCxema In ActiveDocument.Pages
         If vsoPageCxema.name Like PageName & "*" Then
             For Each shpElementOnCxema In vsoPageCxema.Shapes
-                If vsoShapeOnPage.CellExists("User.Shkaf", 0) Then
+                If shpElementOnCxema.CellExists("User.Shkaf", 0) Then
                     If shpElementOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
                         SAType = ShapeSAType(shpElementOnCxema)
                         Select Case SAType
@@ -386,27 +386,28 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 
                 'Клеим клемму к клеммнику
                 Set cellKlemma = shpTermOnVID.CellsSRC(visSectionConnectionPts, visRowConnectionPts, 0)
-                cellKlemma.GlueTo cellKlemmnik
-                    'Костыль из-за того, что visio не может таскать длинные цепочки склеенных фигур
-                    If cellKlemmnik.Shape <> cellKlemma.Shape Then
-                        cellKlemma.Shape.Cells("PinX").Formula = cellKlemmnik.Shape.NameID & "!PinX+" & cellKlemmnik.Shape.NameID & "!Width"
-                        cellKlemma.Shape.Cells("PinY").Formula = cellKlemmnik.Shape.NameID & "!PinY"
-                    End If
+'                cellKlemma.GlueTo cellKlemmnik
+                'Костыль из-за того, что visio не может таскать длинные цепочки склеенных фигур
+                If cellKlemmnik.Shape <> cellKlemma.Shape Then
+                    cellKlemma.Shape.Cells("PinX").Formula = cellKlemmnik.Shape.NameID & "!PinX+" & cellKlemmnik.Shape.NameID & "!Width"
+                    cellKlemma.Shape.Cells("PinY").Formula = cellKlemmnik.Shape.NameID & "!PinY"
+                End If
                 Set cellKlemmnik = shpTermOnVID.CellsSRC(visSectionConnectionPts, visRowConnectionPts + 1, 0)
             End If
         Next
         
         'Удаляем из коллекции вставленный клеммник
-        For i = colTermToVID.Count To 0 Step -1
+        For i = colTermToVID.Count To 1 Step -1
             If colTermToVID.Item(i).Cells("User.KlemmnikName").ResultStr(0) = KlemmnikName Then
                 colTermToVID.Remove i
             End If
         Next
-        
-        'Берем следующий клеммник
-        KlemmnikName = colTermToVID.Item(colTermToVID.Count).Cells("User.KlemmnikName").ResultStr(0)
-        'Смещаемся ниже
-        DropY = DropY - shpTermOnVID.Cells("Height").Result(0) * 2
+        If colTermToVID.Count > 0 Then
+            'Берем следующий клеммник
+            KlemmnikName = colTermToVID.Item(colTermToVID.Count).Cells("User.KlemmnikName").ResultStr(0)
+            'Смещаемся ниже
+            DropY = DropY - shpTermOnVID.Cells("Height").Result(0) * 2
+        End If
     Wend
 
 '-------------------------------------------------------------------------------Элементы---------------------------------------------------------------------------------------------

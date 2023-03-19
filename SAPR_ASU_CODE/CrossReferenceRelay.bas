@@ -196,11 +196,13 @@ Sub DeleteRelayParent(shpParent As Visio.Shape)
     If shpParent.SectionExists(visSectionScratch, 0) Then
         For i = 1 To shpParent.Section(visSectionScratch).Count
             GUIDChild = shpParent.CellsSRC(visSectionHyperlink, i - 1, visHLinkExtraInfo).ResultStr(0)
-            Set shpChild = ShapeByGUID(GUIDChild)
-            'Проверяем что контакт привязан именно к нашей катушке
-            If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
-                'Чистим дочерний шейп
-                ClearRelayChild shpChild
+            If GUIDChild <> "" Then
+                Set shpChild = ShapeByGUID(GUIDChild)
+                'Проверяем что контакт привязан именно к нашей катушке
+                If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
+                    'Чистим дочерний шейп
+                    ClearRelayChild shpChild
+                End If
             End If
         Next
     End If
@@ -208,7 +210,7 @@ Sub DeleteRelayParent(shpParent As Visio.Shape)
     'shpParent.Delete
     
     'Удаляем миниатюры контактов, если они были
-    ThumbDelete shpParent
+'    ThumbDelete shpParent
     
     'Отключаем провода от элемента
     UnplugWire 1, shpParent
@@ -231,7 +233,7 @@ Sub ClearRelayChild(shpChild As Visio.Shape)
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaForceU = ""
     shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = ""
     'Удаляем миниатюры контактов, если они были
-    ThumbDelete shpChild
+'    ThumbDelete shpChild
 
 End Sub
 
@@ -298,7 +300,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     DeltaY = -0.246062992125984
     dN = -9.84251968503937E-02
     
-    Set vsoPage = ActivePage
+    Set vsoPage = vsoShape.ContainingPage
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Thumb")
     
     'Удаляем миниатюры контактов, если они были

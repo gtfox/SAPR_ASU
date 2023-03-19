@@ -3,6 +3,8 @@
 Dim NazvanieFSA As String
 Dim NazvanieShkafa As String
 
+
+
 Private Sub btnExportCx_Click()
     FindElementShemyToExcel
     Application.EventsEnabled = -1
@@ -24,12 +26,34 @@ Private Sub btnExportCxKJ_Click()
     Unload Me
 End Sub
 
+Private Sub btnExportPlan_Click()
+    
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
+Private Sub btnExportVid_Click()
+    
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
 Private Sub obTekListCx_Click()
     frameOutListCx.Visible = True
 End Sub
 
 Private Sub obTekListFSA_Click()
     frameOutListFSA.Visible = True
+End Sub
+
+Private Sub obTekListPlan_Click()
+    frameOutListPlan.Visible = True
+End Sub
+
+Private Sub obTekListVid_Click()
+    frameOutListVid.Visible = True
 End Sub
 
 Private Sub obVseCx_Click()
@@ -42,6 +66,14 @@ End Sub
 
 Private Sub obVseFSA_Click()
     frameOutListFSA.Visible = False
+End Sub
+
+Private Sub obVsePlan_Click()
+    frameOutListPlan.Visible = False
+End Sub
+
+Private Sub obVseVid_Click()
+frameOutListVid.Visible = False
 End Sub
 
 Private Sub obVybCx_Click()
@@ -87,6 +119,8 @@ Private Sub UserForm_Initialize()
         mpRazdel.Pages("pgCx").Enabled = True
         mpRazdel.Pages("pgFSA").Enabled = False
         mpRazdel.Pages("pgCxKJ").Enabled = False
+        mpRazdel.Pages("pgPlan").Enabled = False
+        mpRazdel.Pages("pgVid").Enabled = False
         If NazvanieShkafa <> "" Then
             obVybCx.Value = True
         End If
@@ -94,6 +128,8 @@ Private Sub UserForm_Initialize()
         mpRazdel.Pages("pgCx").Enabled = False
         mpRazdel.Pages("pgFSA").Enabled = True
         mpRazdel.Pages("pgCxKJ").Enabled = False
+        mpRazdel.Pages("pgPlan").Enabled = False
+        mpRazdel.Pages("pgVid").Enabled = False
         If NazvanieFSA <> "" Then
             obVybFSA.Value = True
         End If
@@ -101,18 +137,36 @@ Private Sub UserForm_Initialize()
         mpRazdel.Pages("pgCx").Enabled = False
         mpRazdel.Pages("pgFSA").Enabled = False
         mpRazdel.Pages("pgCxKJ").Enabled = True
+        mpRazdel.Pages("pgPlan").Enabled = False
+        mpRazdel.Pages("pgVid").Enabled = False
         obVybCxKJ.Value = True
+    ElseIf ActivePage.name Like cListNameVID & "*" Then
+        mpRazdel.Pages("pgCx").Enabled = False
+        mpRazdel.Pages("pgFSA").Enabled = False
+        mpRazdel.Pages("pgCxKJ").Enabled = False
+        mpRazdel.Pages("pgPlan").Enabled = False
+        mpRazdel.Pages("pgVid").Enabled = True
+    ElseIf ActivePage.name Like cListNamePlan & "*" Then
+        mpRazdel.Pages("pgCx").Enabled = False
+        mpRazdel.Pages("pgFSA").Enabled = False
+        mpRazdel.Pages("pgCxKJ").Enabled = False
+        mpRazdel.Pages("pgPlan").Enabled = True
+        mpRazdel.Pages("pgVid").Enabled = False
     Else
         mpRazdel.Pages("pgCx").Enabled = False
         mpRazdel.Pages("pgFSA").Enabled = False
         mpRazdel.Pages("pgCxKJ").Enabled = False
+        mpRazdel.Pages("pgPlan").Enabled = False
+        mpRazdel.Pages("pgVid").Enabled = False
     End If
 
     obNaListFSA.Value = True
     obNaListCx.Value = True
     obNaListCxKJ.Value = True
-    
-
+    obNaListPlan.Value = True
+    obNaListVid.Value = True
+    frameOutListPlan.Visible = True
+    frameOutListVid.Visible = True
 End Sub
 
 Public Sub FindElementShemyToExcel()
@@ -635,8 +689,10 @@ Sub Fill_cmbxNazvanieShkafa()
         cmbxNazvanieShkafa.AddItem colNameCxema.Item(i)
         cmbxNazvanieShkafaKJ.AddItem colNameCxema.Item(i)
     Next
-    cmbxNazvanieShkafa.text = ""
-    cmbxNazvanieShkafaKJ.text = ""
+    If colNameCxema.Count > 0 Then
+        cmbxNazvanieShkafa.ListIndex = 0
+        cmbxNazvanieShkafaKJ.ListIndex = 0
+    End If
 End Sub
 
 Sub Fill_cmbxNazvanieFSA()
@@ -673,6 +729,18 @@ Private Sub btnCloseFSA_Click()
 End Sub
 
 Private Sub btnCloseCxKJ_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
+Private Sub btnClosePlan_Click()
+    Application.EventsEnabled = -1
+    ThisDocument.InitEvent
+    Unload Me
+End Sub
+
+Private Sub btnCloseVid_Click()
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     Unload Me

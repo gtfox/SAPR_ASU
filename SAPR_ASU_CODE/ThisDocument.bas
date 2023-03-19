@@ -9,31 +9,72 @@ Public MouseClick As Boolean
 Public SelectionMoreOne As Boolean
 'Public BlockMacros As Boolean
 
-
-
-'Перед удалением кучи шейпов сначала выкидываем миниатюры из выделения, иначе крашится, т.к.
-'в удалении шейпа сидит удаление миниатюры, что вызывает повторное срабатывание BeforeShapeDelete для уже удаленного объекта...
-Private Function vsoPagesEvent_QueryCancelSelectionDelete(ByVal Selection As IVSelection) As Boolean
+'Вставка выделенного
+Private Sub vsoPagesEvent_SelectionAdded(ByVal Selection As IVSelection)
     Dim vsoShape As Visio.Shape
     Dim colShape As Collection
     Dim bThumbExist As Boolean
     
-    Set colShape = New Collection
-    For Each vsoShape In Selection
-        If ShapeSATypeIs(vsoShape, typeThumb) Then
-            bThumbExist = True
-        Else
-            colShape.Add vsoShape
-        End If
-    Next
-    If bThumbExist And colShape.Count > 0 Then
-        ActiveWindow.DeselectAll
-        For Each vsoShape In colShape
-            ActiveWindow.Select vsoShape, visSelect
+    If Selection.Count > 1 Then
+        SelectionMoreOne = True 'Если в выделении больше 1 элемента - привязку к курсору не делаем
+        'Чистим миниатюры контактов после вставки
+        Set colShape = New Collection
+        For Each vsoShape In Selection
+            If ShapeSATypeIs(vsoShape, typeThumb) Then
+                colShape.Add vsoShape
+            Else 'Чистим связи, т.к. для эл-тов в Selection дальше первого не происходят события EventDrop/EventMultiDrop
+                If vsoShape.CellExists("User.Dropped", 0) Then
+                    If vsoShape.Cells("User.Dropped").Result(0) = 1 Then
+                        ClearAndAutoNum vsoShape
+                    End If
+                End If
+            End If
         Next
+        If colShape.Count > 0 Then
+            For Each vsoShape In colShape
+                Application.EventsEnabled = False
+                vsoShape.Delete
+                Application.EventsEnabled = True
+            Next
+        End If
     End If
-'    vsoPagesEvent_QueryCancelSelectionDelete = True
-End Function
+End Sub
+
+''Удаление выделенного
+'Private Function vsoPagesEvent_QueryCancelSelectionDelete(ByVal Selection As IVSelection) As Boolean
+'    Dim vsoShape As Visio.Shape
+'    Dim colShape As Collection
+'    Dim colThumb As Collection
+'
+'    If Selection.Count > 1 Then
+'        Set colShape = New Collection
+'        Set colThumb = New Collection
+'        For Each vsoShape In Selection
+'            If ShapeSATypeIs(vsoShape, typeThumb) Then
+'                colThumb.Add vsoShape
+'            Else
+'                colShape.Add vsoShape
+'            End If
+'        Next
+'        'Выделяем всё без миниатюр
+'        If colThumb.Count > 0 And colShape.Count > 0 Then
+'            ActiveWindow.DeselectAll
+'            For Each vsoShape In colShape
+'                ActiveWindow.Select vsoShape, visSelect
+'            Next
+'        End If
+'        'Удаляем миниатюры
+''        If colThumb.Count > 0 Then
+''            For Each vsoShape In colThumb
+''                Application.EventsEnabled = False
+''                colThumb.Remove vsoShape
+''                vsoShape.Delete
+''                Application.EventsEnabled = True
+''            Next
+''        End If
+'    End If
+''    vsoPagesEvent_QueryCancelSelectionDelete = True
+'End Function
 
 'Перед удалением шейпа чистим что-либо
 Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
@@ -115,17 +156,6 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
     End If
 End Sub
 
-
-
-'Если в выделении больше 1 элемента - привязку к курсору не делаем
-Private Sub vsoPagesEvent_SelectionAdded(ByVal Selection As IVSelection)
-    If Selection.Count > 1 Then
-        SelectionMoreOne = True
-    End If
-End Sub
-
-
-
 'Таскаем фируру за мышкой
 Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
     If Not MouseClick Then
@@ -154,6 +184,8 @@ Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
 
     Set vsoShapePaste = vsoShapeEvent
     
+    ClearAndAutoNum vsoShapeEvent
+    
     If vsoShapeEvent.Cells("User.Dropped").Result(0) = 0 Then 'Вбросили из набора элементов
         vsoShapeEvent.Cells("User.Dropped").FormulaU = 1
     ElseIf Not SelectionMoreOne Then 'Если в выделении больше 1 элемента - привязку к курсору не делаем
@@ -161,9 +193,7 @@ Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
     Else    'Запрет привязки делаем только 1 раз после SelectionAdded
         SelectionMoreOne = False 'Разрешаем привязку
     End If
-    
-    ClearAndAutoNum vsoShapeEvent
-    
+
     MouseClick = False 'Начинаем ждать клика
 End Sub
 
@@ -178,8 +208,10 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
             ClearRelayChild vsoShapeEvent 'Чистим ссылки в дочернем при его копировании.
             
         Case typeWireLinkS, typeWireLinkR 'Разрывы проводов
-        
-            ClearReferenceWireLink vsoShapeEvent 'Чистим ссылки в при копировании разрыва провода.
+            
+            If vsoShapeEvent.Cells("User.Dropped").Result(0) = 1 Then 'Если не вбросили из набора элементов
+                ClearReferenceWireLink vsoShapeEvent 'Чистим ссылки в при копировании разрыва провода.
+            End If
             
         Case typeWire 'Провода
         

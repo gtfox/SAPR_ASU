@@ -3,17 +3,19 @@ Dim vsoObject As Object
 
 Sub run(vsoShape As Object)
     Set vsoObject = vsoShape
-    frmObjInfo.Height = 90
+    frmObjInfo.Height = 100
 '    tbCopyRight.Height = 0
     frameCopyRight.Visible = False
     lblName.Caption = vsoShape.name
     lblNameU.Caption = vsoShape.NameU
     lblID.Caption = vsoShape.id
     lblIndex.Caption = vsoShape.Index
+    lblGUID.Caption = ""
     If vsoShape.Type <> visTypeForeground Then
+        lblGUID.Caption = vsoShape.UniqueID(visGetGUID)
         If vsoShape.Cells("Copyright").FormulaU <> """""" Then
             frameCopyRight.Visible = True
-            frmObjInfo.Height = 160
+            frmObjInfo.Height = 170
     '        tbCopyRight.Height = 55
             tbCopyRight.Value = vsoShape.Cells("Copyright").ResultStr(0)
         End If
