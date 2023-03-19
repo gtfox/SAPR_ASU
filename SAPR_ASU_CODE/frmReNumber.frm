@@ -75,10 +75,12 @@ Public Sub ReNumberShemy()
     Dim colItems As Collection
     Dim colTermSelectNames As Collection
     Dim colElementSelectNames As Collection
+    Dim colCableSHSelectNames As Collection
     Dim ItemCol As Variant
     Dim mstrNames() As String
     Dim NumberKlemmnik As Integer
     Dim SymNameKlemmnik As String
+    Dim SymNameCableSH As String
     Dim SAType As Integer
     Dim SymName As String       'Буквенная часть нумерации
     Dim NazvanieShkafa As String   'Нумерация элементов идет в пределах одного шкафа
@@ -112,6 +114,7 @@ Public Sub ReNumberShemy()
 '        If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
         Set colTermSelectNames = New Collection
         Set colElementSelectNames = New Collection
+        Set colCableSHSelectNames = New Collection
         Set colCxemNamesSelection = New Collection
         Set colCxemaSelection = New Collection
         If ActiveWindow.Selection.Count > 0 Then
@@ -132,6 +135,7 @@ Public Sub ReNumberShemy()
                                     Set CxemaSelection = New classCxemaSelection
                                     Set CxemaSelection.colTermSelectNames = New Collection
                                     Set CxemaSelection.colElementSelectNames = New Collection
+                                    Set CxemaSelection.colCableSHSelectNames = New Collection
                                     CxemaSelection.NameCxemaSelection = NazvanieShkafa
                                     colCxemaSelection.Add CxemaSelection, NazvanieShkafa
                                 End If
@@ -141,6 +145,12 @@ Public Sub ReNumberShemy()
                                         colCxemaSelection(NazvanieShkafa).bWireSelect = True
                                     Case typeCableSH 'Кабели на схеме электрической
                                         colCxemaSelection(NazvanieShkafa).bCableSHSelect = True
+                                        If vsoShape.Cells("Prop.BukvOboz").Result(0) = 1 Then
+                                            On Error Resume Next
+                                            colCxemaSelection(NazvanieShkafa).colCableSHSelectNames.Add vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("Prop.SymName").ResultStr(0)
+                                            err.Clear
+                                            On Error GoTo 0
+                                        End If
                                     Case typeTerm 'Клеммы
                                         colCxemaSelection(NazvanieShkafa).bTermSelect = True
                                         On Error Resume Next
@@ -183,6 +193,7 @@ Public Sub ReNumberShemy()
                                 If colCxemaSelection Is Nothing Then
                                     bWireSelect = False
                                     bCableSHSelect = False
+                                    Set colCableSHSelectNames = Nothing
                                     bTermSelect = False
                                     Set colTermSelectNames = Nothing
                                     bElementSelect = False
@@ -197,6 +208,7 @@ Public Sub ReNumberShemy()
                                         colCxemaSelection.Remove NazvanieShkafa
                                         bWireSelect = False
                                         bCableSHSelect = False
+                                        Set colCableSHSelectNames = Nothing
                                         bTermSelect = False
                                         Set colTermSelectNames = Nothing
                                         bElementSelect = False
@@ -204,6 +216,7 @@ Public Sub ReNumberShemy()
                                     Else
                                         bWireSelect = colCxemaSelection(NazvanieShkafa).bTermSelect
                                         bCableSHSelect = colCxemaSelection(NazvanieShkafa).bCableSHSelect
+                                        Set colCableSHSelectNames = colCxemaSelection(NazvanieShkafa).colCableSHSelectNames
                                         bTermSelect = colCxemaSelection(NazvanieShkafa).bTermSelect
                                         Set colTermSelectNames = colCxemaSelection(NazvanieShkafa).colTermSelectNames
                                         bElementSelect = colCxemaSelection(NazvanieShkafa).bElementSelect
@@ -222,6 +235,7 @@ Public Sub ReNumberShemy()
                                     Cxema.NameCxema = NazvanieShkafa
                                     If cbKlemCx Or bTermSelect Then Set Cxema.colTermNames = New Collection
                                     If cbElCx Or cbDatCx Or bElementSelect Then Set Cxema.colElementNames = New Collection
+                                    If cbKabCx Or bCableSHSelect Then Set Cxema.colCableSHNames = New Collection
                                     colCxem.Add Cxema, Cxema.NameCxema
                                 End If
                                 'Создаём лист на основе фильтов
@@ -249,6 +263,12 @@ Public Sub ReNumberShemy()
                                     Case typeCableSH 'Кабели на схеме электрической
                                         If cbKabCx Or (obVydNaListeCx And bCableSHSelect) Then
                                             colCxem(NazvanieShkafa).colListov(NazvanieLista).colCableSHs.Add vsoShapeOnPage
+                                            If vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0) = 1 Then
+                                                On Error Resume Next
+                                                colCxem(NazvanieShkafa).colCableSHNames.Add vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
+                                                err.Clear
+                                                On Error GoTo 0
+                                            End If
                                         End If
                                     Case typeTerm 'Клеммы
                                         If cbKlemCx Or (obVydNaListeCx And bTermSelect) Then
@@ -289,6 +309,9 @@ Public Sub ReNumberShemy()
             If colCxemaSelection(NazvanieShkafa).bElementSelect Then
                 Set colCxem(NazvanieShkafa).colElementNames = colCxemaSelection(NazvanieShkafa).colElementSelectNames
             End If
+            If colCxemaSelection(NazvanieShkafa).bCableSHSelect Then
+                Set colCxem(NazvanieShkafa).colCableSHNames = colCxemaSelection(NazvanieShkafa).colCableSHSelectNames
+            End If
         Next
     End If
 
@@ -296,20 +319,23 @@ Public Sub ReNumberShemy()
     For i = 1 To colCxem.Count
         If obVseCx And Not obVydNaListeCx Then
             NazvanieShkafa = colCxem.Item(i).NameCxema
-            GoSub RenWireKab
+            GoSub RenWire
+            GoSub RenKab
             GoSub RenTerm
             GoSub RenElement
         Else
             If obVydNaListeCx Then
                 For j = 1 To colCxemNamesSelection.Count
                     NazvanieShkafa = colCxemNamesSelection.Item(j)
-                    GoSub RenWireKab
+                    GoSub RenWire
+                    GoSub RenKab
                     GoSub RenTerm
                     GoSub RenElement
                 Next
             Else
                 NazvanieShkafa = cmbxNazvanieShkafa.text
-                GoSub RenWireKab
+                GoSub RenWire
+                GoSub RenKab
                 GoSub RenTerm
                 GoSub RenElement
             End If
@@ -319,17 +345,55 @@ Public Sub ReNumberShemy()
 
 Exit Sub
 
-RenWireKab:
-    NextWire = 0
-    NextCableSH = 0
-    For Each List In colCxem(NazvanieShkafa).colListov
-        If cbProvCx Or bWireSelect Then
+
+
+
+RenWire:
+    If cbProvCx Or bWireSelect Then
+        NextWire = 0
+        For Each List In colCxem(NazvanieShkafa).colListov
             NextWire = ReNumber(List.colWires, NextWire)
+        Next
+    End If
+Return
+      
+RenKab:
+    If cbKabCx Or bCableSHSelect Then
+        'Перенумерация кабелей с буквенным обозначением
+        If Not colCxem(NazvanieShkafa).colCableSHNames Is Nothing Then
+            If colCxem(NazvanieShkafa).colCableSHNames.Count > 0 Then
+                For Each ItemCol In colCxem(NazvanieShkafa).colCableSHNames
+                    SymNameCableSH = ItemCol
+                    NextCableSH = 0
+                    For Each List In colCxem(NazvanieShkafa).colListov
+                        'По фильтрам заполняем коллецию для перенумерации
+                        Set colItems = New Collection
+                        For Each vsoShapeOnPage In List.colCableSHs
+                            If vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymNameCableSH And vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0) = 1 Then
+                                colItems.Add vsoShapeOnPage
+                            End If
+                        Next
+                        NextCableSH = ReNumber(colItems, NextCableSH)
+                    Next
+                Next
+            End If
         End If
-        If cbKabCx Or bCableSHSelect Then
-            NextCableSH = ReNumber(List.colCableSHs, NextCableSH)
-        End If
-    Next
+        'Перенумерация кабелей без буквенного обозначения
+        NextCableSH = 0
+        For Each List In colCxem(NazvanieShkafa).colListov
+            Set colItems = New Collection
+            If Not List.colCableSHs Is Nothing Then
+                If List.colCableSHs.Count > 0 Then
+                    For Each vsoShapeOnPage In List.colCableSHs
+                        If vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0) = 0 Then
+                            colItems.Add vsoShapeOnPage
+                        End If
+                    Next
+                    NextCableSH = ReNumber(colItems, NextCableSH)
+                End If
+            End If
+        Next
+    End If
 Return
 
 RenTerm:

@@ -119,56 +119,6 @@ Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
                 DeletePLCIOChild vsoShape
         End Select
     End If
-
-End Sub
-
-'Активация событий при старте
-Private Sub Document_DocumentOpened(ByVal doc As IVDocument)
-    Set vsoPagesEvent = ActiveDocument.Pages
-    AddToolBar
-End Sub
-
-'Соединение шейпов
-Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
-    If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что цепляем - объект SAPR_ASU
-       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То к чему цепляем - объект SAPR_ASU
-            Select Case ShapeSAType(Connects.FromSheet) 'То что цепляем - это...
-                Case typeWire   'Цепляем провод
-                    ConnectWire Connects
-                Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
-                    VynoskaPlan Connects
-            End Select
-        End If
-    End If
-End Sub
-
-'Отсоединение шейпов
-Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
-    If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что отцепляем - объект SAPR_ASU
-       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То от чего отцепляем - объект SAPR_ASU
-            Select Case ShapeSAType(Connects.FromSheet) 'То что отцепляем - это...
-                Case typeWire   'Отцепляем провод
-                    DisconnectWire Connects
-                Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
-                    VynoskaPlan Connects
-            End Select
-        End If
-    End If
-End Sub
-
-'Таскаем фируру за мышкой
-Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
-    If Not MouseClick Then
-        On Error Resume Next
-        vsoShapePaste.Cells("PinX") = X
-        vsoShapePaste.Cells("PinY") = Y
-    End If
-End Sub
-
-'Закончили таскать фигуру кликом мыши
-Private Sub vsoWindowEvent_MouseDown(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
-    MouseClick = True
-    Set vsoWindowEvent = Nothing
 End Sub
 
 Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
@@ -214,9 +164,12 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
             End If
             
         Case typeWire 'Провода
-        
-            'Не нумеруем, т.к. нумеруется в процессе соединения
-            ClearWire vsoShapeEvent
+
+            If vsoShapeEvent.Cells("User.Dropped").Result(0) = 1 Then 'Если не вбросили из набора элементов
+                'Не нумеруем, т.к. нумеруется в процессе соединения
+                ClearWire vsoShapeEvent
+            End If
+
             
         Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
         
@@ -257,6 +210,55 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
             AutoNum vsoShapeEvent 'Автонумерация
             
     End Select
+End Sub
+
+'Соединение шейпов
+Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
+    If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что цепляем - объект SAPR_ASU
+       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То к чему цепляем - объект SAPR_ASU
+            Select Case ShapeSAType(Connects.FromSheet) 'То что цепляем - это...
+                Case typeWire   'Цепляем провод
+                    ConnectWire Connects
+                Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
+                    VynoskaPlan Connects
+            End Select
+        End If
+    End If
+End Sub
+
+'Отсоединение шейпов
+Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
+    If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что отцепляем - объект SAPR_ASU
+       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То от чего отцепляем - объект SAPR_ASU
+            Select Case ShapeSAType(Connects.FromSheet) 'То что отцепляем - это...
+                Case typeWire   'Отцепляем провод
+                    DisconnectWire Connects
+                Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
+                    VynoskaPlan Connects
+            End Select
+        End If
+    End If
+End Sub
+
+'Активация событий при старте
+Private Sub Document_DocumentOpened(ByVal doc As IVDocument)
+    Set vsoPagesEvent = ActiveDocument.Pages
+    AddToolBar
+End Sub
+
+'Таскаем фируру за мышкой
+Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
+    If Not MouseClick Then
+        On Error Resume Next
+        vsoShapePaste.Cells("PinX") = X
+        vsoShapePaste.Cells("PinY") = Y
+    End If
+End Sub
+
+'Закончили таскать фигуру кликом мыши
+Private Sub vsoWindowEvent_MouseDown(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
+    MouseClick = True
+    Set vsoWindowEvent = Nothing
 End Sub
 
 'Чистим события

@@ -492,6 +492,7 @@ Sub AddSAPageNext()
         SetNazvanieShkafa vsoPageNew.PageSheet
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula
         vsoPageNew.Drop Setka, 0, 0
         UpdateNazvanieShkafa
     End If

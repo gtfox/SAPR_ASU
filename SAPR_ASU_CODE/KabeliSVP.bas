@@ -46,6 +46,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Dim i As Integer
     Dim UserType As Integer
     Dim WireHeight As Double
+    Dim bNacaloKlemmnika As Boolean
 
     
     Set colCables = New Collection
@@ -97,6 +98,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         vsoSelection.Select colWires.Item(1).Parent, visSelect 'Кабель
         For Each shpTerm In colTerms
             vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
+            If shpTerm.Cells("Prop.Nachalo").Result(0) = 1 Then bNacaloKlemmnika = True
         Next
         'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
         colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
@@ -167,8 +169,9 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Next
 
     Set colCables = New Collection
-    vsoGroup.Cells("PinX").Formula = "(" & PastePoint & "+" & Interval & "+" & vsoGroup.Cells("LocPinX").Result(0) & ")/ThePage!PageScale*ThePage!DrawingScale"
+    vsoGroup.Cells("PinX").Formula = "(" & PastePoint & "+" & IIf(bNacaloKlemmnika, Interval * 2, Interval) & "+" & vsoGroup.Cells("LocPinX").Result(0) & ")/ThePage!PageScale*ThePage!DrawingScale"
     vsoGroup.Cells("PinY").Formula = Klemma & "-" & vsoGroup.Cells("LocPinY").Result(0)
+    bNacaloKlemmnika = False
     
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
@@ -418,8 +421,8 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
 
     If colShpDoc.Count > 0 Then
         'Берем первую страницу СВП
-        Set vsoPage = GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
-        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
+        Set vsoPage = ActivePage 'GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
+'        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
         SetPageSVP vsoPage
         'Вставляем на лист СВП найденные и отсортированные датчики/приводы
         For i = 1 To colShpDoc.Count
@@ -430,6 +433,7 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
                 Index = vsoPage.Index
                 'Создаем новую страницу СВП
                 Set vsoPage = AddSAPage(cListNameSVP)
+                SetPageSVP vsoPage
                 'Положение новой страницы сразу за текущей
                 vsoPage.Index = Index + 1
                 PastePoint = NachaloVstavki
