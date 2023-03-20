@@ -134,7 +134,7 @@ Sub DeleteShkafMesto(vsoShape As Visio.Shape)
     Next
 End Sub
 
-Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
+Sub ResetLocalShkafMesto(vsoObject As Object)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ResetLocalShkafMesto - Обновляет имя шкафа и место для фигур внутри шейпов "шкаф/место" и снаружи от них
 '------------------------------------------------------------------------------------------------------------
@@ -148,7 +148,7 @@ Sub ResetLocalShkafMesto(vsoShape As Visio.Shape)
     Set colElementyShemy = New Collection
     Set colShkafyMesta = New Collection
     
-    If vsoShape.Type = visTypePage Then
+    If vsoObject.Type = visTypePage Then
         'Заполняем коллекции эелементов и шкафов для всего проекта
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like cListNameCxema & "*" Then

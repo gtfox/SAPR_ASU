@@ -47,7 +47,11 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     Set colShapes = New Collection
     Const RamkaLevo As Double = 20 / 25.4 '20 mm
     Const RamkaPravo As Double = 5 / 25.4 '5 mm
-
+    Dim AppEventsEnabled As Boolean
+    
+    AppEventsEnabled = Application.EventsEnabled
+    Application.EventsEnabled = False
+    
     'Удаляем существующие ячейки зон начиная с В... и с 2...
     
     'Ищем все блоки с именами больше 5 символов
@@ -122,6 +126,8 @@ Private Sub UpdateZoneBlocks(shpSetkaKoord As Visio.Shape)
     Loop
 
     Set colShapes = Nothing
+
+    Application.EventsEnabled = AppEventsEnabled
     
 End Sub
 
@@ -648,6 +654,7 @@ Sub CopySAPage()
         SetNazvanieShkafa vsoPageNew.PageSheet
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
+        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula
         UpdateNazvanieShkafa
 '        vsoPageNew.Drop Setka, 0, 0
     End If
@@ -657,17 +664,25 @@ Sub CopySAPage()
         vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieFSA").Formula
     End If
     
+    Application.EventsEnabled = False
     SetPageAction vsoPageNew
-    'TODO Сделать смещение после вставки
     Application.ActiveWindow.Page = vsoPageSource
     ActiveWindow.DeselectAll
-'    ActiveWindow.SelectAll
     ActiveWindow.Selection.Copy
     Application.ActiveWindow.Page = vsoPageNew
     ActiveWindow.Page.Paste
-    ActiveWindow.DeselectAll
     LockTitleBlock
-    
+    ActiveWindow.Selection.Delete
+
+    Application.ActiveWindow.Page = vsoPageSource
+    ActiveWindow.DeselectAll
+    ActiveWindow.SelectAll
+    ActiveWindow.Selection.Copy visCopyPasteNoTranslate
+    Application.ActiveWindow.Page = vsoPageNew
+    ActivePage.Paste visCopyPasteNoTranslate
+    ActiveWindow.DeselectAll
+    Application.EventsEnabled = True
+    ResetLocalShkafMesto ActivePage
 End Sub
 
 Sub SetPageAction(vsoPageNew As Visio.Page)

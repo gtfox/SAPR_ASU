@@ -405,8 +405,22 @@ End Sub
 
 Private Sub lstvTablePrice_DblClick()
     Dim vsoShape As Visio.Shape
+    Set vsoShape = glShape
+    GoSub SetDB
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> glShape And ShapeSATypeIs(vsoShape, ShapeSAType(glShape)) Then
+                GoSub SetDB
+            End If
+        Next
+    End If
     
-    With glShape
+    btnClose_Click
+    Exit Sub
+    
+SetDB:
+    On Error GoTo errGuard
+    With vsoShape
         .Cells("User.KodProizvoditelyaDB").Formula = """"""
         .Cells("User.KodPoziciiDB").Formula = """"""
         .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
@@ -415,25 +429,29 @@ Private Sub lstvTablePrice_DblClick()
         .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
         .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
     End With
+    err.Clear
+    On Error GoTo 0
+    Return
     
-    If ActiveWindow.Selection.Count > 1 Then
-        For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> glShape And ShapeSATypeIs(vsoShape, ShapeSAType(glShape)) Then
-                With vsoShape
-                    .Cells("User.KodProizvoditelyaDB").Formula = """"""
-                    .Cells("User.KodPoziciiDB").Formula = """"""
-                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
-                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(0) & """"
-                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
-                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
-                End With
-            End If
-        Next
-    End If
-    
-    btnClose_Click
-
+errGuard:
+    With vsoShape
+        .Cells("Prop.NazvanieDB").FormulaForce = """" & Replace(mstrShpData(1), """", """""") & """"
+        .Cells("Prop.NazvanieDB.Type").FormulaForce = 0
+        .Cells("Prop.NazvanieDB.Format").FormulaForce = """"""
+        .Cells("Prop.ArtikulDB").FormulaForce = """" & mstrShpData(0) & """"
+        .Cells("Prop.ArtikulDB.Type").FormulaForce = 0
+        .Cells("Prop.ArtikulDB.Format").FormulaForce = """"""
+        .Cells("Prop.ProizvoditelDB").FormulaForce = """" & mstrShpData(4) & """"
+        .Cells("Prop.ProizvoditelDB.Type").FormulaForce = 0
+        .Cells("Prop.ProizvoditelDB.Format").FormulaForce = """"""
+        .Cells("Prop.CenaDB").FormulaForce = """" & mstrShpData(2) & """"
+        .Cells("Prop.CenaDB.Type").FormulaForce = 0
+        .Cells("Prop.CenaDB.Format").FormulaForce = """"""
+        .Cells("Prop.EdDB").FormulaForce = """" & mstrShpData(3) & """"
+        .Cells("Prop.EdDB.Type").FormulaForce = 0
+        .Cells("Prop.EdDB.Format").FormulaForce = """"""
+    End With
+    Return
 End Sub
 
 Private Sub ReSize() ' изменение формы. Зависит от длины в lstvTablePrice

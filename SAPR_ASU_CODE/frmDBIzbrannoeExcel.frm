@@ -408,7 +408,23 @@ End Sub
 Private Sub lstvTableIzbrannoe_DblClick()
     Dim vsoShape As Visio.Shape
     
-    With frmDBPriceExcel.glShape
+    Set vsoShape = frmDBPriceExcel.glShape
+    GoSub SetDB
+    
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
+                GoSub SetDB
+            End If
+        Next
+    End If
+    
+    btnClose_Click
+    Exit Sub
+    
+SetDB:
+    On Error GoTo errGuard
+    With vsoShape
         .Cells("User.KodProizvoditelyaDB").Formula = """"""
         .Cells("User.KodPoziciiDB").Formula = """"""
         .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
@@ -417,25 +433,29 @@ Private Sub lstvTableIzbrannoe_DblClick()
         .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
         .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
     End With
+    err.Clear
+    On Error GoTo 0
+    Return
     
-    If ActiveWindow.Selection.Count > 1 Then
-        For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
-                With vsoShape
-                    .Cells("User.KodProizvoditelyaDB").Formula = """"""
-                    .Cells("User.KodPoziciiDB").Formula = """"""
-                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrShpData(1), """", """""") & """"
-                    .Cells("Prop.ArtikulDB").Formula = """" & mstrShpData(0) & """"
-                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrShpData(4) & """"
-                    .Cells("Prop.CenaDB").Formula = """" & mstrShpData(2) & """"
-                    .Cells("Prop.EdDB").Formula = """" & mstrShpData(3) & """"
-                End With
-            End If
-        Next
-    End If
-    
-    btnClose_Click
-    
+errGuard:
+    With vsoShape
+        .Cells("Prop.NazvanieDB").FormulaForce = """" & Replace(mstrShpData(1), """", """""") & """"
+        .Cells("Prop.NazvanieDB.Type").FormulaForce = 0
+        .Cells("Prop.NazvanieDB.Format").FormulaForce = """"""
+        .Cells("Prop.ArtikulDB").FormulaForce = """" & mstrShpData(0) & """"
+        .Cells("Prop.ArtikulDB.Type").FormulaForce = 0
+        .Cells("Prop.ArtikulDB.Format").FormulaForce = """"""
+        .Cells("Prop.ProizvoditelDB").FormulaForce = """" & mstrShpData(4) & """"
+        .Cells("Prop.ProizvoditelDB.Type").FormulaForce = 0
+        .Cells("Prop.ProizvoditelDB.Format").FormulaForce = """"""
+        .Cells("Prop.CenaDB").FormulaForce = """" & mstrShpData(2) & """"
+        .Cells("Prop.CenaDB.Type").FormulaForce = 0
+        .Cells("Prop.CenaDB.Format").FormulaForce = """"""
+        .Cells("Prop.EdDB").FormulaForce = """" & mstrShpData(3) & """"
+        .Cells("Prop.EdDB.Type").FormulaForce = 0
+        .Cells("Prop.EdDB.Format").FormulaForce = """"""
+    End With
+    Return
 End Sub
 
 Private Sub lstvTableNabor_ItemClick(ByVal Item As MSComctlLib.ListItem)
@@ -450,7 +470,23 @@ End Sub
 Private Sub lstvTableNabor_DblClick()
     Dim vsoShape As Visio.Shape
     
-    With frmDBPriceExcel.glShape
+    Set vsoShape = frmDBPriceExcel.glShape
+    GoSub SetDB
+  
+    If ActiveWindow.Selection.Count > 1 Then
+        For Each vsoShape In ActiveWindow.Selection
+            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
+                GoSub SetDB
+            End If
+        Next
+    End If
+    
+    btnClose_Click
+    Exit Sub
+    
+SetDB:
+    On Error GoTo errGuard
+    With vsoShape
         .Cells("User.KodProizvoditelyaDB").Formula = """"""
         .Cells("User.KodPoziciiDB").Formula = """"""
         .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(1), """", """""") & """"
@@ -459,25 +495,29 @@ Private Sub lstvTableNabor_DblClick()
         .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(2) & """"
         .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(3) & """"
     End With
+    err.Clear
+    On Error GoTo 0
+    Return
     
-    If ActiveWindow.Selection.Count > 1 Then
-        For Each vsoShape In ActiveWindow.Selection
-            If vsoShape <> frmDBPriceExcel.glShape And ShapeSATypeIs(vsoShape, ShapeSAType(frmDBPriceExcel.glShape)) Then
-                With vsoShape
-                    .Cells("User.KodProizvoditelyaDB").Formula = """"""
-                    .Cells("User.KodPoziciiDB").Formula = """"""
-                    .Cells("Prop.NazvanieDB").Formula = """" & Replace(mstrVybPozVNabore(1), """", """""") & """"
-                    .Cells("Prop.ArtikulDB").Formula = """" & mstrVybPozVNabore(0) & """"
-                    .Cells("Prop.ProizvoditelDB").Formula = """" & mstrVybPozVNabore(4) & """"
-                    .Cells("Prop.CenaDB").Formula = """" & mstrVybPozVNabore(2) & """"
-                    .Cells("Prop.EdDB").Formula = """" & mstrVybPozVNabore(3) & """"
-                End With
-            End If
-        Next
-    End If
-    
-    btnClose_Click
-    
+errGuard:
+    With vsoShape
+        .Cells("Prop.NazvanieDB").FormulaForce = """" & Replace(mstrVybPozVNabore(1), """", """""") & """"
+        .Cells("Prop.NazvanieDB.Type").FormulaForce = 0
+        .Cells("Prop.NazvanieDB.Format").FormulaForce = """"""
+        .Cells("Prop.ArtikulDB").FormulaForce = """" & mstrVybPozVNabore(0) & """"
+        .Cells("Prop.ArtikulDB.Type").FormulaForce = 0
+        .Cells("Prop.ArtikulDB.Format").FormulaForce = """"""
+        .Cells("Prop.ProizvoditelDB").FormulaForce = """" & mstrVybPozVNabore(4) & """"
+        .Cells("Prop.ProizvoditelDB.Type").FormulaForce = 0
+        .Cells("Prop.ProizvoditelDB.Format").FormulaForce = """"""
+        .Cells("Prop.CenaDB").FormulaForce = """" & mstrVybPozVNabore(2) & """"
+        .Cells("Prop.CenaDB.Type").FormulaForce = 0
+        .Cells("Prop.CenaDB.Format").FormulaForce = """"""
+        .Cells("Prop.EdDB").FormulaForce = """" & mstrVybPozVNabore(3) & """"
+        .Cells("Prop.EdDB.Type").FormulaForce = 0
+        .Cells("Prop.EdDB.Format").FormulaForce = """"""
+    End With
+    Return
 End Sub
 
 

@@ -1035,10 +1035,10 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
                 .Shapes("Desc").Characters.AddCustomFieldU "SHAPETEXT(" + "Pages[" + PageParent + "]!" + shpSensorOnFSA.Shapes("Desc").NameID + "!TheText)", visFmtNumGenNoUnits
             End If
             'Настройка описания
-            .Cells("Controls.DescPos").FormulaU = "Width*-4.375"
-            .Cells("Controls.DescPos.Y").FormulaU = "Height*2.1666666666667"
-            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = "24.375 mm"
-            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "12.5 mm"
+            .Cells("Controls.DescPos").FormulaU = .NameID & "!Width*-4.375"
+            .Cells("Controls.DescPos.Y").FormulaU = .NameID & "!Height*2.1666666666667"
+            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = "24.375 mm/ThePage!PageScale*ThePage!DrawingScale"
+            .Shapes("Desc").CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "12.5 mm/ThePage!PageScale*ThePage!DrawingScale"
         End With
         'Собираем в коллецию вставленные датчики
         colSensorOnPLAN.Add ActiveWindow.Selection(1)
@@ -1168,7 +1168,7 @@ ExitWhile:    Set masShape(i) = CabTemp
     i = i * 5
     If ShapeSATypeIs(shpVynoska, typeVynoska2PL) Then
        shpVynoska.Shapes("Provoda").Cells("Width").FormulaU = _
-       "BOUND(" & i & " mm,0,FALSE,5 mm*" & shpVynoska.NameID & "!User.PageScale,5 mm*" _
+       "BOUND(" & i & " mm/ThePage!PageScale*ThePage!DrawingScale,0,FALSE,5 mm*" & shpVynoska.NameID & "!User.PageScale,5 mm*" _
         & shpVynoska.NameID & "!User.PageScale,FALSE,10 mm*" & shpVynoska.NameID & "!User.PageScale,10 mm*" _
         & shpVynoska.NameID & "!User.PageScale,FALSE,15 mm*" & shpVynoska.NameID & "!User.PageScale,15 mm*" _
         & shpVynoska.NameID & "!User.PageScale,FALSE,20 mm*" & shpVynoska.NameID & "!User.PageScale,20 mm*" _

@@ -296,9 +296,9 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     Dim i As Integer
     Dim n As Integer 'число контактов в катушке
     
-    DeltaX = 0.295275590551181
-    DeltaY = -0.246062992125984
-    dN = -9.84251968503937E-02
+    DeltaX = 7.5 / 25.4 '0.295275590551181 7.5 / 25.4
+    DeltaY = -6.25 / 25.4 '-0.246062992125984 -6.25 / 25.4
+    dN = -2.5 / 25.4 '-9.84251968503937E-02 -2.5 / 25.4
     
     Set vsoPage = vsoShape.ContainingPage
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Thumb")
