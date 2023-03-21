@@ -367,24 +367,25 @@ Function AddSAPage(PageName As String) As Visio.Page
     Set colPages = New Collection
     
     For Each vsoPage In ActiveDocument.Pages
-        If vsoPage.name Like PageName & "*" Then
+        If vsoPage.name Like PageName & ".*" Then
             colPages.Add vsoPage
         End If
     Next
     
-    If colPages.Count = 0 Then
-        'Создаем первую страницу
-        Set vsoPage = ActiveDocument.Pages.Add
-        vsoPage.name = PageName
-        Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
-'        ActiveDocument.Masters.Item("Рамка").Delete
-        shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
+'    If colPages.Count = 0 Then
+'        'Создаем первую страницу
+'        Set vsoPage = ActiveDocument.Pages.Add
+'        vsoPage.name = PageName
+'        Set shpRamka = vsoPage.Drop(Ramka, 0, 0)
+''        ActiveDocument.Masters.Item("Рамка").Delete
+'        shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(0,Prop.CHAPTER.Format)"
+'
+'    Else
 
-    Else
         'Ищем номер последней страницы
         MaxNumber = MaxMinPageNumber(colPages)
 
-        If MaxNumber = 1 Then 'Создаем вторую страницу
+        If MaxNumber = 0 Then 'Создаем вторую страницу
             Set vsoPage = ActiveDocument.Pages.Add
             vsoPage.name = PageName & ".2"
             
@@ -402,7 +403,7 @@ Function AddSAPage(PageName As String) As Visio.Page
 '        ActiveDocument.Masters.Item("Рамка").Delete
         shpRamka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
 
-    End If
+'    End If
     shpRamka.Cells("Prop.CNUM") = 0
     shpRamka.Cells("Prop.TNUM") = 0
     vsoPage.PageSheet.Cells("PageWidth").Formula = "420 MM"
@@ -736,6 +737,11 @@ Sub SetPageAction(vsoPageNew As Visio.Page)
                 .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Вставить провода со схемы"""
                 .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""PageSVPAddKabeliFrm"")"
                 .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1104" '1753
+                .AddRow visSectionAction, visRowLast, visTagDefault
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Удалить все листы СВП"""
+                .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "RunMacro(""svpDEL"")"
+                .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "1088" '2645
+                .CellsSRC(visSectionAction, visRowLast, visActionSortKey).FormulaU = """30"""
             End With
         Case cListNameKJ  ' "КЖ" 'Кабельный журнал
             With vsoPageNew.PageSheet
@@ -1024,4 +1030,26 @@ Sub SetRamkaProp(shpRamka As Visio.Shape)
             .Shapes("NKontr").Cells("Prop.Row_2").Formula = .Shapes("NKontr").Cells("Prop.Row_2").Formula
         End With
     End If
+End Sub
+
+ Sub del_pages(ListName As String)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : del_pages - Удаляет листы проекта
+'------------------------------------------------------------------------------------------------------------
+    Dim dp As Page
+    Dim colPage As Collection
+    Set colPage = New Collection
+    'Листы в колекцию
+    For Each dp In ActiveDocument.Pages
+        If dp.name Like ListName & ".*" Then
+            colPage.Add dp
+        End If
+    Next
+    'удаляем все страницы которые нашли выше
+    For Each dp In colPage
+        dp.Delete 1
+    Next
+    ActiveWindow.Page = ActiveDocument.Pages.Item(ListName)
+    ActiveWindow.SelectAll
+    ActiveWindow.Selection.Delete
 End Sub

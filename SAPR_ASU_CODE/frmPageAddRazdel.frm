@@ -82,7 +82,9 @@ Private Sub btnAddRazdel_Click()
 
     Set vsoPageSource = GetSAPageExist(PageName)
     If vsoPageSource Is Nothing Then
+        Index = ActivePage.Index
         Set vsoPageNew = ActiveDocument.Pages.Add
+        vsoPageNew.Index = Index + 1
         vsoPageNew.name = PageName
     Else
         Set colPagesAll = New Collection

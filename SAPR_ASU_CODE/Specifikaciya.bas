@@ -28,7 +28,7 @@
                 '------------------------------------------------------------------------------------------------------------
 
 Option Base 1
-'Option Explicit
+Option Explicit
 Dim tabl(1 To 1000, 1 To 9) As Variant
 Public arr() As Variant
 Dim str As Integer
@@ -47,7 +47,6 @@ Public frmClose As Boolean
 '------------------------------------------------------------------------------------------------------------
 '---------ShowSpecifikaciya
 '---------spDEL
-'---------del_sp
 '---------SP_Excel_2_Visio
 '---------PE_Excel_2_Visio
 '---------xls_query
@@ -71,34 +70,11 @@ Public Sub spDEL()
 ' Macros        : spDEL - Удаляет листы спецификации
 '------------------------------------------------------------------------------------------------------------
     If MsgBox("Удалить листы спецификации?", vbQuestion + vbOKCancel, "САПР-АСУ: Удалить спецификацию") = vbOK Then
-        del_sp
+        del_pages cListNameSpec
+        ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
         'MsgBox "Старая версия спецификации удалена", vbInformation
     End If
 End Sub
-
-Private Sub del_sp()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : del_sp - Удаляет листы спецификации
-'------------------------------------------------------------------------------------------------------------
-    Dim dp As Page
-    Dim colPage As Collection
-    Set colPage = New Collection
-    'Спецификацию в колекцию
-    For Each dp In ActiveDocument.Pages
-        If dp.name Like cListNameSpec & ".*" Then
-            colPage.Add dp
-        End If
-    Next
-    'удаляем все страницы которые нашли выше
-    For Each dp In colPage
-        dp.Delete 1
-    Next
-    ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameSpec)
-    ActiveWindow.SelectAll
-    ActiveWindow.Selection.Delete
-    ActiveDocument.DocumentSheet.Cells("user.SA_FR_NListSpecifikac").Formula = 0
-End Sub
-
 
 Public Sub SP_Excel_2_Visio()
 '------------------------------------------------------------------------------------------------------------
@@ -136,6 +112,7 @@ Private Sub xls_query(strRange As String)
     Dim fd As FileDialog
     Dim sPath, sFile As String
     Dim Chois As Integer
+    Dim lLastRow As Long
     
     
     Set oExcel = CreateObject("Excel.Application")
@@ -220,7 +197,6 @@ Private Sub fill_table_SP()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : fill_table_SP - Заполняет листы спецификации данными из массива
 '------------------------------------------------------------------------------------------------------------
-    Dim TheDocListovSpecifikac As Cell
     Dim ncell As Integer
     Dim NStrokiXls As Integer
     Dim NRow As Integer ' счетчик количества строк спецификации на странице
@@ -231,13 +207,13 @@ Private Sub fill_table_SP()
     Dim shpRow As Shape
     Dim HMax As Integer
     Dim HTable As Integer
+    Dim Ramka As Visio.Shape
+    Dim xNCell As Integer
+    Dim Index As Integer
 
-    Set TheDocListovSpecifikac = ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac")
-    TheDocListovSpecifikac.FormulaU = 1
-    pNumber = 1
+    ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = 1
     NRow = 1
-    pName = cListNameSpec & "."
-    AddPageSpecifikac cListNameSpec
+    Set Ramka = ActivePage.Shapes.Item("Рамка")
     Set mastSpecifikacia = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("СП")
     ActivePage.Drop mastSpecifikacia, 0, 0
     Set shpSpecifikacia = ActivePage.Shapes.Item("СП")
@@ -255,7 +231,7 @@ Private Sub fill_table_SP()
 
         DoEvents
 
-        If pNumber = 1 Then HMax = 198 Else HMax = 232
+        If Ramka.Cells("User.N").Result(0) = 3 Then HMax = 198 Else HMax = 232
         HTable = shpSpecifikacia.Cells("User.V").Result("mm")
         
         If HTable > HMax Then 'Высота таблицы больше 232мм/198мм
@@ -283,16 +259,23 @@ Private Sub fill_table_SP()
         If NRow > 30 Then NRow = 0
 
     Next NStrokiXls
-    pNumber = 1
     RowCountXls = 0
     Exit Sub
     
 SubAddPage:
     'Добавляем лист
     NRow = 0
-    pNumber = pNumber + 1
-    TheDocListovSpecifikac.Formula = pNumber
-    AddPageSpecifikac pName & pNumber
+    ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").FormulaU = ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac").Result(0) + 1
+    'Положение текущей страницы
+    Index = ActivePage.Index
+    'Создаем новую страницу КЖ
+    ActiveWindow.Page = AddSAPage(cListNameSpec)
+    'Положение новой страницы сразу за текущей
+    ActivePage.Index = Index + 1
+    Set Ramka = ActivePage.Shapes.Item("Рамка")
+    Ramka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
+    Ramka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
+    Ramka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
     ActivePage.Drop mastSpecifikacia, 0, 0
     Set shpSpecifikacia = ActivePage.Shapes.Item("СП")
     Return
@@ -753,7 +736,6 @@ End Function
 '------------------------------------------------------------------------------------------------------------
 '---------KJ_Excel_2_Visio
 '---------kjDEL
-'---------del_kj
 '---------fill_table_KJ
 '---------AddPageKJ
 '---------KJ_EXP_2_XLS
@@ -764,10 +746,12 @@ Public Sub KJ_Excel_2_Visio()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : KJ_Excel_2_Visio - Создает кабельный журнал из Excel в Visio
 '------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Set vsoPage = ActivePage
     xls_query "A4:G"
     If frmClose Then Exit Sub
     fill_table_KJ
-    Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameKJ)
+    Application.ActiveWindow.Page = vsoPage 'Application.ActiveDocument.Pages.Item(cListNameKJ)
     MsgBox "Кабельный журнал добавлен", vbInformation, "САПР-АСУ: Info"
 End Sub
 
@@ -776,31 +760,9 @@ Public Sub kjDEL()
 ' Macros        : kjDEL - Удаляет листы кабельного журнала
 '------------------------------------------------------------------------------------------------------------
     If MsgBox("Удалить листы кабельного журнала?", vbQuestion + vbOKCancel, "САПР-АСУ: Удалить кабельный журнал") = vbOK Then
-        del_kj
+        del_pages cListNameKJ
         'MsgBox "Старая версия спецификации удалена", vbInformation
     End If
-End Sub
-
-Private Sub del_kj()
-'------------------------------------------------------------------------------------------------------------
-' Macros        : del_kj - Удаляет листы кабельного журнала
-'------------------------------------------------------------------------------------------------------------
-    Dim dp As Page
-    Dim colPage As Collection
-    Set colPage = New Collection
-    'Кабельный журнал в колекцию
-    For Each dp In ActiveDocument.Pages
-        If dp.name Like cListNameKJ & ".*" Then
-            colPage.Add dp
-        End If
-    Next
-    'удаляем все страницы которые нашли выше
-    For Each dp In colPage
-        dp.Delete 1
-    Next
-    ActiveWindow.Page = ActiveDocument.Pages.Item(cListNameKJ)
-    ActiveWindow.SelectAll
-    ActiveWindow.Selection.Delete
 End Sub
 
 Public Sub fill_table_KJ()
@@ -818,13 +780,14 @@ Public Sub fill_table_KJ()
     Dim shpRow As Shape
     Dim HMax As Integer
     Dim HTable As Integer
+    Dim mStr() As String
+    Dim Ramka As Visio.Shape
+    Dim Index As Integer
+    Dim xNCell As Integer
 
-'    Set TheDocListovSpecifikac = ActiveDocument.DocumentSheet.Cells("User.SA_FR_NListSpecifikac")
-'    TheDocListovSpecifikac.FormulaU = 1
-    pNumber = 1
+    Set Ramka = ActivePage.Shapes.Item("Рамка")
     NRow = 1
-    pName = cListNameKJ & "."
-    AddPageKJ cListNameKJ
+
     Set mastKJ = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("КЖ")
     ActivePage.Drop mastKJ, 0, 0
     Set shpKJ = ActivePage.Shapes.Item("КЖ")
@@ -842,7 +805,7 @@ Public Sub fill_table_KJ()
 
         DoEvents
 
-        If pNumber = 1 Then HMax = 198 Else HMax = 232
+        If Ramka.Cells("User.N").Result(0) = 3 Then HMax = 198 Else HMax = 232
         HTable = shpKJ.Cells("User.V").Result("mm")
         
         If HTable > HMax Then 'Высота таблицы больше 232мм/198мм
@@ -870,58 +833,23 @@ Public Sub fill_table_KJ()
         If NRow > 30 Then NRow = 0
 
     Next NStrokiXls
-    pNumber = 1
     RowCountXls = 0
     Exit Sub
     
-SubAddPage:
-    'Добавляем лист
+SubAddPage: 'Добавляем лист
     NRow = 0
-    pNumber = pNumber + 1
-'    TheDocListovSpecifikac.Formula = pNumber
-    AddPageKJ pName & pNumber
+    'Положение текущей страницы
+    Index = ActivePage.Index
+    'Создаем новую страницу КЖ
+    ActiveWindow.Page = AddSAPage(cListNameKJ)
+    'Положение новой страницы сразу за текущей
+    ActivePage.Index = Index + 1
+    
     ActivePage.Drop mastKJ, 0, 0
     Set shpKJ = ActivePage.Shapes.Item("КЖ")
     Return
 
  End Sub
-
-Sub AddPageKJ(pName As String)
-'------------------------------------------------------------------------------------------------------------
-' Macros        : AddPageKJ - Добавляет пустую страницу кабельного журнала
-'------------------------------------------------------------------------------------------------------------
-    Dim aPage As Visio.Page
-    Dim mStr As Visio.Master
-    Dim Ramka As Visio.Shape
-    If GetSAPageExist(pName) Is Nothing Then
-        Set aPage = ActiveDocument.Pages.Add
-        aPage.name = pName
-        With aPage.PageSheet
-            .Cells("PageWidth").Formula = "420 MM"
-            .Cells("PageHeight").Formula = "297 MM"
-            .Cells("Paperkind").Formula = 8
-            .Cells("PrintPageOrientation").Formula = 2
-        End With
-        SetPageAction aPage
-        Set mStr = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("Рамка")
-        Set Ramka = ActivePage.Drop(mStr, 0, 0)
-        LockTitleBlock
-'        ActiveDocument.Masters.Item("Рамка").Delete
-    Else
-        ActiveWindow.Page = ActiveDocument.Pages(pName)
-        ActiveWindow.SelectAll
-        ActiveWindow.Selection.Delete
-        Set Ramka = ActivePage.Shapes.Item("Рамка")
-    End If
-'    Ramka.Shapes("FORMA3").Shapes("Shifr").Cells("fields.value").FormulaU = "=TheDoc!User.SA_FR_Shifr & "".CO"""
-'    Ramka.Cells("User.NomerLista").FormulaU = "=PAGENUMBER()+Sheet.1!Prop.CNUM + TheDoc!User.SA_FR_NListSpecifikac - PAGECOUNT()"
-'    Ramka.Cells("User.ChisloListov").FormulaU = "=TheDoc!User.SA_FR_NListSpecifikac"
-'    Ramka.Cells("prop.type").Formula = """Спецификация оборудования, изделий и материалов"""
-    If pName Like cListNameKJ & ".*" Then Ramka.Cells("Prop.CHAPTER").FormulaU = "INDEX(1,Prop.CHAPTER.Format)"
-    Ramka.Cells("Prop.cnum") = 0
-    Ramka.Cells("Prop.tnum") = 0
-
-End Sub
 
 Public Sub KJ_EXP_2_XLS()
 '------------------------------------------------------------------------------------------------------------

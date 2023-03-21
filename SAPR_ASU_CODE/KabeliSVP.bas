@@ -482,3 +482,14 @@ Sub SetPageSVP(vsoPage As Visio.Page)
     Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Klemma - 5 / 25.4
     Application.ActiveWindow.Selection(1).Cells("Controls.Line").GlueTo shpShkaf.Cells("Connections.X1")
 End Sub
+
+Public Sub svpDEL()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : svpDEL - Удаляет листы схемы внешних проводок
+'------------------------------------------------------------------------------------------------------------
+    If MsgBox("Удалить листы схемы внешних проводок?", vbQuestion + vbOKCancel, "САПР-АСУ: Удалить листы СВП") = vbOK Then
+        del_pages cListNameSVP
+        'MsgBox "Старая версия спецификации удалена", vbInformation
+    End If
+End Sub
+
