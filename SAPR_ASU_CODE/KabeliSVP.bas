@@ -70,14 +70,17 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
                 'Находим подключенные к проводам клеммы шкафа и суем их в коллекцию
                 Set colTerms = FillColTerms(colWires)
                 'Выделяем всех
-                vsoSelection.Select colWires.Item(1).Parent, visSelect 'Кабель
+                For Each shpTerm In colWires
+                    vsoSelection.Select shpTerm.Parent, visSelect 'Кабель
+                Next
                 For Each shpTerm In colTerms
                     vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
                 Next
                 'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
-                colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
+'                colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
             End If
         Next
+        Set colCablesOnElSh = FillColCables(shpSensor)
         vsoSelection.Select shpSensor, visSelect 'Датчик
     Else
         'Перебираем все входы в датчике
@@ -277,12 +280,34 @@ Function FillColWires(shpSensorIO As Visio.Shape) As Collection
         If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
             If shpSensorTerm.FromConnects.Count = 1 Then
                 If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
-                    colWires.Add shpSensorTerm.FromConnects.FromSheet
+                    colWires.Add shpSensorTerm.FromConnects.FromSheet, shpSensorTerm.FromConnects.FromSheet.name
                 End If
             End If
         End If
     Next
     Set FillColWires = colWires
+End Function
+
+Function FillColWiresOnPage(shpSensorIO As Visio.Shape) As Collection
+'------------------------------------------------------------------------------------------------------------
+' Function        : FillColWiresOnPage - Находим подключенные провода находящиеся на листе (не в группе кабеля) и суем их в коллекцию
+'------------------------------------------------------------------------------------------------------------
+    Dim colWires As Collection
+    Dim shpSensorTerm As Visio.Shape
+    
+    Set colWires = New Collection
+    For Each shpSensorTerm In shpSensorIO.Shapes
+        If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+            If shpSensorTerm.FromConnects.Count = 1 Then
+                If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                    If Not shpSensorTerm.FromConnects.FromSheet.Parent.Type = visTypeGroup Then
+                        colWires.Add shpSensorTerm.FromConnects.FromSheet, shpSensorTerm.FromConnects.FromSheet.name
+                    End If
+                End If
+            End If
+        End If
+    Next
+    Set FillColWiresOnPage = colWires
 End Function
 
 Function FillColTerms(colWires As Collection) As Collection

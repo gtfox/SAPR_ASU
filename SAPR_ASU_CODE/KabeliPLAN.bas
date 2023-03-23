@@ -52,24 +52,20 @@ Sub AddRouteCablesOnPlan()
                         colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.SymName").ResultStr(0) = "", CStr(shpKabel.Cells("Prop.Number").Result(0)), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0))
                     End If
                 Next
-
+                
                 'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
-                For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
-                    If ShapeSATypeIs(vsoShape, typeSensorIO) Then
-                        'Находим подключенные провода
-                        Set vsoCollection = FillColWires(vsoShape)
+                Set vsoCollection = FillColCables(shpSensor)
+                For Each shpKabel In vsoCollection 'Перебираем все кабели в датчике
+                    nCount = colCablesTemp.Count
+                    On Error Resume Next
+                    colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), CStr(shpKabel.Cells("Prop.Number").Result(0)))
+                    err.Clear
+                    On Error GoTo 0
+                    If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                        colCables.Add shpKabel
                         nCount = colCablesTemp.Count
-                        On Error Resume Next
-                        colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0)))
-                        If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                            colCables.Add vsoCollection.Item(1).Parent
-                            nCount = colCablesTemp.Count
-                        End If
                     End If
                 Next
-                'Отключаем On Error Resume Next
-                err.Clear
-                On Error GoTo 0
 
                 'Прокладываем кабель/кабели для датчика
                 If colCables.Count > 0 Then
@@ -481,18 +477,16 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             Next
             
             'Находим кабель/кабели подключенные к датчику исключая существующие(уже проложенные)
-            For Each vsoShape In shpSensor.Shapes 'Перебираем все входы датчика
-                If ShapeSATypeIs(vsoShape, typeSensorIO) Then
-                    'Находим подключенные провода
-                    Set vsoCollection = FillColWires(vsoShape)
+            Set vsoCollection = FillColCables(shpSensor)
+            For Each shpKabel In vsoCollection 'Перебираем все кабели в датчике
+                nCount = colCablesTemp.Count
+                On Error Resume Next
+                colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), CStr(shpKabel.Cells("Prop.Number").Result(0)))
+                err.Clear
+                On Error GoTo 0
+                If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
+                    colCables.Add shpKabel
                     nCount = colCablesTemp.Count
-                    On Error Resume Next
-                    colCablesTemp.Add vsoCollection.Item(1).Parent, IIf(vsoCollection.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), vsoCollection.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(vsoCollection.Item(1).Parent.Cells("Prop.Number").Result(0)))
-                    err.Clear
-                    On Error GoTo 0
-                    If colCablesTemp.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
-                        colCables.Add vsoCollection.Item(1).Parent
-                    End If
                 End If
             Next
 
@@ -694,6 +688,36 @@ er1: 'Маршрут 3-5 или 5-3
 Resume Next
 
 End Sub
+
+Function FillColCables(shpSensor As Visio.Shape) As Collection
+'------------------------------------------------------------------------------------------------------------
+' Function        : FillColCables - Находим подключенные кабели и суем их в коллекцию
+'------------------------------------------------------------------------------------------------------------
+    Dim colCables As Collection
+    Dim shpSensorTerm As Visio.Shape
+    Dim shpSensorIO As Visio.Shape
+    
+    Set colCables = New Collection
+    For Each shpSensorIO In shpSensor.Shapes 'Перебираем все входы датчика
+        If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            For Each shpSensorTerm In shpSensorIO.Shapes
+                If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+                    If shpSensorTerm.FromConnects.Count = 1 Then
+                        If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                            With shpSensorTerm.FromConnects.FromSheet
+                                On Error Resume Next
+                                colCables.Add .Parent, IIf(.Parent.Cells("Prop.BukvOboz").Result(0), .Parent.Cells("Prop.SymName").ResultStr(0) & .Parent.Cells("Prop.Number").Result(0), CStr(.Parent.Cells("Prop.Number").Result(0)))
+                                err.Clear
+                                On Error GoTo 0
+                            End With
+                        End If
+                    End If
+                End If
+            Next
+        End If
+    Next
+    Set FillColCables = colCables
+End Function
 
 Sub FillRoute(shpRouteToPoint As Visio.Shape, vsoLayer As Visio.Layer)
 '------------------------------------------------------------------------------------------------------------
@@ -959,6 +983,10 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         Next
     Next
     
+    If colSensorToPLAN.Count = 0 Then
+        MsgBox "Нет оборудования ФСА для вставки", vbInformation + vbOKOnly, "САПР-АСУ: Info"
+        Exit Sub
+    End If
     'Очищаем коллекцию для вставляемых датчиков
     Set colSensorOnPLAN = New Collection
     

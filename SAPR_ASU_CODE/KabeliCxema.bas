@@ -22,11 +22,13 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     Dim vsoShape As Visio.Shape
     Dim colWires As Collection
     Dim colWiresIO As Collection
+    Dim colWiresSelected As Collection
     Dim vsoMaster As Visio.Master
     Dim MultiCable As Boolean '1 вход = 1 кабель
     Dim NazvanieShkafa As String
     Dim PinX As Double
     Dim PinY As Double
+    Dim oldCount As Integer
     
     PinX = shpSensor.Cells("PinX").Result(0)
     PinY = shpSensor.Cells("PinY").Result(0)
@@ -47,7 +49,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                     'Вставляем шейп кабеля
                     Set shpKabel = shpSensor.ContainingPage.Drop(vsoMaster, shpSensorIO.Cells("PinX").Result(0) + PinX, shpSensorIO.Cells("PinY").Result(0) + PinY + 0.196850393700787)
                     'Находим подключенные провода и суем их в коллекцию
-                    Set colWires = FillColWires(shpSensorIO)
+                    Set colWires = FillColWiresOnPage(shpSensorIO)
                     'Добавляем подключенные провода в группу с кабелем
                     AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
                     'Число проводов в кабеле
@@ -67,14 +69,14 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
             End If
         Next
     Else
-        'Перебираем все входы в датчике
+        'Собираем провода со всех входов в датчике
         For Each shpSensorIO In shpSensor.Shapes
             If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
                 'Добавляем клеммы и провода
                 If iOptions <= 2 Then AddKlemmyIProvoda shpSensorIO 'Клеммы
                 If iOptions >= 2 Then 'Кабели
                     'Находим подключенные провода на конкретном IO и суем их в коллекцию
-                    Set colWiresIO = FillColWires(shpSensorIO)
+                    Set colWiresIO = FillColWiresOnPage(shpSensorIO)
                     'Добавляем провода с конкретного входа в общую колекцию проводов датчика
                     For Each vsoShape In colWiresIO
                         colWires.Add vsoShape
@@ -82,13 +84,50 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                 End If
             End If
         Next
+        
+        'Собираем выделенные провода со всех входов в датчике
+        Set colWiresSelected = New Collection
+        For Each shpSensorIO In shpSensor.Shapes
+            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+                If iOptions >= 2 Then 'Кабели
+                    If ActiveWindow.Selection.Count > 2 Then
+                        oldCount = colWires.Count
+                        For Each vsoShape In ActiveWindow.Selection 'Кабель из выделенных проводов
+                            If ShapeSATypeIs(vsoShape, typeWire) Then
+                                On Error Resume Next
+                                colWires.Add vsoShape, vsoShape.name
+                                err.Clear
+                                On Error GoTo 0
+                                If colWires.Count = oldCount Then
+                                    colWiresSelected.Add vsoShape, vsoShape.name 'Собираем те, что выделенны подсоединены к датчику
+                                Else
+                                    oldCount = colWires.Count
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+            End If
+        Next
+        
         If iOptions >= 2 Then 'Кабели
+            If colWiresSelected.Count <= 1 And ActiveWindow.Selection.Count > 2 Then
+                MsgBox "Выделите минимум 2 провода для создания кабеля", vbInformation + vbOKOnly, "САПР-АСУ: Экспорт для GitHub"
+                Exit Sub
+            End If
             'Вставляем шейп кабеля
             Set shpKabel = shpSensor.ContainingPage.Drop(vsoMaster, shpSensor.Cells("PinX").Result(0), shpSensor.Cells("PinY").Result(0) + 0.19685)
             'Добавляем подключенные провода в группу с кабелем
-            AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
-            'Число проводов в кабеле
-            shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
+            If colWiresSelected.Count > 1 Then
+                AddToGroupCable shpKabel, shpKabel.ContainingPage, colWiresSelected
+                'Число проводов в кабеле
+                shpKabel.Cells("Prop.WireCount").FormulaU = colWiresSelected.Count
+            Else
+                AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
+                'Число проводов в кабеле
+                shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
+            End If
+
             'Сохраняем к какому шкафу подключен кабель
             If NazvanieShkafa = "" Then 'если на листе несколько шкафов то...
                 'Определяем к какому шкафу/коробке принадлежит клеммник

@@ -239,6 +239,7 @@ Public Sub FindElementShemyToExcel()
         wb.Save
     ElseIf obTekListCx Then
         Set vsoPage = ActivePage
+        NazvanieShkafa = vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
         If vsoPage.name Like PageName & "*" Then
             GoSub subShpOnPage
         End If
@@ -262,6 +263,7 @@ subShpOnPage:
                     Set clsStrokaSpecif = New classStrokaSpecifikacii
                     clsStrokaSpecif.SymName = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0)
                     clsStrokaSpecif.SAType = vsoShapeOnPage.Cells("User.SAType").Result(0)
+                    On Error Resume Next
                     clsStrokaSpecif.NazvanieDB = vsoShapeOnPage.Cells("Prop.NazvanieDB").ResultStr(0)
                     clsStrokaSpecif.ArtikulDB = vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
                     clsStrokaSpecif.ProizvoditelDB = vsoShapeOnPage.Cells("Prop.ProizvoditelDB").ResultStr(0)
@@ -271,7 +273,8 @@ subShpOnPage:
                     clsStrokaSpecif.PozOboznach = vsoShapeOnPage.Cells("Prop.Number").ResultStr(0)
                     clsStrokaSpecif.KodPoziciiDB = vsoShapeOnPage.Cells("User.KodPoziciiDB").Formula
                     strColKey = vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
-                    
+                    err.Clear
+                    On Error GoTo 0
                     Select Case UserType
                         Case typeCableSH 'Кабели на схеме электрической
                             clsStrokaSpecif.SymName = IIf(vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), "")

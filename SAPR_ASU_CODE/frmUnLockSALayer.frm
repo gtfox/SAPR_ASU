@@ -87,7 +87,7 @@ Sub Fill_lstvShapes()
     FillCollection ActivePage.Layers(cmbxLayers.text)
     lstvShapes.ListItems.Clear
     For i = 1 To colShapes.Count
-        Set itmx = lstvShapes.ListItems.Add(, colShapes.Item(i).NameID, colShapes.Item(i).NameID)
+        Set itmx = lstvShapes.ListItems.Add(, colShapes.Item(i).name, colShapes.Item(i).name)
         If colShapes.Item(i).CellExists("User.Name", 0) Then
             itmx.SubItems(1) = colShapes.Item(i).Cells("User.Name").ResultStr(0)
         Else
