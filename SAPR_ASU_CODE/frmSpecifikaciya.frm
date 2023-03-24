@@ -450,10 +450,10 @@ OutList:
     If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "САПР-АСУ: Перечень элементов"
     For NRow = 1 To str
         Set shpRow = shpPerechenElementov.Shapes("row" & NRow)
-        shpRow.Shapes(NRow & ".1").text = PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName)
-        shpRow.Shapes(NRow & ".2").text = colStrokaSpecif(NRow).NazvanieDB
-        shpRow.Shapes(NRow & ".3").text = colStrokaSpecif(NRow).KolVo
-        shpRow.Shapes(NRow & ".4").text = colStrokaSpecif(NRow).ArtikulDB
+        shpRow.Shapes(NRow & ".1").text = IIf(PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName) = "", " ", PozNameInString(colStrokaSpecif(NRow).PozOboznach, colStrokaSpecif(NRow).SymName))
+        shpRow.Shapes(NRow & ".2").text = IIf(colStrokaSpecif(NRow).NazvanieDB = "", " ", colStrokaSpecif(NRow).NazvanieDB)
+        shpRow.Shapes(NRow & ".3").text = IIf(colStrokaSpecif(NRow).KolVo = "", " ", colStrokaSpecif(NRow).KolVo)
+        shpRow.Shapes(NRow & ".4").text = IIf(colStrokaSpecif(NRow).ArtikulDB = "", " ", colStrokaSpecif(NRow).ArtikulDB)
         If shpRow.Shapes(NRow & ".3").text = " " Then
             shpRow.Shapes(NRow & ".2").CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
             shpRow.Shapes(NRow & ".2").CellsSRC(visSectionCharacter, 0, visCharacterStyle).FormulaU = visItalic + visUnderLine 'Курсив+Подчеркивание

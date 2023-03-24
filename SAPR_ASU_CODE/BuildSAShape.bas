@@ -169,28 +169,38 @@ Sub SetElement() 'SetValueToSelSections
 'Next
 '
 'On Error Resume Next
-For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Panel").Shapes.Item("Panel").Shapes
-    If vsoObject.name Like "DIN*" Then
-SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
-            arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""DIN-рейка 35мм оцинкованная 125см""|""60""|FALSE|FALSE|1049|0", _
-                            """Артикул из БД""|""Код заказа из БД""|0|""""|""32054DEK""|""61""|FALSE|FALSE|1049|0", _
-                            """Производитель из БД""|""Производитель из БД""|0|""""|""DEKraft""|""62""|FALSE|FALSE|1049|0", _
-                            """Цена из БД""|""Цена из БД""|0|""""|""193""|""63""|FALSE|FALSE|1049|0", _
-                            """Единица из БД""|""Единица измерения из БД""|0|""""|""шт.""|""64""|FALSE|FALSE|1049|0")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
-    End If
-Next
-For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes
-    If vsoObject.name Like "DIN*" Then
-SectionNumber = visSectionProp 'Prop 243
-            arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
-            arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""DIN-рейка 35мм оцинкованная 125см""|""60""|FALSE|FALSE|1049|0", _
-                            """Артикул из БД""|""Код заказа из БД""|0|""""|""32054DEK""|""61""|FALSE|FALSE|1049|0", _
-                            """Производитель из БД""|""Производитель из БД""|0|""""|""DEKraft""|""62""|FALSE|FALSE|1049|0", _
-                            """Цена из БД""|""Цена из БД""|0|""""|""193""|""63""|FALSE|FALSE|1049|0", _
-                            """Единица из БД""|""Единица измерения из БД""|0|""""|""шт.""|""64""|FALSE|FALSE|1049|0")
-SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("Panel").Shapes.Item("Panel").Shapes
+'    If vsoObject.name Like "DIN*" Then
+'SectionNumber = visSectionProp 'Prop 243
+'            arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+'            arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""DIN-рейка 35мм оцинкованная 125см""|""60""|FALSE|FALSE|1049|0", _
+'                            """Артикул из БД""|""Код заказа из БД""|0|""""|""32054DEK""|""61""|FALSE|FALSE|1049|0", _
+'                            """Производитель из БД""|""Производитель из БД""|0|""""|""DEKraft""|""62""|FALSE|FALSE|1049|0", _
+'                            """Цена из БД""|""Цена из БД""|0|""""|""193""|""63""|FALSE|FALSE|1049|0", _
+'                            """Единица из БД""|""Единица измерения из БД""|0|""""|""шт.""|""64""|FALSE|FALSE|1049|0")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'    End If
+'Next
+'For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes
+'    If vsoObject.name Like "DIN*" Then
+'SectionNumber = visSectionProp 'Prop 243
+'            arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+'            arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""DIN-рейка 35мм оцинкованная 125см""|""60""|FALSE|FALSE|1049|0", _
+'                            """Артикул из БД""|""Код заказа из БД""|0|""""|""32054DEK""|""61""|FALSE|FALSE|1049|0", _
+'                            """Производитель из БД""|""Производитель из БД""|0|""""|""DEKraft""|""62""|FALSE|FALSE|1049|0", _
+'                            """Цена из БД""|""Цена из БД""|0|""""|""193""|""63""|FALSE|FALSE|1049|0", _
+'                            """Единица из БД""|""Единица измерения из БД""|0|""""|""шт.""|""64""|FALSE|FALSE|1049|0")
+'SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+'    End If
+'Next
+
+For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes 'Panel PanelMAX Shkaf ShkafKSRM
+    If vsoObject.name Like "KabKan*" Then
+        With vsoObject
+'            .CellsSRC(visSectionControls, 0, visCtlY).FormulaU = "15mm*User.AntiScale"
+            .CellsSRC(visSectionObject, visRowTextXForm, visXFormWidth).FormulaForceU = "GUARD(TEXTWIDTH(TheText))"
+            .CellsSRC(visSectionObject, visRowTextXForm, visXFormHeight).FormulaForceU = "GUARD(TEXTHEIGHT(TheText,TxtWidth))"
+        End With
     End If
 Next
 

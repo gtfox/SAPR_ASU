@@ -194,5 +194,5 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
         Case typePLCTerm
             vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
     End Select
-
+    ActiveWindow.Select vsoDouble, visSubSelect
 End Sub
