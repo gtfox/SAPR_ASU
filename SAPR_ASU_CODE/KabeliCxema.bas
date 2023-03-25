@@ -238,3 +238,12 @@ Sub DeleteCableSH(shpKabel As Visio.Shape)
 '    shpSensorIO.Cells("User.LinkToCable").FormulaU = ""
     
 End Sub
+
+Sub ClearCableSH(shpKabel As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ClearCableSH - Чистим ссылку в кабеле на кабель на плане
+'------------------------------------------------------------------------------------------------------------
+    shpKabel.CellsU("Hyperlink.Kabel.SubAddress").FormulaForceU = """"""
+    shpKabel.CellsU("Hyperlink.Kabel.Frame").FormulaForceU = """"""
+    shpKabel.CellsU("Hyperlink.Kabel.ExtraInfo").FormulaForceU = """"""
+End Sub

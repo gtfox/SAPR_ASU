@@ -122,8 +122,8 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
 '        'Поднимаем вверх
 '        .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
 '    End With
-    ActiveWindow.DeselectAll
-    
+'    ActiveWindow.DeselectAll
+    If colSensorToFSA.Count > 0 Then MsgBox "Добавлено " & colSensorToFSA.Count & " датчиков/приводов со схемы", vbInformation + vbOKOnly, "САПР-АСУ: датчики/приводы добавлены"
 End Sub
 
 

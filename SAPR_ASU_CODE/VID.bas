@@ -424,78 +424,93 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
         Select Case SAType
             Case typeCoil, typeParent, typeElement ', typePLCParent
                 SymName = shpElementOnCxema.Cells("Prop.SymName").ResultStr(0)
-                
+                On Error Resume Next
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
-                shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
-                shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
-                shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
-                dX = shpElementOnVID.Cells("Width").Result(0)
-                dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
-                Select Case SymName
-                    Case "HL" 'HL (Лампа)
-                    
-                    Case "SA" 'SA (Переключатель)
-                        If shpElementOnCxema.Cells("Prop.3P").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipPerkluchtelya").Formula = 3
-                    Case "SB" 'SB (Кнопка)
-                        If shpElementOnCxema.Cells("Prop.Alarm").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipKnopki").FormulaU = "INDEX(2,Prop.TipKnopki.Format)" ' """Аварийная"""
-                    Case "SF" 'SF (Автомат 1ф)
-                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
-                    Case "QF" 'QF (Автомат 3ф)
-                        shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
-                    Case "QSD" 'QSD (УЗО)
-                        shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
-                    Case "QFD" 'QFD (Дифавтомат)
-                        shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
-                    Case "QA" 'QA (Автомат защиты двигателя)
-                        shpElementOnVID.Cells("Prop.TipAvtomata").Formula = AdrParent + "!Prop.Harakteristika"
-                    Case "QS" 'QS (Выключатель нагрузки)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "FU" 'FU (Предохранитель)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "RU" 'RU (Варистор)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "KM" 'KM (Контактор электромагнитный)
-                        shpElementOnVID.Cells("Prop.TokKontaktora").Formula = AdrParent + "!Prop.Tok"
-                    Case "KL" 'KL (Реле промежуточное)
-                        shpElementOnVID.Cells("Prop.Kontaktov").Formula = AdrParent + "!Prop.Kontaktov"
-                    Case "KT" 'KT (Реле времени)
-
-                    Case "KV" 'KV (Реле напряжения)
-
-                    Case "KK" 'KK (Реле тепловое)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "HA" 'HA (Звонок)
-
-                    Case "UG" 'UG (Блок питания)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "TV" 'TV (Трансформатор)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "UZ" 'UZ (Твердотельное реле)
-                        shpElementOnVID.Cells("Prop.Polusov").Formula = IIf(shpElementOnCxema.NameU Like SymName & "3P*", 3, 1)
-                    Case "UF" 'UF (Частотник)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "XS" 'XS (Розетка)
-                        shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                    Case "DD" 'DD (ТРМ, ПЛК-моноблок)
-                        shpElementOnVID.Cells("Prop.TPM").Formula = AdrParent + "!Prop.TPM"
-                    Case Else
-                End Select
+                If err.Number <> 0 Then
+                    err.Clear
+                    On Error GoTo 0
+                    MsgBox "Элемент схемы " & shpElementOnCxema.NameU & " не имеет чертёж внешнего вида", vbExclamation + vbOKOnly, "САПР-АСУ: отсутствует чертеж внешнего вида элемента схемы"
+                Else
+                    shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                    shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                    shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
+                    shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
+                    shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
+                    dX = shpElementOnVID.Cells("Width").Result(0)
+                    dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
+                    Select Case SymName
+                        Case "HL" 'HL (Лампа)
+                        
+                        Case "SA" 'SA (Переключатель)
+                            If shpElementOnCxema.Cells("Prop.3P").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipPerkluchtelya").Formula = 3
+                        Case "SB" 'SB (Кнопка)
+                            If shpElementOnCxema.Cells("Prop.Alarm").Result(0) = 1 Then shpElementOnVID.Cells("Prop.TipKnopki").FormulaU = "INDEX(2,Prop.TipKnopki.Format)" ' """Аварийная"""
+                        Case "SF" 'SF (Автомат 1ф)
+                            shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
+                        Case "QF" 'QF (Автомат 3ф)
+                            shpElementOnVID.Cells("Prop.TokAvtomata").Formula = AdrParent + "!Prop.Tok"
+                        Case "QSD" 'QSD (УЗО)
+                            shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
+                        Case "QFD" 'QFD (Дифавтомат)
+                            shpElementOnVID.Cells("Prop.Polusov").Formula = AdrParent + "!Prop.Polusov"
+                        Case "QA" 'QA (Автомат защиты двигателя)
+                            shpElementOnVID.Cells("Prop.TipAvtomata").Formula = AdrParent + "!Prop.Harakteristika"
+                        Case "QS" 'QS (Выключатель нагрузки)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "FU" 'FU (Предохранитель)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "RU" 'RU (Варистор)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "KM" 'KM (Контактор электромагнитный)
+                            shpElementOnVID.Cells("Prop.TokKontaktora").Formula = AdrParent + "!Prop.Tok"
+                        Case "KL" 'KL (Реле промежуточное)
+                            shpElementOnVID.Cells("Prop.Kontaktov").Formula = AdrParent + "!Prop.Kontaktov"
+                        Case "KT" 'KT (Реле времени)
+    
+                        Case "KV" 'KV (Реле напряжения)
+    
+                        Case "KK" 'KK (Реле тепловое)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "HA" 'HA (Звонок)
+    
+                        Case "UG" 'UG (Блок питания)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "TV" 'TV (Трансформатор)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "UZ" 'UZ (Твердотельное реле)
+                            shpElementOnVID.Cells("Prop.Polusov").Formula = IIf(shpElementOnCxema.NameU Like SymName & "3P*", 3, 1)
+                        Case "UZF" 'UZF (ИБП, Стабилизатор)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "UF" 'UF (Частотник)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "XS" 'XS (Розетка)
+                            shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
+                        Case "DD" 'DD (ТРМ, ПЛК-моноблок)
+                            shpElementOnVID.Cells("Prop.TPM").Formula = AdrParent + "!Prop.TPM"
+                        Case Else
+                    End Select
+                End If
             Case typePLCParent
+                On Error Resume Next
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("PLC"), DropX, DropY)
-                shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
-                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
-                shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
-                shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text
-                shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
-                dX = shpElementOnVID.Cells("Width").Result(0)
-                dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
-                Select Case SymName
-                    Case "DD" 'DD (ПЛК-модульный)
-                        shpElementOnVID.Cells("Prop.TPM").Formula = shpElementOnCxema.Cells("Prop.TPM").Result(0)
-                    Case Else
-                End Select
+                If err.Number <> 0 Then
+                    err.Clear
+                    On Error GoTo 0
+'                    MsgBox "Элемент схемы " & shpElementOnCxema.NameU & " не имеет чертёж внешнего вида", vbExclamation + vbOKOnly, "САПР-АСУ: отсутствует чертеж внешнего вида элемента схемы"
+                Else
+                    shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                    shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
+                    shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
+                    shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text
+                    shpElementOnVID.Cells("Prop.ShowDesc").Formula = 1
+                    dX = shpElementOnVID.Cells("Width").Result(0)
+                    dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
+                    Select Case SymName
+                        Case "DD" 'DD (ПЛК-модульный)
+                            shpElementOnVID.Cells("Prop.TPM").Formula = shpElementOnCxema.Cells("Prop.TPM").Result(0)
+                        Case Else
+                    End Select
+                End If
             Case Else
                 dX = 0
         End Select
@@ -508,5 +523,5 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
             n = 0
         End If
     Next
-
+    If colElementToVID.Count > 0 Then MsgBox "Добавлено " & colElementToVID.Count & " аппаратов из схемы", vbInformation + vbOKOnly, "САПР-АСУ: аппараты из схемы добавлены"
 End Sub

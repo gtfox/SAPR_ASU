@@ -169,7 +169,12 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
                 'Не нумеруем, т.к. нумеруется в процессе соединения
                 ClearWire vsoShapeEvent
             End If
-
+        
+        Case typeCableSH 'Кабели на схеме электрической
+        
+            'Чистим ссылку на план
+            ClearCableSH vsoShapeEvent 'Чистим ссылку
+            AutoNum vsoShapeEvent 'Автонумерация
             
         Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
         

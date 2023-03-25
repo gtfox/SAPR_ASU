@@ -1086,7 +1086,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
         'Поднимаем вверх
         .Move 0, ActivePage.PageSheet.Cells("PageHeight").Result(0) - .PrimaryItem.Cells("PinY").Result(0)
     End With
-
+    If colSensorOnPLAN.Count > 0 Then MsgBox "Добавлено " & colSensorOnPLAN.Count & " датчиков/приводов из ФСА", vbInformation + vbOKOnly, "САПР-АСУ: датчики/приводы добавлены"
 End Sub
 
 
