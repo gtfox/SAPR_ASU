@@ -498,6 +498,13 @@ Sub ClearWire(vsoShape As Visio.Shape)
             'Присваиваем номер проводу
             AutoNum vsoShape
         End If
+        'Если не подключен
+        If vsoShape.Connects.Count = 0 Then
+            vsoShape.Cells("Prop.AutoNum").FormulaU = True
+            'Возвращаем красную стрелку
+            vsoShape.Cells("BeginArrow").Formula = "USE(""endRedArrow"")"
+            vsoShape.Cells("EndArrow").Formula = "USE(""endRedArrow"")"
+        End If
     End If
 End Sub
 
