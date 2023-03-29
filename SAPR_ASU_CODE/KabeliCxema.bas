@@ -287,10 +287,10 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
     For Each shpWire In ActiveWindow.Selection
         If ShapeSATypeIs(shpWire, typeWire) Then
             If shpWire.Connects.Count = 0 Then
-                MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " не подключен", vbInformation + vbOKOnly, "САПР-АСУ: Создание кабеля"
+                MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " не подключен", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
                 Exit Sub
             ElseIf shpWire.Connects.Count = 1 Then
-                MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " не подключен одним концом", vbInformation + vbOKOnly, "САПР-АСУ: Создание кабеля"
+                MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " не подключен одним концом", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
                 Exit Sub
             ElseIf shpWire.Connects.Count = 2 Then
                 TermType1 = ShapeSAType(shpWire.Connects(1).ToSheet)
@@ -298,14 +298,20 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
                 If TermType1 = typeSensorTerm Or TermType1 = typeTerm Then 'Or TermType1 = typePLCTerm
                     If TermType2 = typeSensorTerm Or TermType2 = typeTerm Then 'Or TermType2 = typePLCTerm
                         colWiresSelected.Add shpWire
+                    Else
+                        MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " должен быть подключен к клеммам шкафа или датчика/привода", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
+                        Exit Sub
                     End If
+                Else
+                    MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " должен быть подключен к клеммам шкафа или датчика/привода", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
+                    Exit Sub
                 End If
             End If
         End If
     Next
     
     If colWiresSelected.Count <= 1 Then
-        MsgBox "Выделите минимум 2 провода для создания кабеля", vbInformation + vbOKOnly, "САПР-АСУ: Создание кабеля"
+        MsgBox "Выделите минимум 2 провода для создания кабеля", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
         Exit Sub
     End If
     
@@ -324,10 +330,12 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
             AddToGroupCable shpKabel, shpKabel.ContainingPage, colWiresSelected
             'Число проводов в кабеле
             shpKabel.Cells("Prop.WireCount").FormulaU = colWiresSelected.Count
-            shpKabel.Cells("Width").Formula = MaxNumber - PinX + DyKabel
+            shpKabel.Cells("Width").Formula = MaxNumber - MinNumber + DyKabel
             
-    ActiveWindow.Selection.Select shpKabel, visSelect
-    ActiveWindow.Selection.Move 0#, Abs(shpKabel.Cells("PinY").Result(0) - PinY)
+            
+    Set vsoSelection = ActiveWindow.Selection
+    vsoSelection.Select shpKabel, visSelect
+    vsoSelection.Move 0#, Abs(shpKabel.Cells("PinY").Result(0) - PinY)
 
             
 

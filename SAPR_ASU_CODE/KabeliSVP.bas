@@ -1,7 +1,7 @@
 '------------------------------------------------------------------------------------------------------------
 ' Module        : KabeliSVP - Кабели на схеме внешних проводок (СВП)
 ' Author        : gtfox
-' Date          : 2020.09.21
+' Date          : 2020.09.21/2023.03.29
 ' Description   : Автосоздание схемы внешних проводок (СВП)
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
@@ -15,14 +15,130 @@ Const Klemma As Double = 240 / 25.4 'Высота расположения кл�
 Const Datchik As Double = 97.5 / 25.4 'Высота расположения датчика на СВП
 Const KonecLista As Double = 10 / 25.4 'Расстояние от правого края листа, за которое не дожны заходить фигуры
 
-Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber As Boolean)
+Public Sub PageSVPAddKabeliFrm()
+    Load frmPageSVPAddKabeli
+    frmPageSVPAddKabeli.Show
+End Sub
+
+Public Sub AddPagesSVP(NazvanieShkafa As String)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : AddSensorOnSVP - Добавляет датчик, провод, клеммы на СВП
+' Macros        : AddPagesSVP - Создает листы СВП
+                'Заполняет листы СВП датчиками/приводами, клеммами и кабелями, отсортированными по возрастанию их координаты Х на эл. схеме
+'------------------------------------------------------------------------------------------------------------
+'    Dim NazvanieShkafa As String
+    Dim ThePage As Visio.Shape
+    Dim vsoShapeOnPage As Visio.Shape
+    Dim vsoPage As Visio.Page
+    Dim PageName As String
+    Dim shpElement As Shape
+    Dim Prev As Shape
+    Dim colShpPage As Collection
+    Dim colShpDoc As Collection
+    Dim shpMas() As Shape
+    Dim shpTemp As Shape
+    Dim Index As Integer
+    Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме на другом конце), или Номер провода кабеля = Порядковому номеру жилы в кабеле
+    Dim ss As String
+    Dim i As Integer, ii As Integer, j As Integer, n As Integer
+    
+    ShinaNumber = 1
+    
+    PastePoint = NachaloVstavki
+    
+    Set ThePage = ActivePage.PageSheet
+    
+    Set colShpDoc = New Collection
+    
+    PageName = cListNameCxema
+
+    'Цикл поиска кабелей
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
+            Set colShpPage = New Collection
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
+                If vsoShapeOnPage.CellExists("User.Shkaf", 0) Then
+                    If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
+                        Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
+                            Case typeCableSH
+                                'Собираем в коллекцию нужные для сортировки шейпы
+                                colShpPage.Add vsoShapeOnPage
+                            Case Else
+                        End Select
+                    End If
+                End If
+            Next
+            
+            'Сортируем то что нашли на листе
+            
+            'из коллекции передаем в массив для сортировки
+            If colShpPage.Count > 0 Then
+                ReDim shpMas(colShpPage.Count - 1)
+                i = 0
+                For Each shpElement In colShpPage
+                    Set shpMas(i) = shpElement
+                    i = i + 1
+                Next
+            
+                ' "Сортировка вставками" массива шейпов по возрастанию номера кабеля
+                '--V--Сортируем по возрастанию
+                UbMas = UBound(shpMas)
+                For j = 1 To UbMas
+                    Set shpTemp = shpMas(j)
+                    i = j
+                    'If shpMas(i) Is Nothing Then Exit Sub
+                    While shpMas(i - 1).Cells("Prop.Number").Result(0) > shpTemp.Cells("Prop.Number").Result(0) '>:возрастание, <:убывание
+                        Set shpMas(i) = shpMas(i - 1)
+                        i = i - 1
+                        If i <= 0 Then GoTo ExitWhileX
+                    Wend
+ExitWhileX:                  Set shpMas(i) = shpTemp
+                Next
+                '--Х--Сортировка по возрастанию коордонаты Х
+                
+                'Собираем отсортированные листы в коллекцию документа
+                For i = 0 To UbMas
+                    colShpDoc.Add shpMas(i)
+                Next
+                Set colShpPage = Nothing
+            End If
+        End If
+    Next
+
+    If colShpDoc.Count > 0 Then
+        'Берем первую страницу СВП
+        Set vsoPage = ActivePage 'GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
+'        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
+        SetPageSVP vsoPage
+        'Вставляем на лист СВП найденные и отсортированные датчики/приводы
+        For i = 1 To colShpDoc.Count
+            AddCableOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
+            'Если лист кончился
+            If PastePoint > vsoPage.PageSheet.Cells("PageWidth").Result(0) - KonecLista Then
+                'Положение текущей страницы
+                Index = vsoPage.Index
+                'Создаем новую страницу СВП
+                Set vsoPage = AddSAPage(cListNameSVP)
+                SetPageSVP vsoPage
+                'Положение новой страницы сразу за текущей
+                vsoPage.Index = Index + 1
+                PastePoint = NachaloVstavki
+                'Вставляем этот же датчик только на следующем листе
+                AddCableOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
+            End If
+        Next
+    End If
+    ResetLocalShkafMesto ActivePage
+    ActiveWindow.DeselectAll
+End Sub
+
+Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber As Boolean)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : AddCableOnSVP - Добавляет датчик, провод, клеммы на СВП
                 'После вставки провода и кабель эл. схемы заменяются шейпом кабеля СВП, жилы приклеиваются к клеммам
 '------------------------------------------------------------------------------------------------------------
     Dim shpSensorIO As Visio.Shape
     Dim shpTerm As Visio.Shape
-    Dim shpCable As Visio.Shape
+    Dim shpSensor As Visio.Shape
     Dim shpWire As Visio.Shape
     Dim colCablesOnElSh As Collection
     Dim colCables As Collection
@@ -35,7 +151,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Dim vsoGroup As Visio.Shape
     Dim vsoShape As Visio.Shape
     Dim shpSensorSVP As Visio.Shape
-    Dim MultiCable As Boolean
+    Dim BukvOboz As Boolean
     Dim cellKlemmaShkafa As Visio.Cell
     Dim cellKlemmaDatchika As Visio.Cell
     Dim cellWireDown As Visio.Cell
@@ -48,64 +164,50 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Dim WireHeight As Double
     Dim bNacaloKlemmnika As Boolean
 
-    
     Set colCables = New Collection
     Set colWires = New Collection
     Set colTerms = New Collection
     Set colCablesOnElSh = New Collection
     
-    ActiveWindow.Page = ActiveDocument.Pages(shpSensor.ContainingPage.name)
+    'Если кабелем подключён датчик/привод то используем AddSensorOnSVP
+    Set shpSensor = FindSensorFromKabel(shpCable)
+    If Not shpSensor Is Nothing Then
+        AddSensorOnSVP shpSensor, vsoPageSVP, ShinaNumber
+        Exit Sub
+    End If
+    
+    'На обоих концах кабеля находтся шкафы/коробки
+
+    ActiveWindow.Page = ActiveDocument.Pages(shpCable.ContainingPage.name)
     
     Set vsoSelection = ActiveWindow.Selection
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
     
-    MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
+    BukvOboz = shpCable.Cells("Prop.BukvOboz").Result(0)
+    
+    'собираем провода и клеммы
+    For Each shpWire In shpCable.Shapes
+        If ShapeSATypeIs(shpWire, typeWire) Then
+            If shpWire.Connects.Count = 2 Then
+                colWires.Add shpWire, shpWire.NameID
+                For i = 1 To shpWire.Connects.Count
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
+                        colTerms.Add shpWire.Connects(i).ToSheet
+                    End If
+                Next
+            End If
+        End If
+    Next
 
-    If MultiCable Then
-        'Перебираем все входы в датчике
-        For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
-                'Находим подключенные провода и суем их в коллекцию
-                Set colWires = FillColWires(shpSensorIO)
-                'Находим подключенные к проводам клеммы шкафа и суем их в коллекцию
-                Set colTerms = FillColTerms(colWires)
-                'Выделяем всех
-                For Each shpTerm In colWires
-                    vsoSelection.Select shpTerm.Parent, visSelect 'Кабель
-                Next
-                For Each shpTerm In colTerms
-                    vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
-                Next
-                'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
-'                colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
-            End If
-        Next
-        Set colCablesOnElSh = FillColCables(shpSensor)
-        vsoSelection.Select shpSensor, visSelect 'Датчик
-    Else
-        'Перебираем все входы в датчике
-        For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
-                'Находим подключенные провода на конкретном IO и суем их в коллекцию
-                Set colWiresIO = FillColWires(shpSensorIO)
-                'Добавляем провода с конкретного входа в общую колекцию проводов датчика
-                For Each vsoShape In colWiresIO
-                    colWires.Add vsoShape
-                Next
-            End If
-        Next
-        'Находим подключенные к проводам клеммы шкафа и суем их в коллекцию
-        Set colTerms = FillColTerms(colWires)
-        'Выделяем всех
-        vsoSelection.Select shpSensor, visSelect 'Датчик
-        vsoSelection.Select colWires.Item(1).Parent, visSelect 'Кабель
-        For Each shpTerm In colTerms
-            vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
-            If shpTerm.Cells("Prop.Nachalo").Result(0) = 1 Then bNacaloKlemmnika = True
-        Next
-        'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
-        colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
-    End If
+    'Выделяем всех
+    vsoSelection.Select shpCable, visSelect 'Кабель
+    For Each shpTerm In colTerms
+        vsoSelection.Select shpTerm, visSelect 'Клеммы шкафа
+        If shpTerm.Cells("Prop.Nachalo").Result(0) = 1 Then bNacaloKlemmnika = True
+    Next
+    'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
+    colCablesOnElSh.Add shpCable, IIf(shpCable.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & shpCable.Cells("Prop.Number").Result(0), CStr(shpCable.Cells("Prop.Number").Result(0)))
+
     ActiveWindow.Selection = vsoSelection
     Set vsoGroup = ActiveWindow.Selection.Group
     
@@ -127,13 +229,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         With vsoShape
             .Cells("Prop.AutoNum").Formula = 1
             .Cells("EventMultiDrop").Formula = "CALLTHIS(""AutoNumber.AutoNum"")"
-            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
-                .Cells("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")+SETF(GetRef(PinY),""80 mm/ThePage!PageScale*ThePage!DrawingScale"")+SETF(GetRef(Prop.ShowDesc),""true"")"
-                .Cells("EventDblClick").Formula = "CALLTHIS(""CrossReferenceSensor.AddReferenceSensorFrm"")"
-            Else
-                .Cells("EventDrop").Formula = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
-                .Cells("EventDblClick").Formula = "DOCMD(1312)"
-            End If
+            .Cells("EventDrop").Formula = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
         End With
     Next
 
@@ -156,18 +252,6 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 '            .Cells("EventDrop").Formula = ""
 '            .Cells("EventDblClick").Formula = ""
             .Cells("Actions.AddDB.Invisible").Formula = 1
-            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
-                .Cells("Actions.Celyj.Invisible").Formula = 1
-                .Cells("Actions.Nachalo.Invisible").Formula = 1
-                .Cells("Actions.Seredina.Invisible").Formula = 1
-                .Cells("Actions.Konec.Invisible").Formula = 1
-                .Cells("Actions.Tune.Invisible").Formula = 1
-                .Cells("Actions.ShowDesc.Invisible").Formula = 1
-                .Cells("Actions.AddReference.Invisible").Formula = 1
-                .Cells("Actions.KlemmyProvoda.Invisible").Formula = 1
-                .Cells("Actions.KabeliIzProvodov.Invisible").Formula = 1
-                .Cells("Actions.KabeliSrazu.Invisible").Formula = 1
-            End If
         End With
     Next
 
@@ -179,8 +263,6 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
          Select Case ShapeSAType(vsoShape)
-            Case typeSensor, typeActuator
-                Set shpSensorSVP = vsoShape
             Case typeCableSH
                 colCables.Add vsoShape
          End Select
@@ -196,21 +278,19 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 
     'Разгруппировываем
     vsoGroup.Ungroup
-    
-    'Двигаем тексты под датчик
-    shpSensorSVP.Cells("Controls.DescPos.Y").Formula = "Height*-2"
-    shpSensorSVP.Cells("Controls.TextPos").Formula = "Width*0.5"
-    shpSensorSVP.Cells("Controls.TextPos.Y").Formula = "Height*-0.2"
-    shpSensorSVP.Cells("Controls.FSAPos").Formula = "Width*0.5"
-    shpSensorSVP.Cells("Controls.FSAPos.Y").Formula = "Height*-0.5"
-    shpSensorSVP.Cells("Controls.NamePos").Formula = "Width*0.5"
-    shpSensorSVP.Cells("Controls.NamePos.Y").Formula = "Height*-0.4"
-    shpSensorSVP.CellsSRC(visSectionObject, visRowTextXForm, visXFormLocPinX).FormulaU = "TxtWidth * 0.5"
-    shpSensorSVP.Shapes("FSA").CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0.5"
-    shpSensorSVP.Shapes("Name").CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0.5"
-    
+
     'Ставим на место датчик
-    shpSensorSVP.Cells("PinY").Formula = Datchik
+    For Each vsoShape In ActiveWindow.Selection
+        If ShapeSATypeIs(vsoShape, typeTerm) Then
+            If vsoShape.Cells("PinY").Result(0) < Klemma - vsoShape.Cells("LocPinY").Result(0) Then
+                vsoShape.Cells("PinY").Formula = Datchik - vsoShape.Cells("LocPinY").Result(0)
+            End If
+        End If
+    Next
+    
+    
+    
+'    shpSensorSVP.Cells("PinY").Formula = Datchik
     DoEvents 'На*уя тут этот DoEvents?
     
     For Each shpCable In colCables
@@ -228,17 +308,21 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         shpKabelSVP.Cells("Prop.Dlina").FormulaU = "Pages[" + vsoShape.ContainingPage.NameU + "]!" + vsoShape.NameID + "!Prop.Dlina"
         shpKabelSVP.Cells("Prop.Marka").Formula = "Pages[" + vsoShape.ContainingPage.NameU + "]!" + vsoShape.NameID + "!User.Marka" '"""" & shpCable.Cells("User.Marka").ResultStr(0) & """"
         WireNumber = 0
-        'Ищем вход в датчике соединенный с текущим кабелем
+
         For Each shpWire In shpCable.Shapes
-            For i = 1 To shpWire.Connects.Count
-                If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
-                    Set cellKlemmaShkafa = shpWire.Connects(i).ToCell
-                    NumberKlemmaShkafa = shpWire.Connects(i).ToSheet.Cells("Prop.Number").Result(0)
-                ElseIf ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensorTerm) Then
-                    Set cellKlemmaDatchika = shpWire.Connects(i).ToCell
-                    NumberKlemmaDatchika = shpWire.Connects(i).ToSheet.Cells("User.Number").Result(0)
-                End If
-            Next
+            'Кто выше тот и шкаф :)
+            If shpWire.Connects(1).ToSheet.Cells("PinY").Result(0) > shpWire.Connects(2).ToSheet.Cells("PinY").Result(0) Then
+                Set cellKlemmaShkafa = shpWire.Connects(1).ToCell
+                NumberKlemmaShkafa = shpWire.Connects(1).ToSheet.Cells("Prop.Number").Result(0)
+                Set cellKlemmaDatchika = shpWire.Connects(2).ToCell
+                NumberKlemmaDatchika = shpWire.Connects(2).ToSheet.Cells("Prop.Number").Result(0)
+            Else
+                Set cellKlemmaShkafa = shpWire.Connects(2).ToCell
+                NumberKlemmaShkafa = shpWire.Connects(2).ToSheet.Cells("Prop.Number").Result(0)
+                Set cellKlemmaDatchika = shpWire.Connects(1).ToCell
+                NumberKlemmaDatchika = shpWire.Connects(1).ToSheet.Cells("Prop.Number").Result(0)
+            End If
+
             If WireNumber < 14 Then
                 WireNumber = WireNumber + 1
                 Set cellWireDown = shpKabelSVP.Cells("Controls.W" & WireNumber & "1")
@@ -348,128 +432,11 @@ Function FindSensorFromKabel(shpKabel As Visio.Shape) As Visio.Shape
                         Exit Function
                     End If
                 Next
+                Set FindSensorFromKabel = Nothing
             End If
         End If
     Next
 End Function
-
-Public Sub PageSVPAddKabeliFrm()
-    Load frmPageSVPAddKabeli
-    frmPageSVPAddKabeli.Show
-End Sub
-
-Public Sub AddPagesSVP(NazvanieShkafa As String)
-'------------------------------------------------------------------------------------------------------------
-' Macros        : AddPagesSVP - Создает листы СВП
-                'Заполняет листы СВП датчиками, отсортированными по возрастанию их координаты Х на эл. схеме
-'------------------------------------------------------------------------------------------------------------
-'    Dim NazvanieShkafa As String
-    Dim ThePage As Visio.Shape
-    Dim vsoShapeOnPage As Visio.Shape
-    Dim vsoPage As Visio.Page
-    Dim PageName As String
-    Dim shpElement As Shape
-    Dim Prev As Shape
-    Dim colShpPage As Collection
-    Dim colShpDoc As Collection
-    Dim shpMas() As Shape
-    Dim shpTemp As Shape
-    Dim Index As Integer
-    Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме), или Номер провода кабеля = Порядковому номеру жилы в кабеле
-    Dim ss As String
-    Dim i As Integer, ii As Integer, j As Integer, n As Integer
-    
-    ShinaNumber = 1
-    
-    PastePoint = NachaloVstavki
-    
-    Set ThePage = ActivePage.PageSheet
-    
-    Set colShpDoc = New Collection
-    
-    PageName = cListNameCxema
-    'If ThePage.CellExists("Prop.SA_NazvanieShkafa", 0) Then NazvanieShkafa = ThePage.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)    'Номер схемы. Если одна схема на весь проект, то на всех листах должен быть один номер.
-'    NazvanieShkafa = 4
-
-    'Цикл поиска датчиков и приводов
-    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
-            Set colShpPage = New Collection
-            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
-                If vsoShapeOnPage.CellExists("User.Shkaf", 0) Then
-                    If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
-                        Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
-                            Case typeSensor, typeActuator
-                                'Собираем в коллекцию нужные для сортировки шейпы
-                                colShpPage.Add vsoShapeOnPage
-                            Case Else
-                        End Select
-                    End If
-                End If
-            Next
-            
-            'Сортируем то что нашли на листе
-            
-            'из коллекции передаем в массив для сортировки
-            If colShpPage.Count > 0 Then
-                ReDim shpMas(colShpPage.Count - 1)
-                i = 0
-                For Each shpElement In colShpPage
-                    Set shpMas(i) = shpElement
-                    i = i + 1
-                Next
-            
-                ' "Сортировка вставками" массива шейпов по возрастанию коордонаты Х
-                '--V--Сортируем по возрастанию коордонаты Х
-                UbMas = UBound(shpMas)
-                For j = 1 To UbMas
-                    Set shpTemp = shpMas(j)
-                    i = j
-                    'If shpMas(i) Is Nothing Then Exit Sub
-                    While shpMas(i - 1).Cells("PinX").Result("mm") > shpTemp.Cells("PinX").Result("mm") '>:возрастание, <:убывание
-                        Set shpMas(i) = shpMas(i - 1)
-                        i = i - 1
-                        If i <= 0 Then GoTo ExitWhileX
-                    Wend
-ExitWhileX:                  Set shpMas(i) = shpTemp
-                Next
-                '--Х--Сортировка по возрастанию коордонаты Х
-                
-                'Собираем отсортированные листы в коллекцию документа
-                For i = 0 To UbMas
-                    colShpDoc.Add shpMas(i)
-                Next
-                Set colShpPage = Nothing
-            End If
-        End If
-    Next
-
-    If colShpDoc.Count > 0 Then
-        'Берем первую страницу СВП
-        Set vsoPage = ActivePage 'GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
-'        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
-        SetPageSVP vsoPage
-        'Вставляем на лист СВП найденные и отсортированные датчики/приводы
-        For i = 1 To colShpDoc.Count
-            AddSensorOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
-            'Если лист кончился
-            If PastePoint > vsoPage.PageSheet.Cells("PageWidth").Result(0) - KonecLista Then
-                'Положение текущей страницы
-                Index = vsoPage.Index
-                'Создаем новую страницу СВП
-                Set vsoPage = AddSAPage(cListNameSVP)
-                SetPageSVP vsoPage
-                'Положение новой страницы сразу за текущей
-                vsoPage.Index = Index + 1
-                PastePoint = NachaloVstavki
-                'Вставляем этот же датчик только на следующем листе
-                AddSensorOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
-            End If
-        Next
-    End If
-
-    ActiveWindow.DeselectAll
-End Sub
 
 Sub SetPageSVP(vsoPage As Visio.Page)
     Dim shpShkaf As Visio.Shape

@@ -106,8 +106,8 @@ Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
         If SAType > 1 Then
             Select Case SAType
                 Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
-                    vsoShp.Cells("User.Shkaf").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
-                    vsoShp.Cells("User.Mesto").FormulaU = vsoShape.NameID & "!Prop.SA_NazvanieMesta"
+                    vsoShp.Cells("User.Shkaf").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
+                    vsoShp.Cells("User.Mesto").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieMesta"
             End Select
         End If
     Next
