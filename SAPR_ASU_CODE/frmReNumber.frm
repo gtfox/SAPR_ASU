@@ -25,7 +25,7 @@ Private Sub UserForm_Initialize()
     
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
         NazvanieShkafa = ActivePage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
-        cmbxNazvanieShkafa.text = NazvanieShkafa
+        cmbxNazvanieShkafa = NazvanieShkafa
     End If
     If ActivePage.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         NazvanieFSA = ActivePage.PageSheet.Cells("Prop.SA_NazvanieFSA").ResultStr(0)

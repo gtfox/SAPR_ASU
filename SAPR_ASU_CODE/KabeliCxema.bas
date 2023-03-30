@@ -55,21 +55,20 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                     AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
                     'Число проводов в кабеле
                     shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
-                    'Сохраняем к какому шкафу подключен кабель
-                    If NazvanieShkafa = "" Then 'если на листе несколько шкафов то...
-                        'Определяем к какому шкафу/коробке принадлежит клеммник
-                        '-------------Пока не реализовано----------------------
-                    Else
-                        shpKabel.Cells("User.LinkToBox").Formula = """" & NazvanieShkafa & """"
-                    End If
-'                    'Кабели ссылаются не на датчик, а на конкретные входы в датчике
-'                    shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
-'                    'Связываем входы с кабелями
-'                    shpSensorIO.Cells("User.LinkToCable").FormulaU = """" + shpKabel.ContainingPage.NameU + "/" + shpKabel.NameID + """"
                 End If
             End If
         Next
+        
+        'Сохраняем к какому шкафу подключен кабель
+        If ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeTerm) Then 'клемма шкафа
+            shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+        ElseIf ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+            shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
+        End If
+        shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
+        
     Else
+    
         'Собираем провода со всех входов в датчике
         For Each shpSensorIO In shpSensor.Shapes
             If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
@@ -130,16 +129,13 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
             End If
 
             'Сохраняем к какому шкафу подключен кабель
-            If NazvanieShkafa = "" Then 'если на листе несколько шкафов то...
-                'Определяем к какому шкафу/коробке принадлежит клеммник
-                '-------------Пока не реализовано----------------------
-            Else
-                shpKabel.Cells("User.LinkToBox").Formula = """" & NazvanieShkafa & """"
+            If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeTerm) Then 'клемма шкафа
+                shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+            ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+                shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
             End If
-'            'Кабель ссылается не на датчик, а на конкретный вход в датчике
-'            shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
-'            'Связываем вход с кабелем
-'            shpSensorIO.Cells("User.LinkToCable").FormulaU = """" + shpKabel.ContainingPage.NameU + "/" + shpKabel.NameID + """"
+            shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
+        
         End If
     End If
     Application.EventsEnabled = -1
@@ -276,10 +272,7 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
     Dim i As Integer
 
     PinY = shpProvod.Cells("PinY").Result(0)
-    
-'    NazvanieShkafa = shpSensor.Cells("User.Shkaf").ResultStr(0)
-    
-'    MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
+
     Set colWiresSelected = New Collection
     Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("Kabel")
     
@@ -314,8 +307,7 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
         MsgBox "Выделите минимум 2 провода для создания кабеля", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
         Exit Sub
     End If
-    
-    
+
     'Находим позицию вставки шейпа кабеля
     MinNumber = 1.79769313486231E+308
     For i = 1 To colWiresSelected.Count
@@ -324,32 +316,26 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
         If PinX > MaxNumber Then MaxNumber = PinX
     Next
 
-            'Вставляем шейп кабеля
-            Set shpKabel = shpProvod.ContainingPage.Drop(vsoMaster, PinX, PinY)
-            'Добавляем подключенные провода в группу с кабелем
-            AddToGroupCable shpKabel, shpKabel.ContainingPage, colWiresSelected
-            'Число проводов в кабеле
-            shpKabel.Cells("Prop.WireCount").FormulaU = colWiresSelected.Count
-            shpKabel.Cells("Width").Formula = MaxNumber - MinNumber + DyKabel
-            
+    'Вставляем шейп кабеля
+    Set shpKabel = shpProvod.ContainingPage.Drop(vsoMaster, PinX, PinY)
+    'Добавляем подключенные провода в группу с кабелем
+    AddToGroupCable shpKabel, shpKabel.ContainingPage, colWiresSelected
+    'Число проводов в кабеле
+    shpKabel.Cells("Prop.WireCount").FormulaU = colWiresSelected.Count
+    shpKabel.Cells("Width").Formula = MaxNumber - MinNumber + DyKabel
             
     Set vsoSelection = ActiveWindow.Selection
     vsoSelection.Select shpKabel, visSelect
     vsoSelection.Move 0#, Abs(shpKabel.Cells("PinY").Result(0) - PinY)
 
-            
-
-            'Сохраняем к какому шкафу подключен кабель
-'            If NazvanieShkafa = "" Then 'если на листе несколько шкафов то...
-'                'Определяем к какому шкафу/коробке принадлежит клеммник
-'                '-------------Пока не реализовано----------------------
-'            Else
-'                shpKabel.Cells("User.LinkToBox").Formula = """" & NazvanieShkafa & """"
-'            End If
-'            'Кабель ссылается не на датчик, а на конкретный вход в датчике
-'            shpKabel.Cells("User.LinkToSensor").FormulaU = """" + shpSensorIO.ContainingPage.NameU + "/" + shpSensorIO.NameID + """"
-'            'Связываем вход с кабелем
-'            shpSensorIO.Cells("User.LinkToCable").FormulaU = """" + shpKabel.ContainingPage.NameU + "/" + shpKabel.NameID + """"
+    'Сохраняем к какому шкафу подключен кабель
+    If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeTerm) Then 'клемма шкафа
+        shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
+    ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+        shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
+        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+    End If
 
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
