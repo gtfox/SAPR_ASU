@@ -30,12 +30,13 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
     Dim vsoShapeOnPage As Visio.Shape
     Dim vsoPage As Visio.Page
     Dim PageName As String
-    Dim shpElement As Shape
-    Dim Prev As Shape
+    Dim shpElement As Visio.Shape
+    Dim Prev As Visio.Shape
     Dim colShpPage As Collection
     Dim colShpDoc As Collection
-    Dim shpMas() As Shape
-    Dim shpTemp As Shape
+    Dim shpMas() As Visio.Shape
+    Dim shpTemp As Visio.Shape
+    Dim shpShkafUp As Visio.Shape
     Dim Index As Integer
     Dim ShinaNumber As Boolean 'Нумерация проводов кабеля по типу ШИНЫ(Номер=Клемме на другом конце), или Номер провода кабеля = Порядковому номеру жилы в кабеле
     Dim ss As String
@@ -56,8 +57,8 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
         If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
             Set colShpPage = New Collection
             For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
-                If vsoShapeOnPage.CellExists("User.Shkaf", 0) Then
-                    If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
+                If vsoShapeOnPage.CellExists("User.LinkToBox", 0) Then
+                    If GetNazvanie(vsoShapeOnPage.Cells("User.LinkToBox").ResultStr(0), 2) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
                         Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
                             Case typeCableSH
                                 'Собираем в коллекцию нужные для сортировки шейпы
@@ -108,7 +109,7 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
         'Берем первую страницу СВП
         Set vsoPage = ActivePage 'GetSAPageExist(cListNameSVP) 'ActiveDocument.Pages(cListNameSVP)
 '        If vsoPage Is Nothing Then Set vsoPage = AddSAPage(cListNameSVP)
-        SetPageSVP vsoPage
+        Set shpShkafUp = GetShkafUp(vsoPage)
         'Вставляем на лист СВП найденные и отсортированные датчики/приводы
         For i = 1 To colShpDoc.Count
             AddCableOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
@@ -118,7 +119,7 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
                 Index = vsoPage.Index
                 'Создаем новую страницу СВП
                 Set vsoPage = AddSAPage(cListNameSVP)
-                SetPageSVP vsoPage
+                Set shpShkafUp = GetShkafUp(vsoPage)
                 'Положение новой страницы сразу за текущей
                 vsoPage.Index = Index + 1
                 PastePoint = NachaloVstavki
@@ -126,7 +127,10 @@ ExitWhileX:                  Set shpMas(i) = shpTemp
                 AddCableOnSVP colShpDoc.Item(i), vsoPage, ShinaNumber
             End If
         Next
+        shpShkafUp.Cells("Prop.SA_NazvanieShkafa").Formula = """" & GetNazvanie(colShpDoc.Item(1).Cells("User.LinkToBox.Prompt").ResultStr(0), 2) & """"
+        shpShkafUp.Cells("Prop.SA_NazvanieMesta").Formula = """" & GetNazvanie(colShpDoc.Item(1).Cells("User.LinkToBox.Prompt").ResultStr(0), 3) & """"
     End If
+
     ResetLocalShkafMesto ActivePage
     ActiveWindow.DeselectAll
 End Sub
@@ -708,7 +712,7 @@ Function FindSensorFromKabel(shpKabel As Visio.Shape) As Visio.Shape
     Next
 End Function
 
-Sub SetPageSVP(vsoPage As Visio.Page)
+Function GetShkafUp(vsoPage As Visio.Page) As Visio.Shape
     Dim shpShkaf As Visio.Shape
     'Подвал
     vsoPage.Drop Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.ItemU("PodvalCxemy"), 0, 0
@@ -743,7 +747,8 @@ Sub SetPageSVP(vsoPage As Visio.Page)
     Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).Formula = NachaloVstavki + Interval
     Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Klemma - 5 / 25.4
     Application.ActiveWindow.Selection(1).Cells("Controls.Line").GlueTo shpShkaf.Cells("Connections.X1")
-End Sub
+    Set GetShkafUp = shpShkaf
+End Function
 
 Function GetShkafDown(vsoGroup As Visio.Shape) As Visio.Shape
     Dim shpShkaf As Visio.Shape

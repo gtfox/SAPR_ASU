@@ -34,6 +34,7 @@ End Sub
 
 Private Sub CommandButton2_Click()
     Application.EventsEnabled = -1
+    Application.AlertResponse = 0
     ThisDocument.InitEvent
     Unload Me
 End Sub

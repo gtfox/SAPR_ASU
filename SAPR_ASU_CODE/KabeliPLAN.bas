@@ -494,7 +494,7 @@ Sub RouteCable(shpSensorFSA As Visio.Shape)
             'Шкаф к которому подключен кабель (Предполагается что 1 датчик подключен к 1 шкафу (даже многокабельный)
         '    BoxNumber = colCables.Item(1).Cells("User.LinkToBox").Result(0)
         '    NazvanieShkafa = colCables.Item(1).ContainingPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
-            NazvanieShkafa = colCables.Item(1).Cells("User.LinkToBox").ResultStr(0)
+            NazvanieShkafa = GetNazvanie(colCables.Item(1).Cells("User.LinkToBox").ResultStr(0), 2)
             
             'Номер точки начала машрута
             StartRoute = clsShapePoint.PointNumber

@@ -168,7 +168,7 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
     Set colElementyShemy = New Collection
     Set colShkafyMesta = New Collection
     
-    If vsoObject.Type = visTypePage Then
+    If 1 Then 'vsoObject.Type = visTypePage Then
         'Заполняем коллекции эелементов и шкафов для всего проекта
         For Each vsoPage In ActiveDocument.Pages
             If vsoPage.name Like cListNameCxema & "*" Then
@@ -206,10 +206,16 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
         SetLocalShkafMesto vsoShp
     Next
     
-    ActiveWindow.SelectAll
-    Load frmReNumber
-    frmReNumber.ReNumberShemy
+'    ActiveWindow.SelectAll
+'    Load frmReNumber
+'    frmReNumber.ReNumberShemy
+'    ActiveWindow.DeselectAll
+
     ActiveWindow.DeselectAll
+    Load frmReNumber
+    frmReNumber.obVseCx = True
+    frmReNumber.obVseTipObCx = True
+    frmReNumber.ReNumberShemy
     
     UpdateNazvanieShkafa
 End Sub
@@ -238,203 +244,13 @@ Public Sub ObjInfo()
     End If
 End Sub
 
-Private Sub Tune_Stencils() 'переделка шаблонов электры под гост (перед выполнением макроса надо окрыть шаблоны и сделать их редактируемыми)
-
-    Dim appdoc As Document
-    Dim appcol As Collection
-    Set appcol = New Collection
-    Dim mast As Master
-    Dim ss As String
-        
-    'выбираем нужные шаблоны для измениния
-    For Each appdoc In Application.Documents
-        If (appdoc.Creator = "Electra" Or appdoc.Creator = "Pneumata" Or appdoc.Creator = "Hydraula") And Not (appdoc.Title = "Electra" Or appdoc.Title = "Layout" Or appdoc.Title = "Layout 3D" Or appdoc.Title = "Reports" Or appdoc.Title = "IEC Parts" Or appdoc.Title = "Title Blocks") Then
-            appcol.Add appdoc
-        End If
-    Next
-    
-    For Each appdoc In appcol
-        For Each mast In appdoc.Masters
-            If InStr(1, mast.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageScale).FormulaU, "in") Then 'не трогаем элемент если он в мм (значит он уже был изменён)
-                
-                'масштаб под гост
-                mast.Shapes(1).Cells("Width").FormulaForceU = "guard(" & str(mast.Shapes(1).Cells("Width").Result(visInches) * 1.181102362) & ")"
-                mast.Shapes(1).Cells("Height").FormulaForceU = "guard(" & str(mast.Shapes(1).Cells("Height").Result(visInches) * 1.181102362) & ")"
-                
-                If mast.Shapes(1).Shapes.Count > 0 Then
-                    'скрываем описание
-                    On Error Resume Next
-                    mast.Shapes(1).Shapes("Desc").CellsU("HideText").FormulaU = "TRUE"
-                    'поворот фигур
-                    mast.Shapes(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormAngle).FormulaU = "=IF(Actions.Row_2.Action,-90 deg,0 deg)"
-                    mast.Shapes(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormFlipX).FormulaU = 0
-                    'только группа
-                    mast.Shapes(1).CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "0"
-                End If
-                
-                'страница в милиметрах чтобы электра не запускала конвертацию in->mm
-                mast.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageScale).FormulaU = "1 mm"
-                mast.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = "1 mm"
-                
-            End If
-        Next mast
-        appdoc.Save
-    Next appdoc
-
-End Sub
-
-Private Sub Tune_Stencil()
-    Dim mast As Master
-    Dim vsoShape As Visio.Shape
-    
-'    For Each mast In Application.Documents("SAPR_ASU_VID.vss").Masters
-''        ActivePage.Drop mast, 0, 0
-'
-'        mast.Shapes(1).Cells("TxtWidth").FormulaForceU = "=GUARD(TEXTWIDTH(TheText)/ThePage!PageScale*ThePage!DrawingScale)"
-'        mast.Shapes(1).Cells("TxtHeight").FormulaForceU = "=GUARD(TEXTHEIGHT(TheText,TxtWidth)/ThePage!PageScale*ThePage!DrawingScale)"
-''        For Each vsoShape In mast.Shapes(1).Shapes
-''            vsoShape.Cells("TxtWidth").FormulaForceU = "=GUARD(TEXTWIDTH(TheText)/ThePage!PageScale*ThePage!DrawingScale)"
-''            vsoShape.Cells("TxtHeight").FormulaForceU = "=GUARD(TEXTHEIGHT(TheText,TxtWidth)/ThePage!PageScale*ThePage!DrawingScale)"
-''        Next
-'    Next
-    
-    For Each mast In Application.Documents("SAPR_ASU_VID.vss").Masters
-'        mast.Shapes(1).Cells("TxtLocPinY").FormulaForceU = "=TxtHeight*(1+0.2*(ThePage!PageScale/ThePage!DrawingScale))"
-    Next
+Sub Ungroup()
+    Application.AlertResponse = 1
+    ActiveWindow.Selection.Ungroup
+    Application.AlertResponse = 0
 End Sub
 
 
-'-----------------------------Переделка таблицы спецификации под универсальную---------------------------------
-Sub TuneTable_1()
-    Dim shpRow As Visio.Shape
-    Dim shpCel As Visio.Shape
-    For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
-        shpRow.Shapes(i & "." & 1).Cells("Width").FormulaU = "=Sheet.65!Width"
-        shpRow.Shapes(i & "." & 1).Cells("PinX").FormulaU = "=Sheet.65!PinX"
-        shpRow.Shapes(i & "." & 2).Cells("Width").FormulaU = "=Sheet.57!Width"
-        shpRow.Shapes(i & "." & 2).Cells("PinX").FormulaU = "=Sheet.57!PinX"
-        shpRow.Shapes(i & "." & 3).Cells("Width").FormulaU = "=Sheet.64!Width"
-        shpRow.Shapes(i & "." & 3).Cells("PinX").FormulaU = "=Sheet.64!PinX"
-        shpRow.Shapes(i & "." & 4).Cells("Width").FormulaU = "=Sheet.62!Width"
-        shpRow.Shapes(i & "." & 4).Cells("PinX").FormulaU = "=Sheet.62!PinX"
-        shpRow.Shapes(i & "." & 5).Cells("Width").FormulaU = "=Sheet.61!Width"
-        shpRow.Shapes(i & "." & 5).Cells("PinX").FormulaU = "=Sheet.61!PinX"
-        shpRow.Shapes(i & "." & 6).Cells("Width").FormulaU = "=Sheet.60!Width"
-        shpRow.Shapes(i & "." & 6).Cells("PinX").FormulaU = "=Sheet.60!PinX"
-        shpRow.Shapes(i & "." & 7).Cells("Width").FormulaU = "=Sheet.63!Width"
-        shpRow.Shapes(i & "." & 7).Cells("PinX").FormulaU = "=Sheet.63!PinX"
-        shpRow.Shapes(i & "." & 8).Cells("Width").FormulaU = "=Sheet.59!Width"
-        shpRow.Shapes(i & "." & 8).Cells("PinX").FormulaU = "=Sheet.59!PinX"
-        shpRow.Shapes(i & "." & 9).Cells("Width").FormulaU = "=Sheet.58!Width"
-        shpRow.Shapes(i & "." & 9).Cells("PinX").FormulaU = "=Sheet.58!PinX"
-        shpRow.Shapes(i & "." & 10).Cells("Width").FormulaU = "=Sheet.367!Width"
-        shpRow.Shapes(i & "." & 10).Cells("PinX").FormulaU = "=Sheet.367!PinX"
-        For j = 1 To 10
-            Set shpCel = shpRow.Shapes(i & "." & j)
-            shpCel.Cells("PinY").FormulaU = shpRow.NameID & "!Height*0"
-            shpCel.Cells("LocPinX").FormulaU = "=Width*0"
-            shpCel.Cells("LocPinY").FormulaU = "=Height*0"
-        Next
-    Next
-End Sub
-
-Sub TuneTable_2()
-    Dim shpRow As Visio.Shape
-    Dim shpCel As Visio.Shape
-    For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
-        shpRow.Cells("Height").FormulaForceU = Replace(shpRow.Cells("Height").FormulaU, "))", "," & shpRow.Shapes(i & ".10").NameID & "!User.Row_1))")
-    Next
-End Sub
-
-Sub TuneTable_3()
-    Dim shpCel As Visio.Shape
-    For i = 1 To 10
-        If i < 10 Then
-            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
-        Else
-            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
-        End If
-        With shpCel
-            .AddSection visSectionFirstComponent
-            .AddRow visSectionFirstComponent, visRowComponent, visTagComponent
-            .AddRow visSectionFirstComponent, visRowVertex, visTagLineTo
-            .AddRow visSectionFirstComponent, visRowVertex, visTagMoveTo
-            .CellsSRC(visSectionFirstComponent, 0, 0).FormulaForceU = "TRUE"
-            .CellsSRC(visSectionFirstComponent, 0, 1).FormulaForceU = "FALSE"
-            .CellsSRC(visSectionFirstComponent, 0, 2).FormulaForceU = "FALSE"
-            .CellsSRC(visSectionFirstComponent, 0, 3).FormulaForceU = "FALSE"
-            .CellsSRC(visSectionFirstComponent, 1, 0).FormulaU = "Width*0"
-            .CellsSRC(visSectionFirstComponent, 1, 1).FormulaU = "Height*0"
-            .CellsSRC(visSectionFirstComponent, 2, 0).FormulaU = "Width*1"
-            .CellsSRC(visSectionFirstComponent, 2, 1).FormulaU = "Height*0"
-            .AddRow visSectionFirstComponent, 3, visTagLineTo
-            .CellsSRC(visSectionFirstComponent, 3, 0).FormulaU = "Width*1"
-            .CellsSRC(visSectionFirstComponent, 3, 1).FormulaU = "Height * 1"
-            .AddRow visSectionFirstComponent, 4, visTagLineTo
-            .CellsSRC(visSectionFirstComponent, 4, 0).FormulaU = "Width*0"
-            .CellsSRC(visSectionFirstComponent, 4, 1).FormulaU = "Height*1"
-            .AddRow visSectionFirstComponent, 5, visTagLineTo
-            .CellsSRC(visSectionFirstComponent, 5, 0).FormulaU = "Width*0"
-            .CellsSRC(visSectionFirstComponent, 5, 1).FormulaU = "Geometry1.Y1"
-        End With
-    Next
-End Sub
-
-Sub TuneTable_4()
-    Dim shpCel As Visio.Shape
-    For i = 1 To 10
-        If i < 10 Then
-            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
-        Else
-            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
-        End If
-        shpCel.Cells("Width").FormulaU = "=Sheet.47!Width*Sheet.45!Prop.S" & i & "/Sheet.45!Prop.Width"
-    Next
-End Sub
-
-Sub TuneTable_5() 'поля
-    Dim shpRow As Visio.Shape
-    For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
-        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "10 pt"
-        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "10 pt"
-        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "5 pt"
-        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "1 pt"
-    Next
-End Sub
-    
-Sub TuneTable_6() 'очистка таблицы
-    Dim shpRow As Visio.Shape
-    Dim shpCel As Visio.Shape
-    For i = 1 To 30
-        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
-        For j = 1 To 10
-            Set shpCel = shpRow.Shapes(i & "." & j)
-            shpCel.text = " "
-        Next
-    Next
-End Sub
-
-'-----------------------------------------------------------------------------------------------
-
-'Преобразует тип данных артикула в избранном к типу текст
-Sub ConvertArticulIzbrannoe()
-    Dim lLastRow As Long
-    Dim UserRange As Excel.Range
-    Set oExcelAppIzbrannoe = CreateObject("Excel.Application")
-    sSAPath = Visio.ActiveDocument.path
-    Set wbExcelIzbrannoe = oExcelAppIzbrannoe.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:A" & lLastRow)
-    ExcelConvertToString UserRange
-    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNabory).Cells(wbExcelIzbrannoe.Sheets(ExcelNabory).Rows.Count, 1).End(xlUp).Row
-    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNabory).Range("A2:A" & lLastRow)
-    ExcelConvertToString UserRange
-    wbExcelIzbrannoe.Close savechanges:=True
-    oExcelAppIzbrannoe.Quit
-End Sub
 
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ExtractOboz - Функция определения неизменяемой части обозначения
@@ -461,76 +277,6 @@ AddChar:
     ObozF = ObozF + Mid(Oboz, i, 1)
 Return
 End Function
-
-Public Sub dl()
-Dim sel As Selection
-Dim snap1 As Shape
-Set sel = ActiveWindow.Selection
-If sel.Count <> 1 Then ' если не выделено ничего или больше одного будет сообщение
-        MsgBox "Нужно выделить лишь одну линию!"
-Exit Sub
-End If
-Set snap1 = sel.Item(1)
-Dim dl As Double
-dl = CableLength(snap1)
-MsgBox ("длина линии " & dl & " м")
-End Sub
-
-Sub UngroupThis(shpObj As Visio.Shape)
-'Автоматическая разгруппировка фигур при вбросе
-'http://visguy.com/vgforum/index.php?topic=26.0
-'CALLTHIS("UngroupThis")
-'DOCMD(1052) разгруппирует фигуру
-On Error GoTo A
-'Respond OK to all messages
-Application.AlertResponse = 1
-'Ungroup the shape
-shpObj.Ungroup
-A:
-'Stop auto responding to messages
-'When macro fails settings will be restored to Visio default
-Application.AlertResponse = 0
-End Sub
-
-Sub test_vss()
-Dim vsoShape As Visio.Master
-For Each vsoShape In Application.Documents.Item("SAPR_ASU_vid.vss").Masters
-q = vsoShape.name
-w = vsoShape.NameU
-'ActivePage.Drop vsoShape, 0, 0
-'vsoShape.Delete
-'vsoShape.Shapes("DIN").CellsU("FillPattern").Formula = "USE(""Dinrejka"")"
-Next
-End Sub
-
-
-Sub edit_vss()
-Dim vsoMaster As Visio.Master
-Dim vsoShape As Visio.Shape
-Dim nameShape As String
-nameShape = "PanelMAX"
-'nameShape = "Panel"
-'For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters(nameShape).Shapes(nameShape).Shapes
-For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters
-On Error GoTo err1
-Set vsoShape = vsoMaster.Shapes(vsoMaster.name)
-'q = vsoShape.Name
-'w = vsoShape.NameU
-'ActivePage.Drop vsoShape, 0, 0
-'If (vsoShape.Name Like "DIN*") Or (vsoShape.Name Like "KabKan*") Then
-'vsoShape.CellsU("Prop.Dlina").FormulaU = "FORMAT(Width,""0u"")"
-n = 3
-q = vsoShape.CellsSRC(visSectionAction, n, visActionMenu).ResultStr(0)
-vsoShape.CellsSRC(visSectionAction, n, visActionMenu).RowNameU = "AddDB"
-'End If
-err1:
-Set vsoMaster = Nothing
-Set vsoShape = Nothing
-q = ""
-Next
-End Sub
-
-
 
 
 '    ReDim arrRowValue(10, 1)

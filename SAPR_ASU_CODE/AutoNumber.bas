@@ -44,57 +44,59 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     Dim vsoPage As Visio.Page
     Dim PageName As String
     
-    Set ThePage = ActivePage.PageSheet
-    NazvanieShkafa = vsoShape.Cells("User.Shkaf").ResultStr(0)
-    PageName = cListNameCxema  'Имена листов где возможна нумерация
-    'Узнаем тип и буквенное обозначение элемента, который вставили на схему
-    UserType = ShapeSAType(vsoShape)
-    If vsoShape.CellExists("Prop.SymName", 0) Then SymName = vsoShape.Cells("Prop.SymName").ResultStr(0)
+    If vsoShape.Cells("Prop.AutoNum").Result(0) = 0 Then    'Не перенумеровываем если автонумерация отключена в шейпе
     
-    'Чистим номер, чтобы он не участвовал в поиске
-    vsoShape.Cells("Prop.Number").FormulaU = 0
+        Set ThePage = ActivePage.PageSheet
+        NazvanieShkafa = vsoShape.Cells("User.Shkaf").ResultStr(0)
+        PageName = cListNameCxema  'Имена листов где возможна нумерация
+        'Узнаем тип и буквенное обозначение элемента, который вставили на схему
+        UserType = ShapeSAType(vsoShape)
+        If vsoShape.CellExists("Prop.SymName", 0) Then SymName = vsoShape.Cells("Prop.SymName").ResultStr(0)
+        
+        'Чистим номер, чтобы он не участвовал в поиске
+        vsoShape.Cells("Prop.Number").FormulaU = 0
+        
+        'Чистим максимум
+        MaxNumber = 0
     
-    'Чистим максимум
-    MaxNumber = 0
-
-    'Цикл поиска максимального номера существующих элементов схемы
-    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
-        If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
-'            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
-                For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
-                    If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
-                        If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
-                            If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then    'Берём шейпы из нашего шкафа
-                                Select Case UserType
-                                    Case typeWire 'Провода
-                                        FindMAX vsoShapeOnPage
-                                    Case typeCableSH 'Кабели на схеме электрической
-                                        FindMAX vsoShapeOnPage
-                                End Select
-                                If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+        'Цикл поиска максимального номера существующих элементов схемы
+        For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+            If Left(vsoPage.name, Len(PageName)) = PageName Then    'Берем те, что содержат "Схема" в имени
+    '            If vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then    'Берем все шкафы с именем того, на который вставляем элемент
+                    For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы в найденных листах
+                        If ShapeSATypeIs(vsoShapeOnPage, UserType) Then     'Если в шейпе есть тип, то проверяем чтобы совпадал с нашим (который вставили)
+                            If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
+                                If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then    'Берём шейпы из нашего шкафа
                                     Select Case UserType
-                                        Case typeTerm 'Клеммы
-                                            If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
-                                                FindMAX vsoShapeOnPage
-                                            End If
-                                        Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                        Case typeWire 'Провода
+                                            FindMAX vsoShapeOnPage
+                                        Case typeCableSH 'Кабели на схеме электрической
                                             FindMAX vsoShapeOnPage
                                     End Select
+                                    If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
+                                        Select Case UserType
+                                            Case typeTerm 'Клеммы
+                                                If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
+                                                    FindMAX vsoShapeOnPage
+                                                End If
+                                            Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                                FindMAX vsoShapeOnPage
+                                        End Select
+                                    End If
                                 End If
                             End If
                         End If
-                    End If
-                Next
-'            End If
-        End If
-    Next
-
-    'Во вставленный элемент заносим максимальный найденный номер + 1
-    vsoShape.Cells("Prop.Number").FormulaU = MaxNumber + 1
+                    Next
+    '            End If
+            End If
+        Next
     
-    'Активация событий. Они чета сомодезактивируются xD
-    'Set vsoPagesEvent = ActiveDocument.Pages
-    
+        'Во вставленный элемент заносим максимальный найденный номер + 1
+        vsoShape.Cells("Prop.Number").FormulaU = MaxNumber + 1
+        
+        'Активация событий. Они чета сомодезактивируются xD
+        'Set vsoPagesEvent = ActiveDocument.Pages
+    End If
 End Sub
 
 'Ищем максимальное значение номера элемента

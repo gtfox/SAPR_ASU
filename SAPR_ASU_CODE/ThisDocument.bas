@@ -254,9 +254,11 @@ End Sub
 'Таскаем фируру за мышкой
 Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
     If Not MouseClick Then
-        On Error Resume Next
-        vsoShapePaste.Cells("PinX") = X
-        vsoShapePaste.Cells("PinY") = Y
+        If vsoShapePaste.OneD <> -1 Then
+            On Error Resume Next
+            vsoShapePaste.Cells("PinX") = X
+            vsoShapePaste.Cells("PinY") = Y
+        End If
     End If
 End Sub
 

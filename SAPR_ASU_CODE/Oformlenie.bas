@@ -495,13 +495,15 @@ Sub AddSAPageNext()
     vsoPageNew.PageSheet.Cells("PageHeight").Formula = vsoPageSource.PageSheet.Cells("PageHeight").Formula
     vsoPageNew.PageSheet.Cells("Paperkind").Formula = vsoPageSource.PageSheet.Cells("Paperkind").Formula
     vsoPageNew.PageSheet.Cells("PrintPageOrientation").Formula = vsoPageSource.PageSheet.Cells("PrintPageOrientation").Formula
-    If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
-        SetNazvanieShkafa vsoPageNew.PageSheet
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
-        vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula
-        vsoPageNew.Drop Setka, 0, 0
-        UpdateNazvanieShkafa
+    If vsoPageSource.name Like cListNameCxema & "*" Then
+        If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieShkafa", 0) Then
+            SetNazvanieShkafa vsoPageNew.PageSheet
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula
+            vsoPageNew.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula = vsoPageSource.PageSheet.Cells("Prop.SA_NazvanieMesta").Formula
+            vsoPageNew.Drop Setka, 0, 0
+            UpdateNazvanieShkafa
+        End If
     End If
     If vsoPageSource.PageSheet.CellExists("Prop.SA_NazvanieFSA", 0) Then
         SetNazvanieFSA vsoPageNew.PageSheet
@@ -718,7 +720,7 @@ Sub SetPageAction(vsoPageNew As Visio.Page)
             With vsoPageNew.PageSheet
                 .AddSection visSectionAction
                 .AddRow visSectionAction, visRowLast, visTagDefault
-                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Обновить """"Шкафы/Места"""" в документе"""
+                .CellsSRC(visSectionAction, visRowLast, visActionMenu).FormulaForceU = """Обновить """"Шкафы/Места"""" + Перенумерация"""
                 .CellsSRC(visSectionAction, visRowLast, visActionAction).FormulaForceU = "CALLTHIS(""MISC.ResetLocalShkafMesto"")"
                 .CellsSRC(visSectionAction, visRowLast, visActionButtonFace).FormulaForceU = "688"
             End With
@@ -1052,4 +1054,138 @@ End Sub
     ActiveWindow.Page = ActiveDocument.Pages.Item(ListName)
     ActiveWindow.SelectAll
     ActiveWindow.Selection.Delete
+End Sub
+
+
+
+'-----------------------------Переделка таблицы спецификации под универсальную---------------------------------
+Sub TuneTable_1()
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        shpRow.Shapes(i & "." & 1).Cells("Width").FormulaU = "=Sheet.65!Width"
+        shpRow.Shapes(i & "." & 1).Cells("PinX").FormulaU = "=Sheet.65!PinX"
+        shpRow.Shapes(i & "." & 2).Cells("Width").FormulaU = "=Sheet.57!Width"
+        shpRow.Shapes(i & "." & 2).Cells("PinX").FormulaU = "=Sheet.57!PinX"
+        shpRow.Shapes(i & "." & 3).Cells("Width").FormulaU = "=Sheet.64!Width"
+        shpRow.Shapes(i & "." & 3).Cells("PinX").FormulaU = "=Sheet.64!PinX"
+        shpRow.Shapes(i & "." & 4).Cells("Width").FormulaU = "=Sheet.62!Width"
+        shpRow.Shapes(i & "." & 4).Cells("PinX").FormulaU = "=Sheet.62!PinX"
+        shpRow.Shapes(i & "." & 5).Cells("Width").FormulaU = "=Sheet.61!Width"
+        shpRow.Shapes(i & "." & 5).Cells("PinX").FormulaU = "=Sheet.61!PinX"
+        shpRow.Shapes(i & "." & 6).Cells("Width").FormulaU = "=Sheet.60!Width"
+        shpRow.Shapes(i & "." & 6).Cells("PinX").FormulaU = "=Sheet.60!PinX"
+        shpRow.Shapes(i & "." & 7).Cells("Width").FormulaU = "=Sheet.63!Width"
+        shpRow.Shapes(i & "." & 7).Cells("PinX").FormulaU = "=Sheet.63!PinX"
+        shpRow.Shapes(i & "." & 8).Cells("Width").FormulaU = "=Sheet.59!Width"
+        shpRow.Shapes(i & "." & 8).Cells("PinX").FormulaU = "=Sheet.59!PinX"
+        shpRow.Shapes(i & "." & 9).Cells("Width").FormulaU = "=Sheet.58!Width"
+        shpRow.Shapes(i & "." & 9).Cells("PinX").FormulaU = "=Sheet.58!PinX"
+        shpRow.Shapes(i & "." & 10).Cells("Width").FormulaU = "=Sheet.367!Width"
+        shpRow.Shapes(i & "." & 10).Cells("PinX").FormulaU = "=Sheet.367!PinX"
+        For j = 1 To 10
+            Set shpCel = shpRow.Shapes(i & "." & j)
+            shpCel.Cells("PinY").FormulaU = shpRow.NameID & "!Height*0"
+            shpCel.Cells("LocPinX").FormulaU = "=Width*0"
+            shpCel.Cells("LocPinY").FormulaU = "=Height*0"
+        Next
+    Next
+End Sub
+
+Sub TuneTable_2()
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        shpRow.Cells("Height").FormulaForceU = Replace(shpRow.Cells("Height").FormulaU, "))", "," & shpRow.Shapes(i & ".10").NameID & "!User.Row_1))")
+    Next
+End Sub
+
+Sub TuneTable_3()
+    Dim shpCel As Visio.Shape
+    For i = 1 To 10
+        If i < 10 Then
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
+        Else
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
+        End If
+        With shpCel
+            .AddSection visSectionFirstComponent
+            .AddRow visSectionFirstComponent, visRowComponent, visTagComponent
+            .AddRow visSectionFirstComponent, visRowVertex, visTagLineTo
+            .AddRow visSectionFirstComponent, visRowVertex, visTagMoveTo
+            .CellsSRC(visSectionFirstComponent, 0, 0).FormulaForceU = "TRUE"
+            .CellsSRC(visSectionFirstComponent, 0, 1).FormulaForceU = "FALSE"
+            .CellsSRC(visSectionFirstComponent, 0, 2).FormulaForceU = "FALSE"
+            .CellsSRC(visSectionFirstComponent, 0, 3).FormulaForceU = "FALSE"
+            .CellsSRC(visSectionFirstComponent, 1, 0).FormulaU = "Width*0"
+            .CellsSRC(visSectionFirstComponent, 1, 1).FormulaU = "Height*0"
+            .CellsSRC(visSectionFirstComponent, 2, 0).FormulaU = "Width*1"
+            .CellsSRC(visSectionFirstComponent, 2, 1).FormulaU = "Height*0"
+            .AddRow visSectionFirstComponent, 3, visTagLineTo
+            .CellsSRC(visSectionFirstComponent, 3, 0).FormulaU = "Width*1"
+            .CellsSRC(visSectionFirstComponent, 3, 1).FormulaU = "Height * 1"
+            .AddRow visSectionFirstComponent, 4, visTagLineTo
+            .CellsSRC(visSectionFirstComponent, 4, 0).FormulaU = "Width*0"
+            .CellsSRC(visSectionFirstComponent, 4, 1).FormulaU = "Height*1"
+            .AddRow visSectionFirstComponent, 5, visTagLineTo
+            .CellsSRC(visSectionFirstComponent, 5, 0).FormulaU = "Width*0"
+            .CellsSRC(visSectionFirstComponent, 5, 1).FormulaU = "Geometry1.Y1"
+        End With
+    Next
+End Sub
+
+Sub TuneTable_4()
+    Dim shpCel As Visio.Shape
+    For i = 1 To 10
+        If i < 10 Then
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("0" & i)
+        Else
+            Set shpCel = ActivePage.Shapes("СП").Shapes("Head").Shapes("10")
+        End If
+        shpCel.Cells("Width").FormulaU = "=Sheet.47!Width*Sheet.45!Prop.S" & i & "/Sheet.45!Prop.Width"
+    Next
+End Sub
+
+Sub TuneTable_5() 'поля
+    Dim shpRow As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "10 pt"
+        shpRow.Shapes(i & "." & 2).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "10 pt"
+        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkLeftMargin).FormulaU = "5 pt"
+        shpRow.Shapes(i & "." & 4).CellsSRC(visSectionObject, visRowText, visTxtBlkRightMargin).FormulaU = "1 pt"
+    Next
+End Sub
+    
+Sub TuneTable_6() 'очистка таблицы
+    Dim shpRow As Visio.Shape
+    Dim shpCel As Visio.Shape
+    For i = 1 To 30
+        Set shpRow = ActivePage.Shapes("СП").Shapes("row" & i)
+        For j = 1 To 10
+            Set shpCel = shpRow.Shapes(i & "." & j)
+            shpCel.text = " "
+        Next
+    Next
+End Sub
+
+'-----------------------------------------------------------------------------------------------
+
+'Преобразует тип данных артикула в избранном к типу текст
+Sub ConvertArticulIzbrannoe()
+    Dim lLastRow As Long
+    Dim UserRange As Excel.Range
+    Set oExcelAppIzbrannoe = CreateObject("Excel.Application")
+    sSAPath = Visio.ActiveDocument.path
+    Set wbExcelIzbrannoe = oExcelAppIzbrannoe.Workbooks.Open(sSAPath & DBNameIzbrannoeExcel)
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Cells(wbExcelIzbrannoe.Sheets(ExcelIzbrannoe).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelIzbrannoe).Range("A2:A" & lLastRow)
+    ExcelConvertToString UserRange
+    lLastRow = wbExcelIzbrannoe.Sheets(ExcelNabory).Cells(wbExcelIzbrannoe.Sheets(ExcelNabory).Rows.Count, 1).End(xlUp).Row
+    Set UserRange = wbExcelIzbrannoe.Worksheets(ExcelNabory).Range("A2:A" & lLastRow)
+    ExcelConvertToString UserRange
+    wbExcelIzbrannoe.Close savechanges:=True
+    oExcelAppIzbrannoe.Quit
 End Sub

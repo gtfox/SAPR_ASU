@@ -300,7 +300,7 @@ subShpOnPage:
                                 nCount = colStrokaSpecif.Count
                             End If
         
-                        Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                        Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator  ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                             On Error Resume Next
                             colStrokaSpecif.Add clsStrokaSpecif, strColKey
                             If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
