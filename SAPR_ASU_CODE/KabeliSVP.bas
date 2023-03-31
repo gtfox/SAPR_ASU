@@ -782,38 +782,6 @@ Function GetShkafDown(vsoGroup As Visio.Shape) As Visio.Shape
     Set GetShkafDown = shpShkaf
 End Function
 
-Sub SetShkafDownSensor(vsoGroup As Visio.Shape)
-'Шкаф датчика, в котором указано только место
-    Dim shpShkaf As Visio.Shape
-    'Шкаф
-    vsoGroup.ContainingPage.Drop Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.ItemU("ShkafMesto"), 0, 0
-    Set shpShkaf = Application.ActiveWindow.Selection(1)
-    With shpShkaf
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).Formula = vsoGroup.Cells("PinX").Result(0) - vsoGroup.Cells("LocPinX").Result(0)
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinY).FormulaU = "Height * 1"
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "25 mm"
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).Formula = vsoGroup.Cells("Width").Result(0)
-        .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.5 mm"
-        .CellsSRC(visSectionObject, visRowLine, visLinePattern).FormulaU = "1"
-'        .CellsSRC(visSectionCharacter, 0, visCharacterSize).FormulaU = "24 pt"
-        .CellsSRC(visSectionObject, visRowTextXForm, visXFormLocPinX).FormulaU = "TxtWidth * 0.5"
-        .Cells("Controls.TextPos").FormulaU = "Width * 0.5"
-        .Cells("Prop.PerenosOboz").FormulaU = 1
-        .Cells("Controls.TextPos.Y").FormulaU = "Height * 0"
-        .AddSection visSectionConnectionPts
-        .AddRow visSectionConnectionPts, visRowLast, visTagDefault
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctX).FormulaForceU = "Width*1"
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctY).FormulaForceU = "Height*0"
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctDirX).FormulaForceU = "0 mm"
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctDirY).FormulaForceU = "0 mm"
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctType).FormulaForceU = "0 mm"
-        .CellsSRC(visSectionConnectionPts, 0, visCnnctAutoGen).FormulaForceU = "0 mm"
-        .CellsSRC(visSectionConnectionPts, 0, 6).FormulaForceU = ""
-    End With
-End Sub
-
 Public Sub svpDEL()
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : svpDEL - Удаляет листы схемы внешних проводок

@@ -105,9 +105,15 @@ Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
         SAType = ShapeSAType(vsoShp)
         If SAType > 1 Then
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeWire
                     vsoShp.Cells("User.Shkaf").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
                     vsoShp.Cells("User.Mesto").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieMesta"
+                Case typeActuator, typeSensor
+                    vsoShp.Cells("User.Shkaf").FormulaU = """"""
+                    vsoShp.Cells("User.Mesto").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieMesta"
+                Case typeCableSH
+                    vsoShp.Cells("User.Shkaf").FormulaU = """"""
+                    vsoShp.Cells("User.Mesto").FormulaU = """"""
             End Select
         End If
     Next
@@ -123,15 +129,29 @@ Sub DeleteShkafMesto(vsoShape As Visio.Shape)
     
     Set selSelection = vsoShape.SpatialNeighbors(visSpatialOverlap + visSpatialTouching + visSpatialContainedIn + visSpatialContain, 0, 0)
     For Each vsoShp In selSelection
-        SAType = ShapeSAType(vsoShp)
-        If SAType > 1 Then
-            Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeActuator, typeSensor, typeWire
-                    vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
-                    vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
-            End Select
-        End If
+        ClearShkafMesto vsoShp
     Next
+End Sub
+
+Sub ClearShkafMesto(vsoShp As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : ClearShkafMesto - "Чистит" имя шкафа и места
+'------------------------------------------------------------------------------------------------------------
+    Dim SAType As Integer
+    SAType = ShapeSAType(vsoShp)
+    If SAType > 1 Then
+        Select Case SAType
+            Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeWire
+                vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
+                vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
+            Case typeActuator, typeSensor
+                vsoShp.Cells("User.Shkaf").FormulaU = """"""
+                vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
+            Case typeCableSH
+                vsoShp.Cells("User.Shkaf").FormulaU = """"""
+                vsoShp.Cells("User.Mesto").FormulaU = """"""
+        End Select
+    End If
 End Sub
 
 Sub ResetLocalShkafMesto(vsoObject As Object)
@@ -178,8 +198,7 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
 
     'Чистим все элементы
     For Each vsoShp In colElementyShemy
-        vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
-        vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
+        ClearShkafMesto vsoShp
     Next
     
     'Обновляем все шкафы
