@@ -463,6 +463,8 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         Next
         'Сохраняем кабели с эл.сх. чтобы получить от них по ссылке длину кабеля
         colCablesOnElSh.Add colWires.Item(1).Parent, IIf(colWires.Item(1).Parent.Cells("Prop.BukvOboz").Result(0), colWires.Item(1).Parent.Cells("Prop.SymName").ResultStr(0) & colWires.Item(1).Parent.Cells("Prop.Number").Result(0), CStr(colWires.Item(1).Parent.Cells("Prop.Number").Result(0)))
+        colWires.Item(1).Parent.Cells("User.LinkToBox.Prompt").Formula = """" & colWires.Item(1).Parent.Cells("User.LinkToBox").ResultStr(0) & """"
+        colWires.Item(1).Parent.Cells("User.LinkToSensor.Prompt").Formula = """" & colWires.Item(1).Parent.Cells("User.LinkToSensor").ResultStr(0) & """"
     End If
     ActiveWindow.Selection = vsoSelection
     Set vsoGroup = ActiveWindow.Selection.Group

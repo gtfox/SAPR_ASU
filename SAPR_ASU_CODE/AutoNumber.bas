@@ -44,7 +44,7 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
     Dim vsoPage As Visio.Page
     Dim PageName As String
     
-    If vsoShape.Cells("Prop.AutoNum").Result(0) = 0 Then    'Не перенумеровываем если автонумерация отключена в шейпе
+    If vsoShape.Cells("Prop.AutoNum").Result(0) = 1 Then    'Не перенумеровываем если автонумерация отключена в шейпе
     
         Set ThePage = ActivePage.PageSheet
         NazvanieShkafa = vsoShape.Cells("User.Shkaf").ResultStr(0)

@@ -138,7 +138,7 @@ Sub EventDropAutoNum(vsoShapeEvent As Visio.Shape)
     
     If vsoShapeEvent.Cells("User.Dropped").Result(0) = 0 Then 'Вбросили из набора элементов
         vsoShapeEvent.Cells("User.Dropped").FormulaU = 1
-    ElseIf Not SelectionMoreOne Then 'Если в выделении больше 1 элемента - привязку к курсору не делаем
+    ElseIf Not SelectionMoreOne And ActiveWindow.Selection.Count = 1 Then 'Если в выделении больше 1 элемента - привязку к курсору не делаем
         Set vsoWindowEvent = ActiveWindow 'Вбросили при копировании - привязываем к курсору
     Else    'Запрет привязки делаем только 1 раз после SelectionAdded
         SelectionMoreOne = False 'Разрешаем привязку
@@ -253,11 +253,16 @@ End Sub
 
 'Таскаем фируру за мышкой
 Private Sub vsoWindowEvent_MouseMove(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
+    Dim blsPrevious As Boolean
+    
     If Not MouseClick Then
         If vsoShapePaste.OneD <> -1 Then
+'            blsPrevious = Application.UndoEnabled
+'            Application.UndoEnabled = False
             On Error Resume Next
             vsoShapePaste.Cells("PinX") = X
             vsoShapePaste.Cells("PinY") = Y
+'            Application.UndoEnabled = blsPrevious
         End If
     End If
 End Sub
