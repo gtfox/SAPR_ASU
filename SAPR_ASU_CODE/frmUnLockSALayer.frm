@@ -55,8 +55,8 @@ Private Sub cbLockUnlockLayer_Click()
         If ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).Result(0) = 1 Then
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).FormulaU = "0"
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerColor).FormulaU = "255"
-            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerSnap).FormulaU = "0"
-            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "0"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerSnap).FormulaU = "1"
+            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "1"
             cbLockUnlockLayer.Caption = "Заблокировать слой"
         Else
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).FormulaU = "1"

@@ -9,7 +9,7 @@ Sub run(wb As Excel.Workbook)
     Dim sht As Excel.Worksheet
     cmbxNazvanieLista.Clear
     For Each sht In wb.Worksheets
-        cmbxNazvanieLista.AddItem sht.name
+        If sht.Visible = xlSheetVisible Then cmbxNazvanieLista.AddItem sht.name
     Next
     cmbxNazvanieLista.ListIndex = 0
     Me.Show

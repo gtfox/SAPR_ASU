@@ -554,17 +554,17 @@ Exit Sub
 FillcolStrokaKJ:
     For Each shpKabel In vsoPage.Shapes    'Перебираем все шейпы на листе
         If ShapeSATypeIs(shpKabel, typeCableSH) Then    'Берем только кабели схемы
-            If shpKabel.Cells("User.LinkToBox").ResultStr(0) = NazvanieShkafa Then
+            If GetNazvanie(shpKabel.Cells("User.LinkToBox").ResultStr(0), 2) = NazvanieShkafa Then
                 Set clsStrokaKJ = New classStrokaKabelnogoJurnala
                 Set shpSensor = FindSensorFromKabel(shpKabel)
                 Set shpKabelPL = ShapeByGUID(shpKabel.Cells("Hyperlink.Kabel.ExtraInfo").ResultStr(0))
                 clsStrokaKJ.Oboznach = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), shpKabel.Cells("Prop.Number").Result(0))
                 clsStrokaKJ.Nachalo = shpKabel.Cells("User.LinkToBox").ResultStr(0)
-                clsStrokaKJ.Konec = shpSensor.Cells("User.Name").ResultStr(0)
+                clsStrokaKJ.Konec = shpKabel.Cells("User.LinkToSensor").ResultStr(0)
                 clsStrokaKJ.Trassa = GetTrassa(shpKabelPL)
                 clsStrokaKJ.Marka = shpKabel.Cells("Prop.TipKab").ResultStr(0)
                 clsStrokaKJ.Sechenie = shpKabel.Cells("Prop.WireCount").Result(0) & "x" & shpKabel.Cells("Prop.mm2").ResultStr(0)
-                clsStrokaKJ.Dlina = shpKabel.Cells("Prop.Dlina").Result(0)
+                clsStrokaKJ.Dlina = Round(shpKabel.Cells("Prop.Dlina").Result(0), 1)
     
                 colStrokaKJ.Add clsStrokaKJ, clsStrokaKJ.Oboznach
             End If
@@ -627,12 +627,12 @@ OutExcelNextKJ:
     
     For xx = 1 To str
         wb.Sheets(NameSheet).Cells(xx + 3, 1) = colStrokaKJ(xx).Oboznach '1 Обозначение кабеля, провода
-        wb.Sheets(NameSheet).Cells(xx + 3, 2) = colStrokaKJ(xx).Nachalo '2 Трасса - Начало
-        wb.Sheets(NameSheet).Cells(xx + 3, 3) = colStrokaKJ(xx).Konec '3 Трасса - Конец
+        wb.Sheets(NameSheet).Cells(xx + 3, 2) = " " & colStrokaKJ(xx).Nachalo '2 Трасса - Начало
+        wb.Sheets(NameSheet).Cells(xx + 3, 3) = " " & colStrokaKJ(xx).Konec '3 Трасса - Конец
         wb.Sheets(NameSheet).Cells(xx + 3, 4) = colStrokaKJ(xx).Trassa '4 Участок трассы кабеля, провода
         wb.Sheets(NameSheet).Cells(xx + 3, 5) = colStrokaKJ(xx).Marka '5 Кабель, провод - по проекту - Марка
         wb.Sheets(NameSheet).Cells(xx + 3, 6) = colStrokaKJ(xx).Sechenie '6 Кабель, провод - по проекту - Кол., число и сечение жил
-        wb.Sheets(NameSheet).Cells(xx + 3, 7) = colStrokaKJ(xx).Dlina '7 Кабель, провод - по проекту - Длина, м.
+        wb.Sheets(NameSheet).Cells(xx + 3, 7) = CSng(colStrokaKJ(xx).Dlina) '7 Кабель, провод - по проекту - Длина, м.
         'wb.Sheets(NameSheet).Range("A" & (xx + 3)).Select 'для наглядности
     Next
 
@@ -644,7 +644,7 @@ OutExcelNextKJ:
 '    apx.ActiveSheet.Range("K4:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).NumberFormat = "#,##0"
 '    For i = 7 To 12: apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlUp).Row).Borders(i).Weight = 2: Next
 '    apx.ActiveSheet.Range("K2:L" & apx.ActiveSheet.Cells(apx.Rows.Count, 1).End(xlDown).Row).Columns.AutoFit
-'    apx.ActiveSheet.Range("J1").Select
+    apx.ActiveSheet.Range("A1").Select
 
     
     Set colStrokaKJ = New Collection

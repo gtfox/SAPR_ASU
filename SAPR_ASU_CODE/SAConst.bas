@@ -49,7 +49,7 @@ Public Const typePlanSensor As Integer = 123 'Датчик на ПЛАНЕ
 Public Const typePlanActuator As Integer = 124 'Привод на ПЛАНЕ
 
 Public Const typeShkafMesto As Integer = 130 'Шкафы, распределительные коробки на схеме электрической (Не нумеруется)
-Public Const typeBox As Integer = 140 'Шкафы, распределительные коробки (Не нумеруется)
+Public Const typeBox As Integer = 140 'Шкафы, распределительные коробки на ПЛАНЕ (Не нумеруется)
 
 Public Const typeElectroOneWire As Integer = 150 'Однолинейная схема
 
@@ -59,8 +59,8 @@ Public Const typeVidShkafaShkaf As Integer = 162 'Внешний вид шкаф
 Public Const typeVidShkafaKomp As Integer = 163 'Внешний вид шкафа. Комплектующие шкафа (дин-рейки, кабель-каналы, распределительные блоки, нулевые шины)(Не нумеруется)
 
 Public Const typeDuctPlan As Integer = 170 'Лотки на ПЛАНЕ, кабельные трассы (Не нумеруется)
-Public Const typeElectroPlan As Integer = 180 'ЭС ЭО на плане
-Public Const typeOPSPlan As Integer = 190 'ОПС на плане
+Public Const typeDuctElectroPlan As Integer = 180 'ЭС ЭО Лотки на плане
+Public Const typeDuctOPSPlan As Integer = 190 'ОПС Лотки на плане
 
 '-----------------------------------------------------------------------------
 '                       Константы имен листов проекта

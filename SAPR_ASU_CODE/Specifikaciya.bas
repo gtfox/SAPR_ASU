@@ -795,7 +795,11 @@ Public Sub fill_table_KJ()
         Set shpRow = shpKJ.Shapes.Item("row" & NRow)
         For ncell = 1 To 7 'ColoumnCountXls
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
-            shpCell.text = arr(NStrokiXls, ncell)
+            If ncell = 7 Then
+                shpCell.text = Round(arr(NStrokiXls, ncell), 1)
+            Else
+                shpCell.text = arr(NStrokiXls, ncell)
+            End If
 '            If ncell = 2 Or ncell = 9 Then shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "0"
 '            If ncell = 2 And arr(NStrokiXls, 1) = "" Then
 '                shpCell.CellsSRC(visSectionParagraph, 0, visHorzAlign).FormulaU = "1" 'По центру
@@ -844,7 +848,7 @@ SubAddPage: 'Добавляем лист
     ActiveWindow.Page = AddSAPage(cListNameKJ)
     'Положение новой страницы сразу за текущей
     ActivePage.Index = Index + 1
-    
+    Set Ramka = ActivePage.Shapes.Item("Рамка")
     ActivePage.Drop mastKJ, 0, 0
     Set shpKJ = ActivePage.Shapes.Item("КЖ")
     Return
@@ -932,7 +936,13 @@ Public Sub KJ_EXP_2_XLS()
         
         For xx = 1 To str
             For yx = 1 To 7
-                wb.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = tabl(xx, yx)
+                If yx = 7 Then
+                    wb.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = CSng(tabl(xx, yx))
+                ElseIf yx = 2 Or yx = 3 Then
+                    wb.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = " " & tabl(xx, yx)
+                Else
+                    wb.Sheets("КЖ_EXP_2_XLS").Cells(xx + 3, yx) = tabl(xx, yx)
+                End If
                 'wb.Sheets("КЖ_EXP_2_XLS").Range("A" & (xx + 2)).Select 'для наглядности
             Next yx
         Next xx
