@@ -310,7 +310,11 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
     'Находим что уже есть на ВИДе
     For Each shpElementOnVID In vsoPageVID.Shapes
         If ShapeSATypeIs(shpElementOnVID, typeVidShkafaDIN) Or ShapeSATypeIs(shpElementOnVID, typeVidShkafaDver) Then
-            colElementOnVID.Add shpElementOnVID, shpElementOnVID.Cells("User.NameParent").ResultStr(0) '& ";" & shpElementOnVID.Cells("User.NameParent").ResultStr(0)
+            If shpElementOnVID.CellExists("User.NameKlemmnik", 0) Then
+                colElementOnVID.Add shpElementOnVID, shpElementOnVID.Cells("User.NameParent").ResultStr(0) & ";" & shpElementOnVID.Cells("User.Shkaf").ResultStr(0)
+            Else
+                colElementOnVID.Add shpElementOnVID, shpElementOnVID.Cells("User.NameParent").ResultStr(0) '& ";" & shpElementOnVID.Cells("User.NameParent").ResultStr(0)
+            End If
         End If
     Next
     
@@ -334,7 +338,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                             Case typeTerm
                                 nCount = colElementOnVID.Count
                                 On Error Resume Next
-                                colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
+                                colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) & ";" & shpElementOnCxema.Cells("User.Shkaf").ResultStr(0)
                                 err.Clear
                                 On Error GoTo 0
                                 If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
@@ -379,6 +383,8 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                 AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
                 shpTermOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.FullName"
                 shpTermOnVID.Cells("User.Name").Formula = AdrParent + "!User.Name" '?
+                shpTermOnVID.Cells("User.Shkaf").Formula = AdrParent + "!User.Shkaf"
+                shpTermOnVID.Cells("User.Mesto").Formula = AdrParent + "!User.Mesto"
                 shpTermOnVID.Cells("Prop.Sechenie").Formula = AdrParent + "!Prop.Sechenie"
                 shpTermOnVID.Cells("Prop.SymName").Formula = AdrParent + "!Prop.SymName"
                 shpTermOnVID.Cells("Prop.Number").Formula = AdrParent + "!Prop.Number"
