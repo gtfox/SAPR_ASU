@@ -226,6 +226,8 @@ Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
                     ConnectWire Connects
                 Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
                     VynoskaPlan Connects
+'                Case typePodemPL 'Цепляем подъём на отметку
+'                    PodemPlan Connects
             End Select
         End If
     End If
@@ -240,6 +242,8 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
                     DisconnectWire Connects
                 Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
                     VynoskaPlan Connects
+'                Case typePodemPL 'Отцепляем подъём на отметку
+'                    PodemPlan Connects
             End Select
         End If
     End If

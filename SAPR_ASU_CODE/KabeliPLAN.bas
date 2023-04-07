@@ -23,6 +23,8 @@ Sub AddRouteCablesOnPlan()
     Dim shpKabel As Visio.Shape
     Dim shpSensorFSA As Visio.Shape
     Dim shpBoxFSA As Visio.Shape
+    Dim shpLotok As Visio.Shape
+    Dim shpPodem As Visio.Shape
     Dim colCables As Collection
     Dim colCablesTemp As Collection
     Dim vsoCollection As Collection
@@ -85,6 +87,19 @@ Sub AddRouteCablesOnPlan()
         End If
     Next
     
+    'Считаем длину лотков
+    For Each shpLotok In ActivePage.Shapes
+        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+            shpLotok.Cells("Prop.Dlina").Formula = CableLength(shpLotok)
+        End If
+    Next
+    
+    'Добавляем подъемы
+    For Each shpPodem In ActivePage.Shapes
+        If ShapeSATypeIs(shpPodem, typePodemPL) Then
+            PodemPlan shpPodem
+        End If
+    Next
 End Sub
 
 Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
@@ -1549,9 +1564,6 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
     If colSensorOnPLAN.Count > 0 Then MsgBox "Добавлено " & colSensorOnPLAN.Count & " датчиков/приводов из ФСА", vbInformation + vbOKOnly, "САПР-АСУ: датчики/приводы добавлены"
 End Sub
 
-
-
-
 Public Sub VynoskaPlan(Connects As IVConnects)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : VynoskaPlan - Заполняет выноску на плане (лоток и кабели)
@@ -1670,6 +1682,29 @@ ExitWhile:    Set masShape(i) = CabTemp
         & shpVynoska.NameID & "!User.PageScale,FALSE,60 mm*" & shpVynoska.NameID & "!User.PageScale,60 mm*" _
         & shpVynoska.NameID & "!User.PageScale,FALSE,65 mm*" & shpVynoska.NameID & "!User.PageScale,65 mm*" _
         & shpVynoska.NameID & "!User.PageScale)"
+    End If
+    
+End Sub
+ 
+
+Public Sub PodemPlan(shpPodem As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : PodemPlan - Добавляет значение к длине кабелей и лотков на плане (лоток и кабели)
+                'Всем кабелям и лоткам прибавляется значение Prop.Delta
+'------------------------------------------------------------------------------------------------------------
+    Dim shpTouchingShapes As Visio.Shape
+    Dim vsoSelection As Visio.Selection
+    Dim AntiScale As Double
+    
+    AntiScale = ActivePage.PageSheet.Cells("DrawingScale").Result(0) / ActivePage.PageSheet.Cells("PageScale").Result(0)
+    
+    If shpPodem.Connects.Count = 1 Then 'Приклеен
+        Set vsoSelection = shpPodem.ContainingPage.SpatialSearch(shpPodem.Cells("PinX").Result(0), shpPodem.Cells("PinY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
+        For Each shpTouchingShapes In vsoSelection
+            If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Or ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
+                shpTouchingShapes.Cells("Prop.Dlina").Formula = shpTouchingShapes.Cells("Prop.Dlina").Result(0) + shpPodem.Cells("Prop.Delta").Result(0)
+            End If
+        Next
     End If
     
 End Sub
