@@ -797,6 +797,9 @@ Public Sub fill_table_KJ()
             Set shpCell = shpRow.Shapes.Item(NRow & "." & ncell)
             If ncell = 7 Then
                 shpCell.text = Round(arr(NStrokiXls, ncell), 1)
+            ElseIf ncell = 5 Then
+                shpCell.Cells("Char.FontScale").Formula = "70%"
+                shpCell.text = arr(NStrokiXls, ncell)
             Else
                 shpCell.text = arr(NStrokiXls, ncell)
             End If

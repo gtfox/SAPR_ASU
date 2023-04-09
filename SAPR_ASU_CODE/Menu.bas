@@ -287,17 +287,19 @@ Private Sub AddButtonsCXEMA()
         .OnAction = "BeginGroup"
         .TooltipText = "Сначала группа"
         .FaceId = 623 '2761
+        .BeginGroup = True
     End With
 
         '---Кнопка "Только группа"
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
     With Button
         .Caption = "Толькогруппа"
-        .Tag = "OnliGroup"
+        .Tag = "OnlyGroup"
         .style = msoButtonAutomatic
-        .OnAction = "OnliGroup"
+        .OnAction = "OnlyGroup"
         .TooltipText = "Только группа"
         .FaceId = 572
+'        .BeginGroup = True
     End With
 
         '---Кнопка "Скрыть дочерние провода"
@@ -308,7 +310,7 @@ Private Sub AddButtonsCXEMA()
         .OnAction = "HideWireNumChildInDoc"
         .TooltipText = "Скрыть дочерние провода"
         .FaceId = 290 '2810 2805
-'        .BeginGroup = True
+        .BeginGroup = True
     End With
 
         '---Кнопка "Показать дочерние провода"
@@ -330,7 +332,7 @@ Private Sub AddButtonsCXEMA()
         .OnAction = "AddLocThumbAllInDoc"
         .TooltipText = "Вставить миниатюры контактов"
         .FaceId = 2871
-'        .BeginGroup = True
+        .BeginGroup = True
     End With
 
         '---Кнопка "Удалить миниатюры контактов"

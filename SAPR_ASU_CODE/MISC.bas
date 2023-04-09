@@ -255,7 +255,7 @@ Sub Duplicate()
     ActivePage.Paste visCopyPasteNoTranslate
 End Sub
 
-Sub OnliGroup()
+Sub OnlyGroup()
     Dim vsoShape As Visio.Shape
     If ActiveWindow.Selection.Count > 0 Then
         For Each vsoShape In ActiveWindow.Selection
