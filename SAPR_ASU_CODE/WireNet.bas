@@ -577,7 +577,7 @@ Sub FindZombie(shpProvod As Visio.Shape)
 End Sub
 
 Sub HideWireNumChildOnPage()
-    HideWireNumChild ActivePage
+    HideWireNumChild ActivePage, 1
 End Sub
 
 Sub HideWireNumChildInDoc()
@@ -586,16 +586,26 @@ Sub HideWireNumChildInDoc()
     PageName = cListNameCxema  'Имена листов
     For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
         If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
-            HideWireNumChild vsoPage
+            ShowHideWireNumChild vsoPage, 1
         End If
     Next
 End Sub
 
+Sub ShowWireNumChildInDoc()
+    Dim vsoPage As Visio.Page
+    Dim PageName As String
+    PageName = cListNameCxema  'Имена листов
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If InStr(1, vsoPage.name, PageName) > 0 Then    'Берем те, что содержат "Схема" в имени
+            ShowHideWireNumChild vsoPage, 0
+        End If
+    Next
+End Sub
 
-Public Sub HideWireNumChild(vsoPage As Visio.Page)
+Public Sub ShowHideWireNumChild(vsoPage As Visio.Page, Hide As Boolean)
 '------------------------------------------------------------------------------------------------------------
-' Macros        : HideWireNumChild - Скрывает номера в дочерних проводах (номера полученные по ссылке)
-                'На листе остаются только провода с уникальными именами
+' Macros        : ShowHideWireNumChild - Скрывает/Показывает номера в дочерних проводах (номера полученные по ссылке)
+                'При скрытии на листе остаются только провода с уникальными именами/номерами
                 'Номера ВСЕХ проводов нужны только при рисовании схемы - для контроля правильности соединения
 '------------------------------------------------------------------------------------------------------------
     Dim vsoShapeOnPage As Visio.Shape
@@ -606,8 +616,8 @@ Public Sub HideWireNumChild(vsoPage As Visio.Page)
             If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 0 Then    'Отсеиваем шейпы нумеруемые в автомате
                 If vsoShapeOnPage.Cells("Prop.Number").FormulaU Like "*!*" Then 'Находим дочерние
                     'Прячем номер/название
-                    vsoShapeOnPage.Cells("Prop.HideNumber").FormulaU = True
-                    vsoShapeOnPage.Cells("Prop.HideName").FormulaU = True
+                    vsoShapeOnPage.Cells("Prop.HideNumber").FormulaU = Hide
+'                    vsoShapeOnPage.Cells("Prop.HideName").FormulaU = Hide
                 End If
             End If
         End If

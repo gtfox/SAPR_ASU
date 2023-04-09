@@ -1,7 +1,7 @@
 Sub AddToolBar()
     Dim Bar As CommandBar
     
-    'Меню существует?
+    'Меню САПР АСУ существует?
     For Each Bar In Application.CommandBars
         If Bar.name = "САПР АСУ" Then Bar.Delete 'Exit Sub
     Next
@@ -17,6 +17,40 @@ Sub AddToolBar()
     End With
     
     AddButtons
+
+    'Меню ВИД существует?
+    For Each Bar In Application.CommandBars
+        If Bar.name = "САПР АСУ ВИД" Then Bar.Delete 'Exit Sub
+    Next
+    
+    Set Bar = Application.CommandBars.Add(Position:=msoBarTop, Temporary:=True) 'msoBarTop msoBarFloating
+    
+    With Bar
+        .name = "САПР АСУ ВИД"
+        .Visible = True
+        .RowIndex = 7
+        .Left = 944
+        .Top = 104
+    End With
+    
+    AddButtonsVID
+
+    'Меню СХЕМА существует?
+    For Each Bar In Application.CommandBars
+        If Bar.name = "САПР АСУ СХЕМА" Then Bar.Delete 'Exit Sub
+    Next
+    
+    Set Bar = Application.CommandBars.Add(Position:=msoBarTop, Temporary:=True) 'msoBarTop msoBarFloating
+    
+    With Bar
+        .name = "САПР АСУ СХЕМА"
+        .Visible = True
+        .RowIndex = 7
+        .Left = 944
+        .Top = 104
+    End With
+    
+    AddButtonsCXEMA
 
 End Sub
 
@@ -153,9 +187,21 @@ Private Sub AddButtons()
         .FaceId = 263 '5897
         .BeginGroup = True
     End With
+
+        '---Кнопка Сохранить в PDF
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=11)
+    With Button
+        .Caption = "СохранитьвPDF"
+        .Tag = "SavePDF"
+        .style = msoButtonAutomatic
+        .OnAction = "SavePDF"
+        .TooltipText = "Сохранить в PDF"
+        .FaceId = 267
+        .BeginGroup = True
+    End With
     
         '---Кнопка Настройки
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=11)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=12)
     With Button
         .Caption = "НастройкиПроекта"
         .Tag = "SettingsProject"
@@ -166,8 +212,140 @@ Private Sub AddButtons()
         .BeginGroup = True
     End With
     
+    Set Button = Nothing
+           
+End Sub
+
+Private Sub AddButtonsVID()
+
+    Dim Bar As CommandBar
+    Dim Button As CommandBarButton
+
+    Set Bar = Application.CommandBars("САПР АСУ ВИД")
+
+        '---Кнопка "Вписать в лист"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1)
+    With Button
+        .Caption = "Вписатьвлист"
+        .Tag = "VpisatVList"
+        .style = msoButtonAutomatic
+        .OnAction = "VpisatVList"
+        .TooltipText = "Вписать в лист"
+        .FaceId = 25 '1796
+    End With
+    
+        '---Кнопка "Распределить на двери"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=2)
+    With Button
+        .Caption = "Распределитьнадвери"
+        .Tag = "RaspredelitGorizont"
+        .style = msoButtonAutomatic
+        .OnAction = "RaspredelitGorizont"
+        .TooltipText = "Распределить на двери"
+        .FaceId = 1650 '408 '669 '2067
+    End With
+    
+        '---Кнопка "Вертикальные размеры"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
+    With Button
+        .Caption = "Вертикальныеразмеры"
+        .Tag = "VertRazmery"
+        .OnAction = "VertRazmery"
+        .TooltipText = "Вертикальные размеры"
+        .FaceId = 1647 '1137=1258 2068
+'        .BeginGroup = True
+    End With
+
+    Set Button = Nothing
+           
+End Sub
+
+Private Sub AddButtonsCXEMA()
+
+    Dim Bar As CommandBar
+    Dim Button As CommandBarButton
+
+    Set Bar = Application.CommandBars("САПР АСУ СХЕМА")
+
+        '---Кнопка "Дубликат 2х"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1)
+    With Button
+        .Caption = "Дубликат2х"
+        .Tag = "Duplicate"
+        .style = msoButtonAutomatic
+        .OnAction = "Duplicate"
+        .TooltipText = "Дубликат 2х"
+        .FaceId = 1836 '19 '1774 1807 1950 523
+    End With
+    
+        '---Кнопка "Сначала группа"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=2)
+    With Button
+        .Caption = "Сначалагруппа"
+        .Tag = "BeginGroup"
+        .style = msoButtonAutomatic
+        .OnAction = "BeginGroup"
+        .TooltipText = "Сначала группа"
+        .FaceId = 623 '2761
+    End With
+
+        '---Кнопка "Только группа"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=3)
+    With Button
+        .Caption = "Толькогруппа"
+        .Tag = "OnliGroup"
+        .style = msoButtonAutomatic
+        .OnAction = "OnliGroup"
+        .TooltipText = "Только группа"
+        .FaceId = 572
+    End With
+
+        '---Кнопка "Скрыть дочерние провода"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
+    With Button
+        .Caption = "Скрытьдочерниепровода"
+        .Tag = "HideWireNumChildInDoc"
+        .OnAction = "HideWireNumChildInDoc"
+        .TooltipText = "Скрыть дочерние провода"
+        .FaceId = 290 '2810 2805
+'        .BeginGroup = True
+    End With
+
+        '---Кнопка "Показать дочерние провода"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=5)
+    With Button
+        .Caption = "Показатьдочерниепровода"
+        .Tag = "ShowWireNumChildInDoc"
+        .OnAction = "ShowWireNumChildInDoc"
+        .TooltipText = "Показать дочерние провода"
+        .FaceId = 291 '2810 2805
+'        .BeginGroup = True
+    End With
+
+        '---Кнопка "Вставить миниатюры контактов"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=6)
+    With Button
+        .Caption = "Вставитьминиатюрыконтактов"
+        .Tag = "AddLocThumbAllInDoc"
+        .OnAction = "AddLocThumbAllInDoc"
+        .TooltipText = "Вставить миниатюры контактов"
+        .FaceId = 2871
+'        .BeginGroup = True
+    End With
+
+        '---Кнопка "Удалить миниатюры контактов"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=7)
+    With Button
+        .Caption = "Удалитьминиатюрыконтактов"
+        .Tag = "DelLocThumbAllInDoc"
+        .OnAction = "DelLocThumbAllInDoc"
+        .TooltipText = "Удалить миниатюры контактов"
+        .FaceId = 2164
+'        .BeginGroup = True
+    End With
+    
         '---Кнопка Блокировки выделенного объекта
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=12)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=8)
     With Button
         .Caption = "БлокировкаВыделенного"
         .Tag = "LockSelect"
@@ -177,7 +355,9 @@ Private Sub AddButtons()
         .FaceId = 519
         .BeginGroup = True
     End With
-    
+
+
+
     Set Button = Nothing
            
 End Sub

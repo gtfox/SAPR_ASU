@@ -29,6 +29,7 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
     Dim NapravlY As String
     Dim RowCount As Integer  'кол-во точек соединения на фигуре
     Dim i As Integer
+    Const PodemRazmera = 50 / 25.4
     
     Set colElemets = New Collection
 
@@ -36,7 +37,7 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
     For Each vsoShape In ActivePage.Shapes
         If ShapeSATypeIs(vsoShape, typeVidShkafaShkaf) Then Set shpShkaf = vsoShape: Exit For
     Next
-'    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
+    If shpShkaf Is Nothing Then Exit Sub
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
@@ -80,6 +81,8 @@ Sub RaspredelitGorizont() '(selElemets As Visio.Section)
             Select Case i
                 Case 1 'Центр
                     If RowCount = 1 Then GoSub DoSub 'Центральный размер проставляется только для круглых элементов
+                    shpElemet.Shapes("Desc").Cells("Geometry1.NoFill").Formula = 0 'Непрозрачное описание
+                    shpElemet.BringToFront 'На передние план
                 Case 2, 3 'Лево, право
                     GoSub DoSub
             End Select
@@ -110,7 +113,10 @@ DoSub:
     shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginX).FormulaU = "INTERSECTX(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
     shpRazmer.CellsSRC(visSectionObject, visRowXForm1D, vis1DBeginY).FormulaU = "INTERSECTY(" & shpNapravl.NameID & "!PinX," & shpNapravl.NameID & "!PinY," & shpNapravl.NameID & "!Angle," & LevKrajDver & " mm," & NapravlY & " mm," & shpNapravl.NameID & "!Angle+90 deg)"
     'Высота размера больше фигуры на 5 мм
-    shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpElemet.Cells("Height").Result(0) * 0.5 + 0.196850393700787), ",", ".")
+    shpRazmer.Cells("Controls.Row_1.Y").Formula = Replace(CStr(shpElemet.Cells("Height").Result(0) * 0.5 + PodemRazmera), ",", ".")
+    'Укорачиваем ноги размеру
+'    shpRazmer.Cells("Scratch.C4").Formula = "13mm"
+'    shpRazmer.Cells("Prop.Kasanie").Formula = 0
 Return
 End Sub
 
@@ -146,7 +152,7 @@ Sub VertRazmery() '(selElemets As Visio.Section)
     For Each vsoShape In ActivePage.Shapes
         If ShapeSATypeIs(vsoShape, typeVidShkafaShkaf) Then Set shpShkaf = vsoShape: Exit For
     Next
-'    Set shpShkaf = Application.ActivePage.Shapes.ItemFromID(83)
+    If shpShkaf Is Nothing Then Exit Sub
     
     'Суем в коллекцию все кроме направляющих
     For Each vsoShape In Application.ActiveWindow.Selection
@@ -215,22 +221,27 @@ DoSub:
 Return
 End Sub
 
-Sub VpisatVList()
+Public Sub VpisatVList()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : VpisatVList - "Вписывает чертеж в лист" - Увеличивает масштаб докумета под размер чертежа
+' Macros        : VpisatVList - Запуск макроса VpisatVListExec
+'------------------------------------------------------------------------------------------------------------
+    Application.DoCmd visCmdDRRectTool 'Рисование прямоугольника
+    ThisDocument.bVpisatVList = True
+End Sub
+
+Sub VpisatVListExec(vsoShape As Visio.Shape)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : VpisatVListExec - "Вписывает чертеж в лист" - Увеличивает масштаб докумета под размер чертежа
 
                 'Рисуем прямоугольник больше размера чертежа. Размер прямоугольника - это будущий размер листа. Запускаем макрос.
                 'Масштаб и размер докумета меняются, прямоугольник удаляется.
 '------------------------------------------------------------------------------------------------------------
-    Dim vsoShape As Visio.Shape
     Dim vsoPage As Visio.Page
     Dim kW As Double
     Dim kH As Double
     Dim k As Double
     
     Set vsoPage = Application.ActivePage
-    If Application.ActiveWindow.Selection.Count <> 1 Then Exit Sub
-    Set vsoShape = Application.ActiveWindow.Selection(1)
     
     vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = "420 mm"
     vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = "297 mm"
@@ -247,6 +258,7 @@ Sub VpisatVList()
         .CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = Replace(CStr(k), ",", ".") & " mm"
     End With
     vsoShape.Delete
+    Application.DoCmd visCmdSelectionModeRect 'Возврат мыши
 End Sub
 
 Public Sub PageVIDAddElementsFrm()

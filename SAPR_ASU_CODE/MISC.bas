@@ -250,7 +250,28 @@ Sub Ungroup()
     Application.AlertResponse = 0
 End Sub
 
+Sub Duplicate()
+    ActiveWindow.Selection.Copy visCopyPasteNoTranslate
+    ActivePage.Paste visCopyPasteNoTranslate
+End Sub
 
+Sub OnliGroup()
+    Dim vsoShape As Visio.Shape
+    If ActiveWindow.Selection.Count > 0 Then
+        For Each vsoShape In ActiveWindow.Selection
+            vsoShape.CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "0"
+        Next
+    End If
+End Sub
+
+Sub BeginGroup()
+    Dim vsoShape As Visio.Shape
+    If ActiveWindow.Selection.Count > 0 Then
+        For Each vsoShape In ActiveWindow.Selection
+            vsoShape.CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "1"
+        Next
+    End If
+End Sub
 
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ExtractOboz - Функция определения неизменяемой части обозначения

@@ -7,6 +7,7 @@ Dim WithEvents vsoWindowEvent As Visio.Window 'мышь
 Dim vsoShapePaste As Visio.Shape
 Public MouseClick As Boolean
 Public SelectionMoreOne As Boolean
+Public bVpisatVList As Boolean
 'Public BlockMacros As Boolean
 
 'Вставка выделенного
@@ -220,15 +221,17 @@ End Sub
 'Соединение шейпов
 Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
     If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что цепляем - объект SAPR_ASU
-       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То к чему цепляем - объект SAPR_ASU
-            Select Case ShapeSAType(Connects.FromSheet) 'То что цепляем - это...
-                Case typeWire   'Цепляем провод
-                    ConnectWire Connects
-                Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
-                    VynoskaPlan Connects
-'                Case typePodemPL 'Цепляем подъём на отметку
-'                    PodemPlan Connects
-            End Select
+       If Not Connects.ToSheet Is Nothing Then
+           If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То к чему цепляем - объект SAPR_ASU
+                Select Case ShapeSAType(Connects.FromSheet) 'То что цепляем - это...
+                    Case typeWire   'Цепляем провод
+                        ConnectWire Connects
+                    Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
+                        VynoskaPlan Connects
+    '                Case typePodemPL 'Цепляем подъём на отметку
+    '                    PodemPlan Connects
+                End Select
+            End If
         End If
     End If
 End Sub
@@ -236,15 +239,17 @@ End Sub
 'Отсоединение шейпов
 Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
     If Connects.FromSheet.CellExistsU("User.SAType", 0) Then 'То что отцепляем - объект SAPR_ASU
-       If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То от чего отцепляем - объект SAPR_ASU
-            Select Case ShapeSAType(Connects.FromSheet) 'То что отцепляем - это...
-                Case typeWire   'Отцепляем провод
-                    DisconnectWire Connects
-                Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
-                    VynoskaPlan Connects
-'                Case typePodemPL 'Отцепляем подъём на отметку
-'                    PodemPlan Connects
-            End Select
+        If Not Connects.ToSheet Is Nothing Then
+           If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То от чего отцепляем - объект SAPR_ASU
+                Select Case ShapeSAType(Connects.FromSheet) 'То что отцепляем - это...
+                    Case typeWire   'Отцепляем провод
+                        DisconnectWire Connects
+                    Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
+                        VynoskaPlan Connects
+    '                Case typePodemPL 'Отцепляем подъём на отметку
+    '                    PodemPlan Connects
+                End Select
+            End If
         End If
     End If
 End Sub
@@ -253,6 +258,14 @@ End Sub
 Private Sub Document_DocumentOpened(ByVal doc As IVDocument)
     Set vsoPagesEvent = ActiveDocument.Pages
     AddToolBar
+End Sub
+
+'Масштабирование на листе ВИД
+Private Sub vsoPagesEvent_ShapeAdded(ByVal Shape As IVShape)
+    If bVpisatVList Then
+        VpisatVListExec Shape
+        bVpisatVList = False
+    End If
 End Sub
 
 'Таскаем фируру за мышкой
@@ -275,6 +288,7 @@ End Sub
 Private Sub vsoWindowEvent_MouseDown(ByVal Button As Long, ByVal KeyButtonState As Long, ByVal X As Double, ByVal Y As Double, CancelDefault As Boolean)
     MouseClick = True
     Set vsoWindowEvent = Nothing
+'    Application.DoCmd visCmdSelectionModeRect 'Возврат мыши
 End Sub
 
 'Чистим события

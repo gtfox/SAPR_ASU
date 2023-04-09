@@ -351,6 +351,26 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
     ActiveWindow.DeselectAll
 End Sub
 
+Sub DelLocThumbAllInDoc()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : DelLocThumbAllInDoc - Удаляет миниатюры контактов под реле во всём документе
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim vsoShapeOnPage As Visio.Shape
+    Dim PageName As String
+    PageName = cListNameCxema  'Имена листов
+    For Each vsoPage In ActiveDocument.Pages    'Перебираем все листы в активном документе
+        If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
+            For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
+                Select Case ShapeSAType(vsoShapeOnPage)
+                    Case typeNO, typeNC, typeCoil, typeParent
+                        ThumbDelete vsoShapeOnPage
+                End Select
+            Next
+        End If
+    Next
+End Sub
+
 Sub ThumbDelete(shpDelete As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ThumbDelete - Удаляет миниатюры контактов

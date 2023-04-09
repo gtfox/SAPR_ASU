@@ -1056,7 +1056,17 @@ End Sub
     ActiveWindow.Selection.Delete
 End Sub
 
-
+Sub SavePDF()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SavePDF - Сохраняет листы проекта в PDF. Все цвета - черные
+'------------------------------------------------------------------------------------------------------------
+    Dim str As String
+    If MsgBox("Сохранить в PDF?" + vbNewLine + vbNewLine + Replace(ActiveDocument.name, ".vsd", ""), vbQuestion + vbOKCancel, "САПР-АСУ: Save PDF") = vbOK Then
+        str = Replace(ActiveDocument.name, ".vsd", "") & Format(Now(), "_yyyy.mm.dd_hh.mm.ss") & ".pdf"
+        Application.ActiveDocument.ExportAsFixedFormat visFixedFormatPDF, ActiveDocument.path & str, visDocExIntentPrint, visPrintAll, 1, 9, True, True, True, True, False
+        MsgBox "Файл сохранен в папке проекта!" + vbNewLine + vbNewLine + str, vbInformation + vbOKOnly, "САПР-АСУ: Info"
+    End If
+End Sub
 
 '-----------------------------Переделка таблицы спецификации под универсальную---------------------------------
 Sub TuneTable_1()
