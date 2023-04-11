@@ -1,7 +1,7 @@
 '------------------------------------------------------------------------------------------------------------
 ' Module        : OD - Общие данные
 ' Author        : gtfox
-' Date          : 2019.09.22
+' Date          : 2019.09.22/2023.04.12
 ' Description   : odDELL - Удаляет общие данные
                 ' odADD_A3 - Добавляет общие данные на листах А3, и если не хватает на последний А3 - добавляет А4
                 ' odADD_A4 - Добавляет общие данные на листах только А4.
@@ -15,57 +15,85 @@
     
     
 Public Sub odADD_A4()
-    OD_2_Visio (1)
+    OD_2_Visio 1
 End Sub
 
 Public Sub odADD_A3()
-    OD_2_Visio (0)
+    OD_2_Visio 0
 End Sub
 
     
 Private Sub OD_2_Visio(A4 As Boolean)
     'нижнее поле в ворде для рамок в визио
-    Const ramka5 = 1
-    Const ramka15 = 2.5
+    Const ramka5 = 2.25
+    Const ramka15 = 3.5
     Const ramka55 = 6.5
     nA3 = 1
     
-    Dim wa As Word.Application
+    Dim oWord As Word.Application
     Dim vsoCharacters1 As Visio.Characters
     Dim oStartPage As Word.Range
     Dim oEndPage As Word.Range
+    Dim shpWordText As Visio.Shape
+    Dim shpVisioText As Visio.Shape
     Dim nStartPageNum As Long
     Dim nPagesCount As Long
     Dim nEndPageNum As Long
     Dim sPath, sFile As String
     Dim objFSO As Object, objFile As Object
     Dim MastOD As Master
+    Dim mStr() As String
+    Dim extDoc As String
+    
     Set MastOD = Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item(cListNameOD)
-
+    Set shpVisioText = Application.ActiveWindow.Selection.Item(1)
     
     
+    Set oWord = CreateObject("Word.Application")
+    pth = Visio.ActiveDocument.path
+'    oWord.Visible = True ' для наглядности
     
+    Set fd = oWord.FileDialog(msoFileDialogOpen)
+    With fd
+        .AllowMultiSelect = False
+        .InitialFileName = pth
+        Set ffs = .Filters
+        With ffs
+            .Clear
+            .Add "Word", "*.docx;*.doc"
+        End With
+        Chois = oWord.FileDialog(msoFileDialogOpen).Show
+    End With
+    If Chois = 0 Then oWord.Application.Quit: frmClose = True: oWord.Quit: Set oWord = Nothing: Exit Sub
+    sFileName = oWord.FileDialog(msoFileDialogOpen).SelectedItems(1)
+    sPath = pth
+    mStr = Split(sFileName, "\")
+    sFile = mStr(UBound(mStr))
+    mStr = Split(sFileName, ".")
+    extDoc = mStr(UBound(mStr))
+    sFileName = Replace(sFile, "." & extDoc, "")
+    oWord.Quit
+    Set oWord = Nothing
     If Not Application.ActiveWindow.Selection.Count = 0 Then
     
-        If InStr(1, Application.ActiveWindow.Selection.Item(1).name, cListNameOD) > 0 Then
+        If InStr(1, shpVisioText.name, cListNameOD) > 0 Then
             
-            Set vsoCharacters1 = Application.ActiveWindow.Selection.Item(1).Characters
+            Set vsoCharacters1 = shpVisioText.Characters
             
             'есть файл
-            sPath = Visio.ActiveDocument.path
-            sFileName = "OD_2_Visio.doc"
-            sFile = sPath & sFileName
-            If Dir(sFile, 16) = "" Then
-                MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
-                Exit Sub
-            End If
+'            sPath = Visio.ActiveDocument.path
+'            sFileName = "OD_2_Visio.docx"
+'            sFile = sPath & sFileName
+'            If Dir(sFile, 16) = "" Then
+'                MsgBox "Файл " & sFileName & " не найден в папке: " & sPath, vbCritical, "САПР-АСУ: Ошибка"
+'                Exit Sub
+'            End If
             
             'подготавливаем копирование
             Set objFSO = CreateObject("Scripting.FileSystemObject")
-            Set objFile = objFSO.GetFile(sFile)
+            Set objFile = objFSO.GetFile(sPath & sFile)
             'удаляем старый
-            sFileName = "OD_2_Visio_Split.doc"
-            sFile = sPath & sFileName
+            sFile = sPath & sFileName & "_Split." & extDoc
             If Len(Dir(sFile)) > 0 Then 'есть хотя бы один файл
                 'On Error GoTo L1
                 Kill sFile
@@ -77,19 +105,19 @@ Private Sub OD_2_Visio(A4 As Boolean)
             'переименовываем новый
             'Name sPath & "ОД - копия.doc" As sFile
     
-            Set wa = CreateObject("Word.Application")
-            wa.Documents.Open (sFile)
-            wa.Visible = True
-            Set wad = wa.ActiveDocument
+            Set oWord = CreateObject("Word.Application")
+            oWord.Documents.Open (sFile)
+'            oWord.Visible = True
+            Set wad = oWord.ActiveDocument
             
             'Заменяет разрывы страницы на разрывы раздела
-            ReplacePageBreaks wa
+            ReplacePageBreaks oWord
     
-            wa.Selection.WholeStory 'выделить все
+            oWord.Selection.WholeStory 'выделить все
      
             DoEvents
      
-            With wa.Selection.Font
+            With oWord.Selection.Font
                 .name = "ISOCPEUR"
                 .Size = 14
                 .Bold = False
@@ -106,8 +134,8 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 .AllCaps = False
                 .Color = wdColorAutomatic
                 .Engrave = False
-                .Superscript = False
-                .Subscript = False
+'                .Superscript = False
+'                .Subscript = False
                 .Spacing = 0
                 .Scaling = 100
                 .Position = 0
@@ -117,15 +145,15 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             DoEvents
             
-            With wa.Selection.ParagraphFormat
-                .LeftIndent = wa.CentimetersToPoints(0)
-                .RightIndent = wa.CentimetersToPoints(0)
+            With oWord.Selection.ParagraphFormat
+                .LeftIndent = oWord.CentimetersToPoints(0)
+                .RightIndent = oWord.CentimetersToPoints(0)
                 .SpaceBefore = 5
                 .SpaceBeforeAuto = False
                 .SpaceAfter = 0
                 .SpaceAfterAuto = False
                 .LineSpacingRule = wdLineSpaceMultiple
-                .LineSpacing = wa.LinesToPoints(1) 'междустрочный интервал
+                .LineSpacing = oWord.LinesToPoints(1) 'междустрочный интервал
                 .Alignment = wdAlignParagraphJustify
                 .WidowControl = True
                 .KeepWithNext = False
@@ -133,7 +161,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                 .PageBreakBefore = False
                 .NoLineNumber = False
                 .Hyphenation = True
-                .FirstLineIndent = wa.CentimetersToPoints(1)
+                .FirstLineIndent = oWord.CentimetersToPoints(1)
                 .OutlineLevel = wdOutlineLevelBodyText
                 .CharacterUnitLeftIndent = 0
                 .CharacterUnitRightIndent = 0
@@ -146,20 +174,20 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             DoEvents
             
-            With wa.Selection.PageSetup
+            With oWord.Selection.PageSetup
                 .LineNumbering.Active = False
                 .Orientation = wdOrientLandscape
-                .TopMargin = wa.CentimetersToPoints(1)
-                .LeftMargin = wa.CentimetersToPoints(2.5)
-                .RightMargin = wa.CentimetersToPoints(1)
-                '.BottomMargin = wa.CentimetersToPoints(1) 'рамка 5
-                .BottomMargin = wa.CentimetersToPoints(2.5) 'рамка 15
-                '.BottomMargin = wa.CentimetersToPoints(6.5) 'рамка 55
-                .Gutter = wa.CentimetersToPoints(0)
-                .HeaderDistance = wa.CentimetersToPoints(0)
-                .FooterDistance = wa.CentimetersToPoints(0)
-                .PageWidth = wa.CentimetersToPoints(21)
-                .PageHeight = wa.CentimetersToPoints(29.7)
+                .TopMargin = oWord.CentimetersToPoints(1)
+                .LeftMargin = oWord.CentimetersToPoints(2.5)
+                .RightMargin = oWord.CentimetersToPoints(1)
+                '.BottomMargin = oWord.CentimetersToPoints(ramka5) 'рамка 5
+                .BottomMargin = oWord.CentimetersToPoints(ramka15) 'рамка 15
+                '.BottomMargin = oWord.CentimetersToPoints(ramka55) 'рамка 55
+                .Gutter = oWord.CentimetersToPoints(0)
+                .HeaderDistance = oWord.CentimetersToPoints(0)
+                .FooterDistance = oWord.CentimetersToPoints(0)
+                .PageWidth = oWord.CentimetersToPoints(21)
+                .PageHeight = oWord.CentimetersToPoints(29.7)
                 .FirstPageTray = wdPrinterDefaultBin
                 .OtherPagesTray = wdPrinterDefaultBin
                 .SectionStart = wdSectionNewPage
@@ -176,23 +204,23 @@ Private Sub OD_2_Visio(A4 As Boolean)
             End With
             
             'табуляция по центру в визио
-    '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabStopCount).FormulaU = "1"
-    '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabPos).FormulaU = "Guard(92.5 mm)"
-    '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, visTabAlign).FormulaU = "Guard(1)"
-    '        Application.ActiveWindow.Selection.Item(1).CellsSRC(visSectionTab, 0, 3).FormulaU = "0"
+    '        shpVisioText.CellsSRC(visSectionTab, 0, visTabStopCount).FormulaU = "1"
+    '        shpVisioText.CellsSRC(visSectionTab, 0, visTabPos).FormulaU = "Guard(92.5 mm)"
+    '        shpVisioText.CellsSRC(visSectionTab, 0, visTabAlign).FormulaU = "Guard(1)"
+    '        shpVisioText.CellsSRC(visSectionTab, 0, 3).FormulaU = "0"
             
             
             'табуляция по центру в ворде
-            wa.Selection.ParagraphFormat.TabStops.Add Position:=wa.CentimetersToPoints(9.25), Alignment:=wdAlignTabCenter, Leader:=wdTabLeaderSpaces 'табуляция по центру
+            oWord.Selection.ParagraphFormat.TabStops.Add Position:=oWord.CentimetersToPoints(9.25), Alignment:=wdAlignTabCenter, Leader:=wdTabLeaderSpaces 'табуляция по центру
             
             
-            hh = Application.ActiveWindow.Selection.Item(1).Cells("Height") ' высота первого куска текста в визио
-            niznee_pole = 297 - 10 - hh * 25.4  'нижнее поле на странице в ворде в мм (для вставки разрыва)
+            hh = shpVisioText.Cells("Height") ' высота первого куска текста в визио
+            niznee_pole = 297 - hh * 25.4   'нижнее поле на странице в ворде в мм (для вставки разрыва)
             
     
             'верх сраницы 1
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="1"
-            wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
+            oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="1"
+            oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
             
             nStartPageNum = 1
             Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
@@ -202,20 +230,41 @@ Private Sub OD_2_Visio(A4 As Boolean)
             'Выделяем указанный диапазон документа
             wad.Range(oStartPage.Start, oEndPage.End).Select ' wad.Range(oStartPage.Start, IIf(nStartPageNum + nEndPageNum = nPagesCount + 1, wad.Range.End, oEndPage.End)).Select
             'копируем в буфер в ворде
-            wa.Selection.Copy
+            oWord.Selection.Copy
             'вставляем из буфера в визио
-            ActiveWindow.SelectedText.Paste
+'            ActiveWindow.SelectedText.Paste
+            ActiveWindow.Page.PasteSpecial 49162, False, False
+            Set shpWordText = ActiveWindow.Selection.Item(1)
+            shpWordText.Cells("Width").FormulaForce = shpVisioText.Cells("Width").Formula
+            shpWordText.Cells("PinX").FormulaForce = shpVisioText.Cells("PinX").Formula
+            shpWordText.Cells("PinY").FormulaForce = shpVisioText.Cells("PinY").Formula
+            shpWordText.Cells("LocPinX").FormulaForce = shpVisioText.Cells("LocPinX").Formula
+            shpWordText.Cells("LocPinY").FormulaForce = shpVisioText.Cells("LocPinY").Formula
+'            shpWordText.Cells("ImgOffsetX").FormulaForce = "ImgWidth * 0.038"
+'            shpWordText.Cells("ImgOffsetY").FormulaForce = "ImgHeight*-0.01"
+'            shpWordText.Cells("ImgWidth").FormulaForce = "Width*0.94"
+            shpWordText.AddSection visSectionAction
+            shpWordText.AddRow visSectionAction, visRowLast, visTagDefault
+            shpWordText.CellsSRC(visSectionAction, 0, visActionMenu).FormulaForceU = """Удалить все ОД"""
+            shpWordText.CellsSRC(visSectionAction, 0, visActionAction).FormulaForceU = "RUNMACRO(""OD_2_Visio.odDELL"")"
+            shpWordText.CellsSRC(visSectionAction, 0, visActionButtonFace).FormulaForceU = """1088"""
+
             'скрываем рамку текста
-            ActivePage.Shapes.Item("ОД").Cells("Geometry1.NoLine").Formula = 1
+'            ActivePage.Shapes.Item("ОД").Cells("Geometry1.NoLine").Formula = 1
+            
+            'Удаляем не нужный шейп
+            shpVisioText.Delete
             
             'переходим в начало 2-го листа ворда
-            wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="2"
-            wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
-            wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+            oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="2"
+            oWord.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
+            oWord.Selection.InsertBefore text:=Chr(13)
+            oWord.Selection.Move 1 'шаг назад
+            oWord.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
             
             'ставим поле для рамки 15 чтобы перед первым проходом цикла for иметь "более/менее" реальное число листов
             niznee_pole = ramka15
-            wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+            oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
             
             nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'число листов ворда
             nPagesOst = nPagesCount - 1
@@ -223,20 +272,20 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             For CurPage = 2 To nPagesCount
                 'переходим на верх текущего листа
-                wa.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:=CurPage
+                oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:=CurPage
     
                 If nPagesOst = 1 Or A4 Then 'последний лист или выбрано "все листы А4"
                 
                     'нижнее поле в ворде для этого листа visio
                     niznee_pole = ramka15
-                    wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+                    oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                     'вставляем лист А4
                     Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                     If aPage Is Nothing Then
                         MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
                         wad.Close savechanges:=False
-                        wa.Quit
-                        Set wa = Nothing
+                        oWord.Quit
+                        Set oWord = Nothing
                         Exit Sub
                     End If
                     aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
@@ -260,7 +309,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     'Выделяем указанный диапазон документа
                     wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                     'копируем в буфер в ворде
-                    wa.Selection.Copy
+                    oWord.Selection.Copy
                     
                     If Not nStartPageNum = nPagesCount Then
                         If oEndPage.Characters(1).Previous.text <> ChrW(12) Then
@@ -268,11 +317,26 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         End If
                     End If
 
-    
                     DoEvents
                     'shpOD.Paste
                     'вставляем из буфера в визио
-                    ActiveWindow.SelectedText.Paste
+'                    ActiveWindow.SelectedText.Paste
+                    Application.ActiveWindow.Page.PasteSpecial 49162, False, False
+                    DoEvents
+                    Set shpWordText = ActiveWindow.Selection.Item(1)
+                    shpWordText.Cells("Width").FormulaForce = "GUARD(175 mm)"
+                    shpWordText.Cells("PinX").FormulaForce = "GUARD((30 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
+                    shpWordText.Cells("PinY").FormulaForce = "(ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+                    shpWordText.Cells("LocPinX").FormulaForce = "Width*0"
+                    shpWordText.Cells("LocPinY").FormulaForce = "Height*1"
+'                    shpWordText.Cells("ImgOffsetX").FormulaForce = "ImgWidth * 0.038"
+'                    shpWordText.Cells("ImgOffsetY").FormulaForce = "ImgHeight*-0.01"
+'                    shpWordText.Cells("ImgWidth").FormulaForce = "Width*0.94"
+                    shpWordText.AddSection visSectionAction
+                    shpWordText.AddRow visSectionAction, visRowLast, visTagDefault
+                    shpWordText.CellsSRC(visSectionAction, 0, visActionMenu).FormulaForceU = """Удалить все ОД"""
+                    shpWordText.CellsSRC(visSectionAction, 0, visActionAction).FormulaForceU = "RUNMACRO(""OD_2_Visio.odDELL"")"
+                    shpWordText.CellsSRC(visSectionAction, 0, visActionButtonFace).FormulaForceU = """1088"""
                     
                     'оставшееся число страниц ворда
                     nPagesOst = nPagesCount - CurPage
@@ -283,14 +347,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     
                         'нижнее поле в ворде для этого листа visio
                         niznee_pole = ramka5
-                        wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+                        oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                         'вставляем лист А3
                         Set aPage = AddNamedPageOD(cListNameOD & "." & pNumberVisio + 1)
                         If aPage Is Nothing Then
                             MsgBox "Лист " & cListNameOD & "." & CStr(pNumberVisio + 1) & " уже существует" & vbNewLine & "Сначала удалите существующие листы ОД", vbCritical, "САПР-АСУ: Ошибка"
                             wad.Close savechanges:=False
-                            wa.Quit
-                            Set wa = Nothing
+                            oWord.Quit
+                            Set oWord = Nothing
                             Exit Sub
                         End If
                         aPage.Index = 2 + pNumberVisio 'суем страницу за текущим листом ОД
@@ -299,15 +363,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         ActivePage.PageSheet.Cells("Paperkind").Formula = 8
                         ActivePage.PageSheet.Cells("PrintPageOrientation").Formula = 2
                         ActivePage.Drop MastOD, 6.889764, 8.661417
-                        With ActiveWindow.Selection.Item(1) 'сдвигаем ОД влево
-                            .Cells("Geometry1.NoLine").Formula = 1 'скрываем рамку текста
-                            .Cells("PinX").FormulaForceU = "GUARD((25 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
-                            .Cells("PinY").FormulaForceU = "(ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
-                            .Cells("Height").FormulaForceU = "ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame*2"
-                            .Cells("Actions.right.Invisible").Formula = 0
-                            .Cells("Actions.left.Invisible").Formula = 1
-                        End With
-
+                        Set vsoShape = ActiveWindow.Selection.Item(1)
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
                         Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
@@ -315,9 +371,9 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         'Конец последней страницы для выделения
                         Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                         'Выделяем указанный диапазон документа
-                        wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
+                        wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select  'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде
-                        wa.Selection.Copy
+                        oWord.Selection.Copy
                         
                         If Not nStartPageNum = nPagesCount Then
                             If oEndPage.Characters(1).Previous.text <> ChrW(12) Then
@@ -326,20 +382,40 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         End If
 
                         DoEvents
-                        'вставляем из буфера в визио
-                        ActiveWindow.SelectedText.Paste
-                        nA3 = 2
                         
+                        'вставляем из буфера в визио
+'                        ActiveWindow.SelectedText.Paste
+
+                        Application.ActiveWindow.Page.PasteSpecial 49162, False, False
+                        DoEvents
+                        Set shpWordText = ActiveWindow.Selection.Item(1)
+                        shpWordText.Cells("Width").FormulaForce = "GUARD(175 mm)"
+                        shpWordText.Cells("PinX").FormulaForce = "GUARD((30 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
+                        shpWordText.Cells("PinY").FormulaForce = "(ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+                        shpWordText.Cells("LocPinX").FormulaForce = "Width*0"
+                        shpWordText.Cells("LocPinY").FormulaForce = "Height*1"
+'                        shpWordText.Cells("ImgOffsetX").FormulaForce = "ImgWidth * 0.038"
+'                        shpWordText.Cells("ImgOffsetY").FormulaForce = "ImgHeight*-0.01"
+'                        shpWordText.Cells("ImgWidth").FormulaForce = "Width*0.94"
+                        shpWordText.AddSection visSectionAction
+                        shpWordText.AddRow visSectionAction, visRowLast, visTagDefault
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionMenu).FormulaForceU = """Удалить все ОД"""
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionAction).FormulaForceU = "RUNMACRO(""OD_2_Visio.odDELL"")"
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionButtonFace).FormulaForceU = """1088"""
+
+                        nA3 = 2
+                        vsoShape.Delete
                     ElseIf nA3 = 2 Then ' правая половина А3
                         
                         'нижнее поле в ворде для этого листа visio
                         niznee_pole = ramka15
-                        wa.Selection.PageSetup.BottomMargin = wa.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
+                        oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole) 'ставим нижнее поле в см
                         pNumberVisio = pNumberVisio + 1
                         ActivePage.Drop MastOD, 6.889764, 8.661417
+                        Set vsoShape = ActiveWindow.Selection.Item(1)
                         'скрываем рамку текста
-                        ActiveWindow.Selection.Item(1).Cells("Geometry1.NoLine").Formula = 1
-                        ActiveWindow.Selection.Item(1).Cells("Height").FormulaForceU = "(PinY-TheDoc!User.SA_FR_OffsetFrame-15 mm)/ThePage!PageScale*ThePage!DrawingScale"
+'                        ActiveWindow.Selection.Item(1).Cells("Geometry1.NoLine").Formula = 1
+'                        ActiveWindow.Selection.Item(1).Cells("Height").FormulaForceU = "(PinY-TheDoc!User.SA_FR_OffsetFrame-15 mm)/ThePage!PageScale*ThePage!DrawingScale"
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
                         Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
@@ -349,21 +425,37 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         'Выделяем указанный диапазон документа
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде
-                        wa.Selection.Copy
+                        oWord.Selection.Copy
                         
                         If Not nStartPageNum = nPagesCount Then
                             If oEndPage.Characters(1).Previous.text <> ChrW(12) Then
                                 oEndPage.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
                             End If
                         End If
-
                         DoEvents
+
                         'вставляем из буфера в визио
-                        ActiveWindow.SelectedText.Paste
+'                        ActiveWindow.SelectedText.Paste
+                        Application.ActiveWindow.Page.PasteSpecial 49162, False, False
+                        DoEvents
+                        Set shpWordText = ActiveWindow.Selection.Item(1)
+                        shpWordText.Cells("Width").FormulaForce = "GUARD(175 mm)"
+                        shpWordText.Cells("PinX").FormulaForce = "GUARD((ThePage!PageWidth-Width-5mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale)"
+                        shpWordText.Cells("PinY").FormulaForce = "(ThePage!PageHeight-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+                        shpWordText.Cells("LocPinX").FormulaForce = "Width*0"
+                        shpWordText.Cells("LocPinY").FormulaForce = "Height*1"
+'                        shpWordText.Cells("ImgOffsetX").FormulaForce = "ImgWidth * 0.038"
+'                        shpWordText.Cells("ImgOffsetY").FormulaForce = "ImgHeight*-0.01"
+'                        shpWordText.Cells("ImgWidth").FormulaForce = "Width*0.94"
+                        shpWordText.AddSection visSectionAction
+                        shpWordText.AddRow visSectionAction, visRowLast, visTagDefault
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionMenu).FormulaForceU = """Удалить все ОД"""
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionAction).FormulaForceU = "RUNMACRO(""OD_2_Visio.odDELL"")"
+                        shpWordText.CellsSRC(visSectionAction, 0, visActionButtonFace).FormulaForceU = """1088"""
                         nA3 = 1
                         'оставшееся число страниц ворда
                         nPagesOst = nPagesCount - CurPage
-                        
+                        vsoShape.Delete
                         
                     End If
                     
@@ -377,8 +469,8 @@ Private Sub OD_2_Visio(A4 As Boolean)
             Next CurPage
             
             wad.Close savechanges:=True
-            wa.Quit
-            Set wa = Nothing
+            oWord.Quit
+            Set oWord = Nothing
             
             Application.ActiveWindow.Page = Application.ActiveDocument.Pages.Item(cListNameOD)
 
@@ -396,17 +488,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
     
     Exit Sub
     
-'        wa.Selection.Start = wa.Selection.Start - 1
-'        wa.Selection.End = wa.Selection.Start
-'        wa.Selection.HomeKey Unit:=wdStory 'верх докуменита
-'        wa.Selection.GoToNext (wdGoToPage) 'начало следующей страницы
-'        wa.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
-'        wa.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
+'        oWord.Selection.Start = oWord.Selection.Start - 1
+'        oWord.Selection.End = oWord.Selection.Start
+'        oWord.Selection.HomeKey Unit:=wdStory 'верх докуменита
+'        oWord.Selection.GoToNext (wdGoToPage) 'начало следующей страницы
+'        oWord.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
+'        oWord.Selection.InsertBreak Type:=wdSectionBreakNextPage 'вставка разрыв раздела
 '        nPagesCount = wad.Range.ComputeStatistics(wdStatisticPages) 'число листов ворда
-'With wa.ActiveDocument
-'Set Search = .Range(Start:=0, End:=100) 'это чтобы не ковырять весь документ
-'Search.Select
-'wa.Selection.Find.Execute FindText:="известный текст", Forward:=True
+
 L1:
         MsgBox "Файл " & sFile & " занят и не может быть удален", vbCritical, "САПР-АСУ: Ошибка"
 End Sub
@@ -425,7 +514,7 @@ Function AddNamedPageOD(pName As String) As Visio.Page
     ActivePage.Shapes(1).Cells("user.n.value") = 6
     ActivePage.Shapes(1).Cells("Prop.cnum.value") = 0
     ActivePage.Shapes(1).Cells("Prop.tnum.value") = 0
-    
+    LockTitleBlock
     Set AddNamedPageOD = aPage
     Exit Function
 err:
@@ -496,10 +585,27 @@ Sub ReplacePageBreaks(wa As Word.Application)
     '3. Удаление разрывов страниц.
     '1) Удаление разрывов страниц в файлах формата "doc" (это "Word 2003").
         ' В старой версии для разрыва страницы не создавался отдельный абзац.
-    If wa.ActiveDocument.SaveFormat = wdFormatDocument Then
-        With wa.ActiveDocument.Range.Find
-            .text = "^m"
+    
+    If Val(wa.Application.Version) < 12 Then 'wa.ActiveDocument.SaveFormat = wdFormatDocument Then
+        With wa.ActiveDocument.Range(0, 0).Find
+            .ClearFormatting
+            .text = "^m^p"
+            .Replacement.ClearFormatting
             .Replacement.text = ""
+            .Forward = True
+            .Wrap = wdFindContinue
+            .Format = False
+            .MatchCase = False
+            .MatchWholeWord = False
+            .MatchWildcards = False 'Обратите внимание на этот параметр.
+                                    'Если вы использовали .MatchWildcards = True,
+                                    'то знаку ^m в шаблоне будет соответствовать не
+                                    'только разрыв страницы, но также и разрыв раздела.
+                                    'При .MatchWildcards = False разрыву раздела
+                                    'соответствует уже другой знак (^b), и не нужно
+                                    'ломать голову над тем, какой разрыв вы нашли.
+            .MatchSoundsLike = False
+            .MatchAllWordForms = False
             .Execute Replace:=wdReplaceAll
         End With
     '2) Удаление разрывов страниц в файлах нового формата ("Word 2007+").
@@ -509,9 +615,25 @@ Sub ReplacePageBreaks(wa As Word.Application)
         ' Применять такой поиск: .Text = "^m^p" к doc-формату нельзя, т.к.
             ' если после разрыва страницы есть пустой абзац, то пустой абзац будет удалён.
     Else
-        With wa.ActiveDocument.Range.Find
-            .text = "^m^p"
+        With wa.ActiveDocument.Range(0, 0).Find
+            .ClearFormatting
+            .text = "^m"
+            .Replacement.ClearFormatting
             .Replacement.text = ""
+            .Forward = True
+            .Wrap = wdFindContinue
+            .Format = False
+            .MatchCase = False
+            .MatchWholeWord = False
+            .MatchWildcards = False 'Обратите внимание на этот параметр.
+                                    'Если вы использовали .MatchWildcards = True,
+                                    'то знаку ^m в шаблоне будет соответствовать не
+                                    'только разрыв страницы, но также и разрыв раздела.
+                                    'При .MatchWildcards = False разрыву раздела
+                                    'соответствует уже другой знак (^b), и не нужно
+                                    'ломать голову над тем, какой разрыв вы нашли.
+            .MatchSoundsLike = False
+            .MatchAllWordForms = False
             .Execute Replace:=wdReplaceAll
         End With
     End If

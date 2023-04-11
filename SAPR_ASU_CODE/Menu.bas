@@ -1,7 +1,7 @@
 Sub AddToolBar()
     Dim Bar As CommandBar
     
-    'Меню САПР АСУ существует?
+    'Меню САПР АСУ
     For Each Bar In Application.CommandBars
         If Bar.name = "САПР АСУ" Then Bar.Delete 'Exit Sub
     Next
@@ -18,7 +18,7 @@ Sub AddToolBar()
     
     AddButtons
 
-    'Меню ВИД существует?
+    'Меню САПР АСУ ВИД
     For Each Bar In Application.CommandBars
         If Bar.name = "САПР АСУ ВИД" Then Bar.Delete 'Exit Sub
     Next
@@ -35,7 +35,7 @@ Sub AddToolBar()
     
     AddButtonsVID
 
-    'Меню СХЕМА существует?
+    'Меню САПР АСУ СХЕМА
     For Each Bar In Application.CommandBars
         If Bar.name = "САПР АСУ СХЕМА" Then Bar.Delete 'Exit Sub
     Next

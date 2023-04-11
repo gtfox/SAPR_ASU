@@ -126,8 +126,7 @@ Private Sub xls_query(strRange As String)
         Set ffs = .Filters
         With ffs
             .Clear
-            .Add "Excel", "*.xls"
-            .Add "Excel", "*.xlsx"
+            .Add "Excel", "*.xls;*.xlsx"
         End With
         Chois = oExcel.FileDialog(msoFileDialogOpen).Show
     End With
