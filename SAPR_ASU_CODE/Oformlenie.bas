@@ -1062,8 +1062,11 @@ Sub SavePDF()
 '------------------------------------------------------------------------------------------------------------
     Dim str As String
     If MsgBox("Сохранить в PDF?" + vbNewLine + vbNewLine + Replace(ActiveDocument.name, ".vsd", ""), vbQuestion + vbOKCancel, "САПР-АСУ: Save PDF") = vbOK Then
+        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 1
+        DoEvents
         str = Replace(ActiveDocument.name, ".vsd", "") & Format(Now(), "_yyyy.mm.dd_hh.mm.ss") & ".pdf"
         Application.ActiveDocument.ExportAsFixedFormat visFixedFormatPDF, ActiveDocument.path & str, visDocExIntentPrint, visPrintAll, 1, 9, True, True, True, True, False
+        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 0
         MsgBox "Файл сохранен в папке проекта!" + vbNewLine + vbNewLine + str, vbInformation + vbOKOnly, "САПР-АСУ: Info"
     End If
 End Sub

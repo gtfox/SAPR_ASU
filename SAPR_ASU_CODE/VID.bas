@@ -438,10 +438,11 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
         NameIdParent = shpElementOnCxema.NameID
         AdrParent = "Pages[" + PageParent + "]!" + NameIdParent
         GUIDParent = shpElementOnCxema.UniqueID(visGetOrMakeGUID)
-
+        SymName = shpElementOnCxema.Cells("Prop.SymName").ResultStr(0)
+        
         Select Case SAType
             Case typeCoil, typeParent, typeElement ', typePLCParent
-                SymName = shpElementOnCxema.Cells("Prop.SymName").ResultStr(0)
+                
                 On Error Resume Next
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
                 If err.Number <> 0 Then
@@ -450,6 +451,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                     MsgBox "Элемент схемы " & shpElementOnCxema.NameU & " не имеет чертёж внешнего вида", vbExclamation + vbOKOnly, "САПР-АСУ: отсутствует чертеж внешнего вида элемента схемы"
                 Else
                     shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                    shpElementOnVID.Cells("User.Name").Formula = AdrParent + "!Prop.SymName&" + AdrParent + "!Prop.Number"
                     shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
                     shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
                     shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text 'Здесь не ссылка, т.к. на щите надписи могут отличаться от схемы
@@ -503,20 +505,21 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                             shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
                         Case "XS" 'XS (Розетка)
                             shpElementOnVID.Cells("Prop.Tok").Formula = AdrParent + "!Prop.Tok"
-                        Case "DD" 'DD (ТРМ, ПЛК-моноблок)
-                            shpElementOnVID.Cells("Prop.TPM").Formula = AdrParent + "!Prop.TPM"
+'                        Case "DD" 'DD (ТРМ, ПЛК-моноблок)
+'                            shpElementOnVID.Cells("Prop.TPM").Formula = AdrParent + "!Prop.Model"
                         Case Else
                     End Select
                 End If
             Case typePLCParent
                 On Error Resume Next
-                Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("PLC"), DropX, DropY)
-                If err.Number <> 0 Then
+                Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item("DD"), DropX, DropY)
+'                If err.Number <> 0 Then
                     err.Clear
                     On Error GoTo 0
-'                    MsgBox "Элемент схемы " & shpElementOnCxema.NameU & " не имеет чертёж внешнего вида", vbExclamation + vbOKOnly, "САПР-АСУ: отсутствует чертеж внешнего вида элемента схемы"
-                Else
+''                    MsgBox "Элемент схемы " & shpElementOnCxema.NameU & " не имеет чертёж внешнего вида", vbExclamation + vbOKOnly, "САПР-АСУ: отсутствует чертеж внешнего вида элемента схемы"
+'                Else
                     shpElementOnVID.Cells("User.NameParent").Formula = AdrParent + "!User.Name"
+                    shpElementOnVID.Cells("User.Name").Formula = AdrParent + "!Prop.SymName&" + AdrParent + "!Prop.Number"
                     shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaU = """" + shpElementOnCxema.ContainingPage.NameU + "/" + shpElementOnCxema.NameID + """"
                     shpElementOnVID.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaU = GUIDParent
                     shpElementOnVID.Shapes("Desc").text = shpElementOnCxema.Shapes("Desc").text
@@ -525,10 +528,10 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                     dY = IIf(shpElementOnVID.Cells("Height").Result(0) > dY, shpElementOnVID.Cells("Height").Result(0), dY)
                     Select Case SymName
                         Case "DD" 'DD (ПЛК-модульный)
-                            shpElementOnVID.Cells("Prop.TPM").Formula = shpElementOnCxema.Cells("Prop.TPM").Result(0)
+                            shpElementOnVID.Cells("Prop.TPM").Formula = """" & shpElementOnCxema.Cells("Prop.Model").ResultStr(0) & """" 'AdrParent + "!Prop.TPM"
                         Case Else
                     End Select
-                End If
+'                End If
             Case Else
                 dX = 0
         End Select

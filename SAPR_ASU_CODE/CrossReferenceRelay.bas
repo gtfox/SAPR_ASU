@@ -86,6 +86,8 @@ Sub AddReferenceRelay(shpChild As Visio.Shape, shpParent As Visio.Shape)
             shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
             shpChild.CellsU("User.Number").FormulaU = AdrParent + "!Scratch.B" + CStr(i) 'Pages[Схема.3]!Sheet.4!Scratch.B2
             shpChild.CellsU("User.LocationParent").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+            shpChild.CellsU("User.Shkaf").FormulaU = AdrParent + "!User.Shkaf"
+            shpChild.CellsU("User.Mesto").FormulaU = AdrParent + "!User.Mesto"
 
             If shpChild.CellExistsU("HyperLink.Coil", False) = False Then
                shpChild.AddNamedRow visSectionHyperlink, "Coil", 0
@@ -232,6 +234,8 @@ Sub ClearRelayChild(shpChild As Visio.Shape)
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkSubAddress).FormulaForceU = """"""
     shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).FormulaForceU = ""
     shpChild.Shapes("Desc").Cells("Fields.Value").FormulaU = ""
+    shpChild.CellsU("User.Shkaf").FormulaU = ""
+    shpChild.CellsU("User.Mesto").FormulaU = ""
     'Удаляем миниатюры контактов, если они были
 '    ThumbDelete shpChild
 
@@ -427,6 +431,8 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
                     ConnectedShape.Cells("Prop.HideNumber").FormulaU = False
                     ConnectedShape.Cells("Prop.HideName").FormulaU = True
                     ConnectedShape.Cells("User.AdrSource.Prompt").FormulaU = ""
+                    ConnectedShape.Cells("User.Shkaf").FormulaU = ""
+                    ConnectedShape.Cells("User.Mesto").FormulaU = ""
                     'Присваиваем номер проводу
                     'AutoNum ConnectedShape
                 End If

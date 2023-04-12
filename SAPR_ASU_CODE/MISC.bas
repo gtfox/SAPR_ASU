@@ -82,12 +82,14 @@ Public Function ShapeByGUID(GUIDToShape As String) As Visio.Shape
                 'Если нет ссылки или шейпа на выход идет Nothing
 '------------------------------------------------------------------------------------------------------------
     Dim vsoPage As Visio.Page
+    
     Set ShapeByGUID = Nothing
     If GUIDToShape <> "" Then 'Если GUID есть
         'Перебираем все листы
         For Each vsoPage In ActiveDocument.Pages
             On Error Resume Next
-            Set ShapeByGUID = vsoPage.Shapes(GUIDToShape)
+            Set ShapeByGUID = vsoPage.Shapes.Item("*" & GUIDToShape)
+            If Not ShapeByGUID Is Nothing Then Exit Function
         Next
     End If
 End Function

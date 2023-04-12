@@ -8,6 +8,10 @@ Private Sub btnAddPriceExcel_Click()
     End If
 End Sub
 
+Private Sub cbColor_Click()
+    ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = cbColor
+End Sub
+
 Private Sub UserForm_Initialize()
     InitCustomCCPMenu Me 'Контекстное меню для TextBox
     Reload_cmbx

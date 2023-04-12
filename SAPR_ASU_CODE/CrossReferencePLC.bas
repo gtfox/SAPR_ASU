@@ -89,6 +89,8 @@ Public Sub AddReferencePLC(shpChild As Visio.Shape, shpParent As Visio.Shape)
     
     shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
     shpChild.CellsU("User.LocationParent").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
+    shpChild.Cells("User.Shkaf").FormulaU = AdrParent & "!User.Shkaf"
+    shpChild.Cells("User.Mesto").FormulaU = AdrParent & "!User.Mesto"
 
 End Sub
 
@@ -182,6 +184,8 @@ Sub DeletePLCParent(shpParent As Visio.Shape)
                 shpChild.CellsU("Hyperlink.PLC.ExtraInfo").FormulaForceU = ""
                 shpChild.CellsU("User.NameParent").FormulaForceU = ""
                 shpChild.CellsU("User.LocationParent").FormulaForceU = ""
+                shpChild.Cells("User.Shkaf").FormulaU = ""
+                shpChild.Cells("User.Mesto").FormulaU = ""
             End If
         End If
     Next
@@ -212,6 +216,8 @@ Sub ClearPLCChild(shpChild As Visio.Shape)
     shpChild.CellsU("Hyperlink.PLC.ExtraInfo").FormulaForceU = ""
     shpChild.CellsU("User.NameParent").FormulaForceU = ""
     shpChild.CellsU("User.LocationParent").FormulaForceU = ""
+    shpChild.Cells("User.Shkaf").FormulaU = ""
+    shpChild.Cells("User.Mesto").FormulaU = ""
 
 End Sub
 
