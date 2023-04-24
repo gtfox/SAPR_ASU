@@ -302,24 +302,24 @@ Private Sub AddButtonsCXEMA()
 '        .BeginGroup = True
     End With
 
-        '---Кнопка "Скрыть дочерние провода"
+        '---Кнопка "Скрыть дочерние номера проводов"
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
     With Button
-        .Caption = "Скрытьдочерниепровода"
+        .Caption = "Скрытьдочерниеномерапроводов"
         .Tag = "HideWireNumChildInDoc"
         .OnAction = "HideWireNumChildInDoc"
-        .TooltipText = "Скрыть дочерние провода"
+        .TooltipText = "Скрыть дочерние номера проводов"
         .FaceId = 290 '2810 2805
         .BeginGroup = True
     End With
 
-        '---Кнопка "Показать дочерние провода"
+        '---Кнопка "Показать дочерние номера проводов"
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=5)
     With Button
-        .Caption = "Показатьдочерниепровода"
+        .Caption = "Показатьдочерниеномерапроводов"
         .Tag = "ShowWireNumChildInDoc"
         .OnAction = "ShowWireNumChildInDoc"
-        .TooltipText = "Показать дочерние провода"
+        .TooltipText = "Показать дочерние номера проводов"
         .FaceId = 291 '2810 2805
 '        .BeginGroup = True
     End With

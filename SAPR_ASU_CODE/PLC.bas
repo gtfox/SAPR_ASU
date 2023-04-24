@@ -116,7 +116,10 @@ Sub GenIOPLC(shpIO As Visio.Shape, NIO As Integer)
 '------------------------------------------------------------------------------------------------------------
     Dim shpPLCIO As Visio.Shape
     Dim nColumn As Integer 'Число столбцов клемм: 1 или 2
-
+    
+    If shpIO.Parent.Shapes.Count - 2 + NIO > shpIO.Parent.Cells("Prop.NIO").Result(0) Then
+        MsgBox "Превышено максимальное число входов модуля", vbInformation, "САПР-АСУ: Info"
+    End If
     nColumn = 1
     shpIO.Cells("Prop.Autonum").Formula = True
 
@@ -192,6 +195,8 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
                 vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
             End If
         Case typePLCTerm
+            vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
+        Case Else
             vsoDouble.Cells("PinY").FormulaForce = vsoShape.Cells("PinY").Result(0)
     End Select
     ActiveWindow.Select vsoDouble, visSubSelect
