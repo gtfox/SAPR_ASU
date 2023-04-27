@@ -166,8 +166,8 @@ Sub WizardAddPriceExcel(sProizvoditel As String)
     End If
 
     Set wbExcelPrice = oExcelAppPrice.Workbooks.Open(sFilePathName)
-    Load frmVyborListaExcel
-    frmVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
+    Load frmMenuVyborListaExcel
+    frmMenuVyborListaExcel.run wbExcelPrice 'присваиваем Excel_imya_lista
 
     If frmClose Then ExcelAppQuit oExcelAppIzbrannoe: ExcelAppQuit oExcelAppPrice: Exit Sub
     Set wshPrice = wbExcelPrice.Worksheets(Excel_imya_lista)

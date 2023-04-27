@@ -62,7 +62,7 @@ Public frmClose As Boolean
 '---------AddSostavNaboraIzBD
 
 Sub ShowSpecifikaciya()
-    frmSpecifikaciya.Show
+    frmMenuSpecifikaciya.Show
 End Sub
 
 Public Sub spDEL()
@@ -145,8 +145,8 @@ Private Sub xls_query(strRange As String)
 '    End If
     
     Set sp = oExcel.Workbooks.Open(sFile)
-    Load frmVyborListaExcel
-    frmVyborListaExcel.run sp 'присваиваем Excel_imya_lista
+    Load frmMenuVyborListaExcel
+    frmMenuVyborListaExcel.run sp 'присваиваем Excel_imya_lista
 
     If frmClose Then oExcel.Application.Quit: Exit Sub
 

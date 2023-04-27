@@ -275,7 +275,7 @@ Private Sub AddButtonsCXEMA()
         .style = msoButtonAutomatic
         .OnAction = "Duplicate"
         .TooltipText = "Дубликат 2х"
-        .FaceId = 1836 '19 '1774 1807 1950 523
+        .FaceId = 72 '1836 '19 '1774 1807 1950 523
     End With
     
         '---Кнопка "Сначала группа"
@@ -345,9 +345,23 @@ Private Sub AddButtonsCXEMA()
         .FaceId = 2164
 '        .BeginGroup = True
     End With
+
+            '---Кнопка Создать шаблон схемы
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=8)
+    With Button
+        .Caption = "Создатьшаблонсхемы"
+        .Tag = "LockSelect"
+        .style = msoButtonAutomatic
+        .OnAction = "MenuAddToStencilFrm"
+        .TooltipText = "Создать шаблон схемы"
+        .FaceId = 2135 '2134 '1807 '1672 '1048 516 582
+        .BeginGroup = True
+    End With
+
+    Set Button = Nothing
     
         '---Кнопка Блокировки выделенного объекта
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=8)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=9)
     With Button
         .Caption = "БлокировкаВыделенного"
         .Tag = "LockSelect"
@@ -357,8 +371,6 @@ Private Sub AddButtonsCXEMA()
         .FaceId = 519
         .BeginGroup = True
     End With
-
-
 
     Set Button = Nothing
            

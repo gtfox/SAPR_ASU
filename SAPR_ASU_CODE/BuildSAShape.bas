@@ -194,14 +194,27 @@ Sub SetElement() 'SetValueToSelSections
 '    End If
 'Next
 
-For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes 'Panel PanelMAX Shkaf ShkafKSRM
-    If vsoObject.name Like "KabKan*" Then
-        With vsoObject
-'            .CellsSRC(visSectionControls, 0, visCtlY).FormulaU = "15mm*User.AntiScale"
-            .CellsSRC(visSectionObject, visRowTextXForm, visXFormWidth).FormulaForceU = "GUARD(TEXTWIDTH(TheText))"
-            .CellsSRC(visSectionObject, visRowTextXForm, visXFormHeight).FormulaForceU = "GUARD(TEXTHEIGHT(TheText,TxtWidth))"
-        End With
-    End If
+'For Each vsoObject In Application.Documents.Item("SAPR_ASU_VID.vss").Masters.Item("PanelMAX").Shapes.Item("PanelMAX").Shapes 'Panel PanelMAX Shkaf ShkafKSRM
+'    If vsoObject.name Like "KabKan*" Then
+'        With vsoObject
+''            .CellsSRC(visSectionControls, 0, visCtlY).FormulaU = "15mm*User.AntiScale"
+'            .CellsSRC(visSectionObject, visRowTextXForm, visXFormWidth).FormulaForceU = "GUARD(TEXTWIDTH(TheText))"
+'            .CellsSRC(visSectionObject, visRowTextXForm, visXFormHeight).FormulaForceU = "GUARD(TEXTHEIGHT(TheText,TxtWidth))"
+'        End With
+'    End If
+'Next
+
+arrMast = Array("WLS", "QS", "SF", "QF", "QA", "KK", "FU3P", "FU", "KL", "KM", "KT", "KV", "UZ", "UZ3P", "UZF", "SA", "SB", "HL", "HA", "EK", "EK3P", "XS", "XS3P", "TV", "UG", "R", "R3P", "RU", "RU3P") ', "Sensor", "Term", "TermC")
+
+For i = 0 To UBound(arrMast)
+Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+
+SectionNumber = visSectionUser 'User 242
+sSectionName = "User."
+            arrRowName = Array("Name")
+            arrRowValue = Array("IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Shkaf,ThePage!Prop.SA_NazvanieShkafa),"""",IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),"""")))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number")
+SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
 Next
 
 End Sub

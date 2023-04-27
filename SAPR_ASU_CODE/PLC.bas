@@ -104,15 +104,15 @@ Function ColumnCopy(shpPLCIO As Visio.Shape, NIO As Integer, nColumn As Integer,
 End Function
 
 'Активация формы генерации входов
-Public Sub dofrmGenIO(shpIO As Visio.Shape) 'Получили шейп с листа
-    Load frmGenIO
-    frmGenIO.run shpIO 'Передали его в форму
+Public Sub dofrmMenuGenIO(shpIO As Visio.Shape) 'Получили шейп с листа
+    Load frmMenuGenIO
+    frmMenuGenIO.run shpIO 'Передали его в форму
 End Sub
 
 Sub GenIOPLC(shpIO As Visio.Shape, NIO As Integer)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : GenModPLC - Создает входы ПЛК (NIO - кол-во входов)
-                'Приклеивает вход ко входу снизу в количестве заданном в форме frmGenIO
+                'Приклеивает вход ко входу снизу в количестве заданном в форме frmMenuGenIO
 '------------------------------------------------------------------------------------------------------------
     Dim shpPLCIO As Visio.Shape
     Dim nColumn As Integer 'Число столбцов клемм: 1 или 2

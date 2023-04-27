@@ -209,47 +209,51 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
     Next
     
 '    ActiveWindow.SelectAll
-'    Load frmReNumber
-'    frmReNumber.ReNumberShemy
+'    Load frmMenuReNumber
+'    frmMenuReNumber.ReNumberShemy
 '    ActiveWindow.DeselectAll
 
     ActiveWindow.DeselectAll
-    Load frmReNumber
-    frmReNumber.obVseCx = True
-    frmReNumber.obVseTipObCx = True
-    frmReNumber.ReNumberShemy
+    Load frmMenuReNumber
+    frmMenuReNumber.obVseCx = True
+    frmMenuReNumber.obVseTipObCx = True
+    frmMenuReNumber.ReNumberShemy
     
     UpdateNazvanieShkafa
 End Sub
 
 Public Sub ObjInfo()
 '------------------------------------------------------------------------------------------------------------
-' Macros        : ObjInfo - Показывает информацию о выделенном шейпе, субшейпе или странице на форме frmObjInfo
+' Macros        : ObjInfo - Показывает информацию о выделенном шейпе, субшейпе или странице на форме frmMenuObjInfo
                 'Вызывается кнопкой на панели инструментов САПР АСУ
 '------------------------------------------------------------------------------------------------------------
     Dim vsoSelection As Visio.Selection
    
     Set vsoSelection = Application.ActiveWindow.Selection
-    Load frmObjInfo
-    If ActiveWindow.Selection.Count > 1 Then frmObjInfo.Caption = "Info " + "(выделено " + CStr(ActiveWindow.Selection.Count) + ")"
+    Load frmMenuObjInfo
+    If ActiveWindow.Selection.Count > 1 Then frmMenuObjInfo.Caption = "Info " + "(выделено " + CStr(ActiveWindow.Selection.Count) + ")"
     If vsoSelection.PrimaryItem Is Nothing Then
         vsoSelection.IterationMode = visSelModeOnlySub
         'For Each sh In vsoSelection
             If vsoSelection.PrimaryItem Is Nothing Then
-                frmObjInfo.run ActivePage
+                frmMenuObjInfo.run ActivePage
             Else
-                frmObjInfo.run vsoSelection.PrimaryItem
+                frmMenuObjInfo.run vsoSelection.PrimaryItem
             End If
         'Next
     Else
-        frmObjInfo.run vsoSelection.PrimaryItem
+        frmMenuObjInfo.run vsoSelection.PrimaryItem
     End If
 End Sub
 
-Sub Ungroup()
+Sub UngroupNumSelect()
+    Dim vsoSelection As Visio.Selection
     Application.AlertResponse = 1
     ActiveWindow.Selection.Ungroup
+    Set vsoSelection = ActiveWindow.Selection
     Application.AlertResponse = 0
+    ResetLocalShkafMesto ActivePage
+    ActiveWindow.Selection = vsoSelection
 End Sub
 
 Sub Duplicate()
@@ -272,6 +276,51 @@ Sub BeginGroup()
         For Each vsoShape In ActiveWindow.Selection
             vsoShape.CellsSRC(visSectionObject, visRowGroup, visGroupSelectMode).FormulaU = "1"
         Next
+    End If
+End Sub
+
+Sub MenuAddToStencilFrm()
+    Load frmMenuAddToStencil
+    frmMenuAddToStencil.Show
+End Sub
+
+Sub AddCxemaToStencil(NameStencil As String, NameMaster As String)
+    Dim vsoDocument As Visio.Document
+    Dim vsoStencilCopy As Visio.Master
+    Dim vsoLayer1 As Visio.Layer
+    Dim vsoShape As Visio.Shape
+    Dim vsoMaster As Visio.Master
+    
+    If ActiveWindow.Selection.Count > 1 Then
+        If NameStencil <> "" Then
+            Set vsoDocument = Application.Documents.Item(NameStencil)
+            On Error Resume Next
+            vsoDocument.Save
+            err.Clear
+            On Error GoTo 0
+            vsoDocument.Close
+            Set vsoDocument = Application.Documents.OpenEx(ActiveDocument.path & NameStencil, visOpenRW + visOpenDocked)
+            ActiveWindow.Selection.Copy visCopyPasteNoTranslate
+            Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("temp")
+            vsoLayer1.CellsC(visLayerActive).FormulaU = "1"
+            DoEvents
+            Application.EventsEnabled = 0
+            ActivePage.Paste visCopyPasteNoTranslate
+            Set vsoShape = ActiveWindow.Selection.Group
+            vsoShape.Cells("EventDrop").FormulaU = "SETF(GetRef(PinY)," & Replace(CStr(vsoShape.Cells("PinY").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + SETF(GetRef(PinX)," & Replace(CStr(vsoShape.Cells("PinX").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + RunMacro(""UngroupNumSelect"")"
+            Set vsoMaster = vsoDocument.Drop(vsoShape, 0, 0)
+            If NameMaster <> "" Then
+                vsoMaster.name = NameMaster
+            End If
+            vsoDocument.Save
+            vsoShape.Delete
+            vsoLayer1.Delete 1
+            Application.EventsEnabled = -1
+        Else
+            MsgBox "Не выбран набор элементов", vbOKOnly + vbInformation, "САПР-АСУ: Info"
+        End If
+    Else
+        MsgBox "Выделите больше одного элемента схемы", vbOKOnly + vbInformation, "САПР-АСУ: Info"
     End If
 End Sub
 

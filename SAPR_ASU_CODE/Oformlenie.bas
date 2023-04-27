@@ -180,8 +180,8 @@ Public Sub LockSelected()
         End If
     Else
         'Форма разблокировки заблокированных шейпов
-        Load frmUnLockSALayer
-        frmUnLockSALayer.Show
+        Load frmMenuUnLockSALayer
+        frmMenuUnLockSALayer.Show
     End If
 End Sub
 
@@ -208,8 +208,8 @@ End Sub
 
 
 Sub ShowSettingsProject()
-    Load frmSettingsProject
-    frmSettingsProject.Show
+    Load frmMenuSettingsProject
+    frmMenuSettingsProject.Show
 End Sub
 
 Sub SaveProjectFileAs()

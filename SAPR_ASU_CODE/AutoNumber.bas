@@ -108,7 +108,7 @@ Sub FindMAX(vsoShapeOnPage As Visio.Shape)
 End Sub
 
 Sub ShowReNumber()
-    frmReNumber.Show
+    frmMenuReNumber.Show
 End Sub
 
 Public Function ReNumber(colShp As Collection, StartNumber As Integer) As Integer
