@@ -69,12 +69,12 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
     
     If vsoShape.CellExistsU("User.SAType", 0) Then 'отсеиваем посторонние шейпы не имеющие поле ТИП
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
-            Case typeWireLinkR 'Если макрос активировался дочерним - значит искали родителей
-                If ShapeSATypeIs(vsoShape, typeWireLinkS) Then
+            Case typeCxemaWireLinkR 'Если макрос активировался дочерним - значит искали родителей
+                If ShapeSATypeIs(vsoShape, typeCxemaWireLinkS) Then
                     SelectText vsoShape, vsoPage
                 End If
-            Case typeWireLinkS 'Если макрос активировался родителем - значит искали дочерних
-                If ShapeSATypeIs(vsoShape, typeWireLinkR) Then
+            Case typeCxemaWireLinkS 'Если макрос активировался родителем - значит искали дочерних
+                If ShapeSATypeIs(vsoShape, typeCxemaWireLinkR) Then
                     SelectText vsoShape, vsoPage
                 End If
         End Select
@@ -250,10 +250,10 @@ End Sub
 Private Sub lstvParent_DblClick()
 
     Select Case FindType
-        Case typeWireLinkR 'Если макрос активировался дочерним - значит искали родителей
+        Case typeCxemaWireLinkR 'Если макрос активировался дочерним - значит искали родителей
             'Создаем связь как и было задумано
             AddReferenceWireLink shpChild, shpParent
-        Case typeWireLinkS 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaWireLinkS 'Если макрос активировался родителем - значит искали дочерних
             'Меняем местами родителя/дочернего, т.к. в переменной shpChild содержится родитель, а в shpParent дочерний
             AddReferenceWireLink shpParent, shpChild
     End Select

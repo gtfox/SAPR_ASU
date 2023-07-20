@@ -76,6 +76,8 @@ Sub SetElement() 'SetValueToSelSections
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
+
+'Set vsoObject = ActiveWindow.Selection(1)
     
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PodvalCxemy").Shapes.Item(1)
 
@@ -330,6 +332,39 @@ Sub SetIconPLC()
             End With
         Next
     Next
+End Sub
+
+Sub SetDB()
+    Dim vsoObject As Object
+    Dim arrRowValue()
+    Dim arrRowName()
+    Dim arrMast()
+    Dim SectionNumber As Long
+    Dim RowNumber As Long
+    
+    Set vsoObject = ActiveWindow.Selection(1)
+    
+    SectionNumber = visSectionUser 'User 242
+    sSectionName = "User."
+                arrRowName = Array("KodProizvoditelyaDB", "KodPoziciiDB")
+                arrRowValue = Array("|""""", _
+                                "|""Код позиции/Код производителя/Код единицы""")
+    SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+    
+    SectionNumber = visSectionProp 'Prop 243
+                arrRowName = Array("NazvanieDB", "ArtikulDB", "ProizvoditelDB", "CenaDB", "EdDB")
+                arrRowValue = Array("""Название из БД""|""Название из БД""|0|""""|""""|""60""|FALSE|FALSE|1033|0", _
+                                """Артикул из БД""|""Код заказа из БД""|0|""""|""""|""61""|FALSE|FALSE|1033|0", _
+                                """Производитель из БД""|""Производитель из БД""|0|""""|""""|""62""|FALSE|FALSE|1033|0", _
+                                """Цена из БД""|""Цена из БД""|0|""""|""""|""63""|FALSE|FALSE|1033|0", _
+                                """Единица из БД""|""Единица измерения из БД""|0|""""|""""|""64""|FALSE|FALSE|1033|0")
+    SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+    
+    SectionNumber = visSectionAction 'Action 240
+                arrRowName = Array("AddDB")
+                arrRowValue = Array("CALLTHIS(""AddDBFrm"")|""База данных...""|""""|264|""""|0|0|FALSE|FALSE|FALSE")
+    SetValueToOneSection vsoObject, arrRowValue, arrRowName, SectionNumber, RowNumber
+
 End Sub
 
 Sub GetAllSSValue()

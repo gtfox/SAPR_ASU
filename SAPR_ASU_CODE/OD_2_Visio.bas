@@ -225,14 +225,14 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
     
             'верх сраницы 1
-            oWord.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, name:="1"
+            oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="1"
             oWord.Selection.PageSetup.BottomMargin = oWord.CentimetersToPoints(niznee_pole / 10) 'ставим нижнее поле в см
             
             nStartPageNum = 1
-            Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+            Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
             nEndPageNum = 1
             'Конец последней страницы для выделения
-            Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + nEndPageNum)  '.GoToNext(wdGoToPage)
+            Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + nEndPageNum)  '.GoToNext(wdGoToPage)
             'Выделяем указанный диапазон документа
             wad.Range(oStartPage.Start, oEndPage.End).Select ' wad.Range(oStartPage.Start, IIf(nStartPageNum + nEndPageNum = nPagesCount + 1, wad.Range.End, oEndPage.End)).Select
             'копируем в буфер в ворде
@@ -262,7 +262,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             shpVisioText.Delete
             
             'переходим в начало 2-го листа ворда
-            oWord.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, name:="2"
+            oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:="2"
             oWord.Selection.MoveEnd wdCharacter, -1 'шаг назад - конец предыдущей страницы
             oWord.Selection.InsertBefore text:=Chr(13)
             oWord.Selection.Move 1 'шаг назад
@@ -278,7 +278,7 @@ Private Sub OD_2_Visio(A4 As Boolean)
             
             For CurPage = 2 To nPagesCount
                 'переходим на верх текущего листа
-                oWord.Selection.Goto What:=wdGoToPage, Which:=wdGoToAbsolute, name:=CurPage
+                oWord.Selection.GoTo What:=wdGoToPage, Which:=wdGoToAbsolute, name:=CurPage
     
                 If nPagesOst = 1 Or A4 Then 'последний лист или выбрано "все листы А4"
                 
@@ -308,10 +308,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
                     'shpOD.Paste '.Select 'либо если есть метод paste сразу
                     'выбрали диапазон текущего листа
                     nStartPageNum = CurPage
-                    Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                    Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                     nEndPageNum = CurPage
                     'Конец последней страницы для выделения
-                    Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                    Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                     'Выделяем указанный диапазон документа
                     wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                     'копируем в буфер в ворде
@@ -372,10 +372,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
                         Set vsoShape = ActiveWindow.Selection.Item(1)
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
-                        Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                        Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
                         'Конец последней страницы для выделения
-                        Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                        Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                         'Выделяем указанный диапазон документа
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select  'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде
@@ -424,10 +424,10 @@ Private Sub OD_2_Visio(A4 As Boolean)
 '                        ActiveWindow.Selection.Item(1).Cells("Height").FormulaForceU = "(PinY-TheDoc!User.SA_FR_OffsetFrame-15 mm)/ThePage!PageScale*ThePage!DrawingScale"
                         'выбрали диапазон текущего листа
                         nStartPageNum = CurPage
-                        Set oStartPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum)
+                        Set oStartPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum)
                         nEndPageNum = CurPage
                         'Конец последней страницы для выделения
-                        Set oEndPage = wad.Range.Goto(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
+                        Set oEndPage = wad.Range.GoTo(wdGoToPage, wdGoToAbsolute, nStartPageNum + 1)  '.GoToNext(wdGoToPage)
                         'Выделяем указанный диапазон документа
                         wad.Range(oStartPage.Start, IIf(nStartPageNum = nPagesCount, wad.Range.End, oEndPage.End)).Select 'wad.Range(oStartPage.Start, oEndPage.End).Select '
                         'копируем в буфер в ворде

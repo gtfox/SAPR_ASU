@@ -51,7 +51,7 @@ Sub AddRouteCablesOnPlan()
 
                 'Находим кабели на плане (чтобы не проложить повторно)
                 For Each shpKabel In shpSensorFSA.ContainingPage.Shapes 'Перебираем все кабели
-                    If ShapeSATypeIs(shpKabel, typeCablePL) Then
+                    If ShapeSATypeIs(shpKabel, typePlanCable) Then
                         colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.SymName").ResultStr(0) = "", CStr(shpKabel.Cells("Prop.Number").Result(0)), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0))
                     End If
                 Next
@@ -82,21 +82,21 @@ Sub AddRouteCablesOnPlan()
     
     'Находим шкафы и прокладываем кабели
     For Each shpBoxFSA In ActivePage.Shapes
-        If ShapeSATypeIs(shpBoxFSA, typeBox) Then
+        If ShapeSATypeIs(shpBoxFSA, typePlanBox) Then
             RouteCableBox shpBoxFSA
         End If
     Next
     
     'Считаем длину лотков
     For Each shpLotok In ActivePage.Shapes
-        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+        If ShapeSATypeIs(shpLotok, typePlanDuct) Then
             shpLotok.Cells("Prop.Dlina").Formula = CableLength(shpLotok)
         End If
     Next
     
     'Добавляем подъемы
     For Each shpPodem In ActivePage.Shapes
-        If ShapeSATypeIs(shpPodem, typePodemPL) Then
+        If ShapeSATypeIs(shpPodem, typePlanPodem) Then
             PodemPlan shpPodem
         End If
     Next
@@ -192,9 +192,9 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
     
     'Находим шкафы и точки их подключения
     For Each shpLotok In ActivePage.Shapes
-        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+        If ShapeSATypeIs(shpLotok, typePlanDuct) Then
             For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
-                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
+                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typePlanBox) Then 'Выбираем только шкафы
                     Set clsShapePoint = New classShapePoint
                     clsShapePoint.PointNumber = colShapePoints.Count + 1
                     Select Case shpLotok.Connects(i).FromPart
@@ -234,10 +234,10 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
     PageHeight = shpSensorFSA.ContainingPage.PageSheet.Cells("PageHeight").Result(0)
     
     'Рисуем линии во все стороны
-    Set shpLineUp = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, PageHeight)
-    Set shpLineDown = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, 0)
-    Set shpLineLeft = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, 0, SensorFSAPinY)
-    Set shpLineRight = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, PageWidth, SensorFSAPinY)
+    Set shpLineUp = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, PageHeight * 2)
+    Set shpLineDown = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, SensorFSAPinX, -PageHeight * 2)
+    Set shpLineLeft = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, -PageWidth * 2, SensorFSAPinY)
+    Set shpLineRight = ActivePage.DrawLine(SensorFSAPinX, SensorFSAPinY, PageWidth * 2, SensorFSAPinY)
     
     'Находим все пересечения
     Set selLineUp = shpLineUp.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
@@ -304,7 +304,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
                 'Проверяем что линия касается лотка
                 Set selSelectionTemp = vsoShape.SpatialNeighbors(visSpatialTouching + visSpatialOverlap, 0, 0)
                 For Each vsoShapeTemp In selSelectionTemp
-                    If ShapeSATypeIs(vsoShapeTemp, typeDuctPlan) Then
+                    If ShapeSATypeIs(vsoShapeTemp, typePlanDuct) Then
                         colLineShort.Add vsoShape
                         Exit For
                     End If
@@ -337,7 +337,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
     shpLineRight.Delete
     vsoLayer1.Delete True
     
-    'Создаем свойства для линии (тип как у лотка typeDuctPlan = 170)
+    'Создаем свойства для линии (тип как у лотка typePlanDuct = 170)
     With shpShortLine
         .AddSection visSectionUser
         .AddRow visSectionUser, visRowLast, visTagDefault
@@ -371,7 +371,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
     Set selSelection = ActiveWindow.Selection
     
     For Each shpLotok In ActivePage.Shapes
-        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+        If ShapeSATypeIs(shpLotok, typePlanDuct) Then
             selSelection.Select shpLotok, visSelect
         End If
     Next
@@ -497,7 +497,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
             
             'Находим кабели на плане (чтобы не проложить повторно)
             For Each shpKabel In shpSensorFSATemp.ContainingPage.Shapes 'Перебираем все кабели
-                If ShapeSATypeIs(shpKabel, typeCablePL) Then
+                If ShapeSATypeIs(shpKabel, typePlanCable) Then
                     colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.SymName").ResultStr(0) = "", CStr(shpKabel.Cells("Prop.Number").Result(0)), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0))
                 End If
             Next
@@ -527,7 +527,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
             
             'Находим шкаф по названию схемы
             For Each clsShpPnt In colShapePoints
-                If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typeBox) Then
+                If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typePlanBox) Then
                     If clsShpPnt.ShapeOnFSA.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
                         EndRoute = clsShpPnt.PointNumber 'Номер точки конца машрута
                         Exit For
@@ -577,7 +577,7 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
                 'Находим лоток под куском маршрута
                 Set selSelection = ActivePage.SpatialSearch(PinX, PinY, visSpatialTouching, 0.02 * AntiScale, 0)
                 For Each vsoShape In selSelection
-                    If ShapeSATypeIs(vsoShape, typeDuctPlan) Then
+                    If ShapeSATypeIs(vsoShape, typePlanDuct) Then
                         Set shpLotok = vsoShape
                     End If
                 Next
@@ -807,9 +807,9 @@ Sub RouteCableBox(shpBoxFSA As Visio.Shape)
     
     'Находим шкафы и точки их подключения
     For Each shpLotok In ActivePage.Shapes
-        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+        If ShapeSATypeIs(shpLotok, typePlanDuct) Then
             For i = 1 To shpLotok.Connects.Count 'Перебираем подключенные концы лотка
-                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typeBox) Then 'Выбираем только шкафы
+                If ShapeSATypeIs(shpLotok.Connects(i).ToSheet, typePlanBox) Then 'Выбираем только шкафы
                     Set clsShapePoint = New classShapePoint
                     clsShapePoint.PointNumber = colShapePoints.Count + 1
                     Select Case shpLotok.Connects(i).FromPart
@@ -832,7 +832,7 @@ Sub RouteCableBox(shpBoxFSA As Visio.Shape)
     Set selSelection = ActiveWindow.Selection
     
     For Each shpLotok In ActivePage.Shapes
-        If ShapeSATypeIs(shpLotok, typeDuctPlan) Then
+        If ShapeSATypeIs(shpLotok, typePlanDuct) Then
             selSelection.Select shpLotok, visSelect
         End If
     Next
@@ -929,7 +929,7 @@ Sub RouteCableBox(shpBoxFSA As Visio.Shape)
 
                 'Находим кабели на плане (чтобы не проложить повторно)
                 For Each shpKabel In shpOnFSATemp.ContainingPage.Shapes 'Перебираем все кабели
-                    If ShapeSATypeIs(shpKabel, typeCablePL) Then
+                    If ShapeSATypeIs(shpKabel, typePlanCable) Then
                         colCablesTemp.Add shpKabel, IIf(shpKabel.Cells("Prop.SymName").ResultStr(0) = "", CStr(shpKabel.Cells("Prop.Number").Result(0)), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0))
                     End If
                 Next
@@ -963,7 +963,7 @@ Sub RouteCableBox(shpBoxFSA As Visio.Shape)
                 
                 'Находим шкаф по названию схемы
                 For Each clsShpPnt In colShapePoints
-                    If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typeBox) Then
+                    If ShapeSATypeIs(clsShpPnt.ShapeOnFSA, typePlanBox) Then
                         If clsShpPnt.ShapeOnFSA.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) = NazvanieShkafa Then
                             EndRoute = clsShpPnt.PointNumber 'Номер точки конца машрута
                             Exit For
@@ -1013,7 +1013,7 @@ Sub RouteCableBox(shpBoxFSA As Visio.Shape)
                     'Находим лоток под куском маршрута
                     Set selSelection = ActivePage.SpatialSearch(PinX, PinY, visSpatialTouching, 0.02 * AntiScale, 0)
                     For Each vsoShape In selSelection
-                        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then
+                        If ShapeSATypeIs(vsoShape, typePlanDuct) Then
                             Set shpLotok = vsoShape
                         End If
                     Next
@@ -1142,7 +1142,7 @@ Function FillColCablesBtwBox(Optional LinkToBox As String, Optional LinkToSensor
     For Each vsoPage In ActiveDocument.Pages
         If vsoPage.name Like cListNameCxema & "*" Then
             For Each shpKabel In vsoPage.Shapes
-                If ShapeSATypeIs(shpKabel, typeCableSH) Then
+                If ShapeSATypeIs(shpKabel, typeCxemaCable) Then
                     If GetNazvanie(shpKabel.Cells("User.LinkToSensor").ResultStr(0), 1) = "" Then 'Кабель подключен к шкафу (нет названия элемента)
                         If LinkToBox = "" And LinkToSensor = "" Then 'Все кабели между шкафами
                             colCables.Add shpKabel, IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), CStr(shpKabel.Cells("Prop.Number").Result(0)))
@@ -1172,11 +1172,11 @@ Function FillColCables(shpSensor As Visio.Shape) As Collection
     
     Set colCables = New Collection
     For Each shpSensorIO In shpSensor.Shapes 'Перебираем все входы датчика
-        If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+        If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
             For Each shpSensorTerm In shpSensorIO.Shapes
-                If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+                If ShapeSATypeIs(shpSensorTerm, typeCxemaSensorTerm) Then
                     If shpSensorTerm.FromConnects.Count = 1 Then
-                        If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                        If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeCxemaWire) Then
                             With shpSensorTerm.FromConnects.FromSheet
                                 On Error Resume Next
                                 colCables.Add .Parent, IIf(.Parent.Cells("Prop.BukvOboz").Result(0), .Parent.Cells("Prop.SymName").ResultStr(0) & .Parent.Cells("Prop.Number").Result(0), CStr(.Parent.Cells("Prop.Number").Result(0)))
@@ -1380,7 +1380,7 @@ Sub AddLotokToCol(shpLine As Visio.Shape, selLine As Visio.Selection, ByRef colL
     Dim shpLotok As Visio.Shape
     
     For Each vsoShape In selLine 'Шейпы в выделении
-        If ShapeSATypeIs(vsoShape, typeDuctPlan) Then 'Нашли лоток
+        If ShapeSATypeIs(vsoShape, typePlanDuct) Then 'Нашли лоток
             colLotok.Add vsoShape
         End If
     Next
@@ -1597,10 +1597,10 @@ Public Sub VynoskaPlan(Connects As IVConnects)
         Case 1, 2 'С одной стороны
             Set vsoSelection = shpVynoska.ContainingPage.SpatialSearch(shpVynoska.Cells("EndX").Result(0), shpVynoska.Cells("EndY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
             For Each shpTouchingShapes In vsoSelection
-                If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Then
+                If ShapeSATypeIs(shpTouchingShapes, typePlanCable) Then
                     strCablePL = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
                     colNum.Add shpTouchingShapes
-                ElseIf ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
+                ElseIf ShapeSATypeIs(shpTouchingShapes, typePlanDuct) Then
                     strLotok = shpTouchingShapes.Cells("User.FullName").ResultStr(0)
                 End If
             Next
@@ -1634,7 +1634,7 @@ ExitWhile:    Set masShape(i) = CabTemp
        '--Х--Сортировка по возрастанию номеров проводов
         
         Select Case ShapeSAType(shpVynoska)
-            Case typeVynoskaPL
+            Case typePlanVynoska
                 strProvoda = "("
                 For i = 0 To UbMas
                     strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & ";"
@@ -1643,7 +1643,7 @@ ExitWhile:    Set masShape(i) = CabTemp
                 If Len(strProvoda) > 1 Then
                     strProvoda = strProvoda & ")"
                 End If
-            Case typeVynoska2PL
+            Case typePlanVynoska2
                 strProvoda = vbTab
                 For i = 0 To UbMas
                     strProvoda = strProvoda & masShape(i).Cells("Prop.SymName").ResultStr(0) & masShape(i).Cells("Prop.Number").Result(0) & vbTab
@@ -1666,7 +1666,7 @@ ExitWhile:    Set masShape(i) = CabTemp
     shpVynoska.Cells("Prop.Provoda").FormulaU = """" & strProvoda & """"
     If i > 3 Then i = 3
     i = i * 5
-    If ShapeSATypeIs(shpVynoska, typeVynoska2PL) Then
+    If ShapeSATypeIs(shpVynoska, typePlanVynoska2) Then
        shpVynoska.Shapes("Provoda").Cells("Width").FormulaU = _
        "BOUND(" & i & " mm/ThePage!PageScale*ThePage!DrawingScale,0,FALSE,5 mm*" & shpVynoska.NameID & "!User.PageScale,5 mm*" _
         & shpVynoska.NameID & "!User.PageScale,FALSE,10 mm*" & shpVynoska.NameID & "!User.PageScale,10 mm*" _
@@ -1701,7 +1701,7 @@ Public Sub PodemPlan(shpPodem As Visio.Shape)
     If shpPodem.Connects.Count = 1 Then 'Приклеен
         Set vsoSelection = shpPodem.ContainingPage.SpatialSearch(shpPodem.Cells("PinX").Result(0), shpPodem.Cells("PinY").Result(0), visSpatialTouching, 0.02 * AntiScale, 0)
         For Each shpTouchingShapes In vsoSelection
-            If ShapeSATypeIs(shpTouchingShapes, typeCablePL) Or ShapeSATypeIs(shpTouchingShapes, typeDuctPlan) Then
+            If ShapeSATypeIs(shpTouchingShapes, typePlanCable) Or ShapeSATypeIs(shpTouchingShapes, typePlanDuct) Then
                 shpTouchingShapes.Cells("Prop.Dlina").Formula = shpTouchingShapes.Cells("Prop.Dlina").Result(0) + shpPodem.Cells("Prop.Delta").Result(0)
             End If
         Next

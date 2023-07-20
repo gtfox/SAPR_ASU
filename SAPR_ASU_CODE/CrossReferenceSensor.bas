@@ -160,6 +160,7 @@ Sub DeleteSensorChildPlan(shpChild As Visio.Shape)
 '------------------------------------------------------------------------------------------------------------
     Dim shpParent As Visio.Shape
 
+    On Error Resume Next
     'Проверяем текущую привязку ДП к ДФ и чистим ее в ДФ
     Set shpParent = ShapeByGUID(shpChild.CellsU("Hyperlink.FSA.ExtraInfo").ResultStr(0))
     If Not shpParent Is Nothing Then

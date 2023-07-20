@@ -141,9 +141,9 @@ Public Sub ReNumberShemy()
                                 End If
                                 
                                 Select Case UserType
-                                    Case typeWire 'Провода
+                                    Case typeCxemaWire 'Провода
                                         colCxemaSelection(NazvanieShkafa).bWireSelect = True
-                                    Case typeCableSH 'Кабели на схеме электрической
+                                    Case typeCxemaCable 'Кабели на схеме электрической
                                         colCxemaSelection(NazvanieShkafa).bCableSHSelect = True
                                         If vsoShape.Cells("Prop.BukvOboz").Result(0) = 1 Then
                                             On Error Resume Next
@@ -151,13 +151,13 @@ Public Sub ReNumberShemy()
                                             err.Clear
                                             On Error GoTo 0
                                         End If
-                                    Case typeTerm 'Клеммы
+                                    Case typeCxemaTerm 'Клеммы
                                         colCxemaSelection(NazvanieShkafa).bTermSelect = True
                                         On Error Resume Next
                                         colCxemaSelection(NazvanieShkafa).colTermSelectNames.Add vsoShape.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("Prop.NumberKlemmnik").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
                                         err.Clear
                                         On Error GoTo 0
-                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaSensor, typeCxemaActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                                         colCxemaSelection(NazvanieShkafa).bElementSelect = True
                                         On Error Resume Next
                                         colCxemaSelection(NazvanieShkafa).colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0)
@@ -256,11 +256,11 @@ Public Sub ReNumberShemy()
                                 End If
     
                                 Select Case UserType
-                                    Case typeWire 'Провода
+                                    Case typeCxemaWire 'Провода
                                         If cbProvCx Or (obVydNaListeCx And bWireSelect) Then
                                             colCxem(NazvanieShkafa).colListov(NazvanieLista).colWires.Add vsoShapeOnPage
                                         End If
-                                    Case typeCableSH 'Кабели на схеме электрической
+                                    Case typeCxemaCable 'Кабели на схеме электрической
                                         If cbKabCx Or (obVydNaListeCx And bCableSHSelect) Then
                                             colCxem(NazvanieShkafa).colListov(NazvanieLista).colCableSHs.Add vsoShapeOnPage
                                             If vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0) = 1 Then
@@ -270,7 +270,7 @@ Public Sub ReNumberShemy()
                                                 On Error GoTo 0
                                             End If
                                         End If
-                                    Case typeTerm 'Клеммы
+                                    Case typeCxemaTerm 'Клеммы
                                         If cbKlemCx Or (obVydNaListeCx And bTermSelect) Then
                                             colCxem(NazvanieShkafa).colListov(NazvanieLista).colTerms.Add vsoShapeOnPage
                                             If Not (obVydNaListeCx And bTermSelect) Then
@@ -280,7 +280,7 @@ Public Sub ReNumberShemy()
                                                 On Error GoTo 0
                                             End If
                                         End If
-                                    Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                    Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaSensor, typeCxemaActuator ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                                         If cbElCx Or cbDatCx Or (obVydNaListeCx And bElementSelect) Then
                                             colCxem(NazvanieShkafa).colListov(NazvanieLista).colElements.Add vsoShapeOnPage
                                             If Not (obVydNaListeCx And bElementSelect) Then

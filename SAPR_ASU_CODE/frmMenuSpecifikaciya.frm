@@ -276,7 +276,7 @@ subShpOnPage:
                     err.Clear
                     On Error GoTo 0
                     Select Case UserType
-                        Case typeCableSH 'Кабели на схеме электрической
+                        Case typeCxemaCable 'Кабели на схеме электрической
                             clsStrokaSpecif.SymName = IIf(vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), "")
                             clsStrokaSpecif.KolVo = vsoShapeOnPage.Cells("Prop.Dlina").Result(0)
                             strColKey = IIf(vsoShapeOnPage.Cells("Prop.BukvOboz").Result(0), vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0), "") & ";" & vsoShapeOnPage.Cells("User.SAType").Result(0) & ";" & vsoShapeOnPage.Cells("Prop.ArtikulDB").ResultStr(0)
@@ -288,7 +288,7 @@ subShpOnPage:
                             Else
                                 nCount = colStrokaSpecif.Count
                             End If
-                        Case typeTerm 'Клеммы
+                        Case typeCxemaTerm 'Клеммы
                             clsStrokaSpecif.PozOboznach = vsoShapeOnPage.Cells("Prop.NumberKlemmnik").ResultStr(0)
                             On Error Resume Next
                             colStrokaSpecif.Add clsStrokaSpecif, strColKey
@@ -300,7 +300,7 @@ subShpOnPage:
                                 nCount = colStrokaSpecif.Count
                             End If
         
-                        Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator  ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                        Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaSensor, typeCxemaActuator  ', typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                             On Error Resume Next
                             colStrokaSpecif.Add clsStrokaSpecif, strColKey
                             If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент - увеличиваем .KolVo в том, который есть
@@ -553,7 +553,7 @@ Exit Sub
 '-----------------------------------------------------------------------------------
 FillcolStrokaKJ:
     For Each shpKabel In vsoPage.Shapes    'Перебираем все шейпы на листе
-        If ShapeSATypeIs(shpKabel, typeCableSH) Then    'Берем только кабели схемы
+        If ShapeSATypeIs(shpKabel, typeCxemaCable) Then    'Берем только кабели схемы
             If GetNazvanie(shpKabel.Cells("User.LinkToBox").ResultStr(0), 2) = NazvanieShkafa Then
                 Set clsStrokaKJ = New classStrokaKabelnogoJurnala
                 Set shpSensor = FindSensorFromKabel(shpKabel)

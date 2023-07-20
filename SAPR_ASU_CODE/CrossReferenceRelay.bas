@@ -275,7 +275,7 @@ Sub AddLocThumbAllInDoc()
         If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
             For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
                 Select Case ShapeSAType(vsoShapeOnPage)
-                    Case typeNO, typeNC, typeCoil, typeParent
+                    Case typeCxemaNO, typeCxemaNC, typeCxemaCoil, typeCxemaParent
                         AddLocThumb vsoShapeOnPage
                 End Select
             Next
@@ -314,13 +314,13 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
         'Выясняем кому надо вставить миниатюры
         Select Case ShapeSAType(vsoShape)
         
-            Case typeNO, typeNC 'Контакты
+            Case typeCxemaNO, typeCxemaNC 'Контакты
             
                 If vsoShape.Cells("Hyperlink.Coil.SubAddress").ResultStr(0) <> "" Then
                     'Вставляем миниатюру контакта Thumbnail
                     Set shpThumb = vsoPage.Drop(vsoMaster, vsoShape.Cells("PinX").Result(0), vsoShape.Cells("PinY").Result(0))
                     'Заполняем поля
-                    shpThumb.Cells("User.LocType").FormulaU = typeCoil
+                    shpThumb.Cells("User.LocType").FormulaU = typeCxemaCoil
                     shpThumb.Cells("User.Location").FormulaU = vsoShape.NameU & "!User.LocationParent"
                     shpThumb.Cells("User.AdrSource").FormulaU = Chr(34) & vsoShape.ContainingPageID & "/" & vsoShape.id & Chr(34)
                     shpThumb.Cells("User.DeltaX").FormulaU = Chr(34) & DeltaX & Chr(34) 'shpThumb.Cells("PinX").ResultStrU("in")
@@ -330,7 +330,7 @@ Sub AddLocThumb(vsoShape As Visio.Shape)
                     shpThumb.Cells("User.AdrSource.Prompt").FormulaU = vsoShape.UniqueID(visGetOrMakeGUID)
                 End If
                 
-            Case typeCoil, typeParent 'Катушка реле
+            Case typeCxemaCoil, typeCxemaParent 'Катушка реле
             
                 n = 0
                 'Перебираем активные ссылки на контакты
@@ -367,7 +367,7 @@ Sub DelLocThumbAllInDoc()
         If vsoPage.name Like PageName & "*" Then    'Берем те, что содержат "Схема" в имени
             For Each vsoShapeOnPage In vsoPage.Shapes    'Перебираем все шейпы на листе
                 Select Case ShapeSAType(vsoShapeOnPage)
-                    Case typeNO, typeNC, typeCoil, typeParent
+                    Case typeCxemaNO, typeCxemaNC, typeCxemaCoil, typeCxemaParent
                         ThumbDelete vsoShapeOnPage
                 End Select
             Next
@@ -387,7 +387,7 @@ Sub ThumbDelete(shpDelete As Visio.Shape)
 
     'Собираем миниатюры контактов, если они были, в коллекцию для удаления
     For Each vsoShape In ActivePage.Shapes
-        If ShapeSATypeIs(vsoShape, typeThumb) Then
+        If ShapeSATypeIs(vsoShape, typeCxemaThumb) Then
             If vsoShape.Cells("User.AdrSource.Prompt").ResultStr(0) = shpDelete.UniqueID(visGetGUID) Then
 '            If vsoShape.Cells("User.AdrSource").ResultStr(0) = shpDelete.ContainingPage.id & "/" & shpDelete.id Then
                 colThumb.Add vsoShape
@@ -420,7 +420,7 @@ Sub UnplugWire(CleareWire As Boolean, vsoShape As Visio.Shape)
         
         ShapeType = ShapeSAType(ConnectedShape)
         
-        If ShapeType = typeWire Then
+        If ShapeType = typeCxemaWire Then
             If CleareWire Then
                 If Not (ConnectedShape.Cells("Prop.Number").FormulaU Like "*!*") Or (ConnectedShape.Cells("User.AdrSource.Prompt").ResultStr(0) = vsoShape.UniqueID(visGetGUID)) Then 'Не Дочерний? или дочерний, но ссылается на нас (другой провод или разрыв провода)
                     'Чистим Провод

@@ -43,7 +43,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     If MultiCable Then
         'Перебираем все входы в датчике
         For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
                 'Добавляем клеммы и провода
                 If iOptions <= 2 Then AddKlemmyIProvoda shpSensorIO '1=Клеммы и провода
                 If iOptions >= 2 Then '3=Кабели из проводов
@@ -60,9 +60,9 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
         Next
         
         'Сохраняем к какому шкафу подключен кабель
-        If ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeTerm) Then 'клемма шкафа
+        If ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaTerm) Then 'клемма шкафа
             shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
-        ElseIf ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+        ElseIf ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
             shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
         End If
         shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
@@ -71,7 +71,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     
         'Собираем провода со всех входов в датчике
         For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
                 'Добавляем клеммы и провода
                 If iOptions <= 2 Then AddKlemmyIProvoda shpSensorIO 'Клеммы
                 If iOptions >= 2 Then 'Кабели
@@ -88,12 +88,12 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
         'Собираем выделенные провода со всех входов в датчике
         Set colWiresSelected = New Collection
         For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
                 If iOptions >= 2 Then 'Кабели
                     If ActiveWindow.Selection.Count > 2 Then
                         oldCount = colWires.Count
                         For Each vsoShape In ActiveWindow.Selection 'Кабель из выделенных проводов
-                            If ShapeSATypeIs(vsoShape, typeWire) Then
+                            If ShapeSATypeIs(vsoShape, typeCxemaWire) Then
                                 On Error Resume Next
                                 colWires.Add vsoShape, vsoShape.name
                                 err.Clear
@@ -129,9 +129,9 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
             End If
 
             'Сохраняем к какому шкафу подключен кабель
-            If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeTerm) Then 'клемма шкафа
+            If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaTerm) Then 'клемма шкафа
                 shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
-            ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+            ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
                 shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
             End If
             shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
@@ -200,7 +200,7 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
     Set vsoMasterProvod = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("w1")
 
     For Each shpSensorTerm In shpSensorIO.Shapes
-        If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+        If ShapeSATypeIs(shpSensorTerm, typeCxemaSensorTerm) Then
             AbsPinX = shpSensorTerm.Cells("User.AbsPinX").Result(0)
             AbsPinY = shpSensorTerm.Cells("User.AbsPinY").Result(0)
             'Вставляем клеммму
@@ -278,7 +278,7 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
     
     'Находим подключенные провода в выделении
     For Each shpWire In ActiveWindow.Selection
-        If ShapeSATypeIs(shpWire, typeWire) Then
+        If ShapeSATypeIs(shpWire, typeCxemaWire) Then
             If shpWire.Connects.Count = 0 Then
                 MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " не подключен", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
                 Exit Sub
@@ -288,8 +288,8 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
             ElseIf shpWire.Connects.Count = 2 Then
                 TermType1 = ShapeSAType(shpWire.Connects(1).ToSheet)
                 TermType2 = ShapeSAType(shpWire.Connects(2).ToSheet)
-                If TermType1 = typeSensorTerm Or TermType1 = typeTerm Then 'Or TermType1 = typePLCTerm
-                    If TermType2 = typeSensorTerm Or TermType2 = typeTerm Then 'Or TermType2 = typePLCTerm
+                If TermType1 = typeCxemaSensorTerm Or TermType1 = typeCxemaTerm Then 'Or TermType1 = typePLCTerm
+                    If TermType2 = typeCxemaSensorTerm Or TermType2 = typeCxemaTerm Then 'Or TermType2 = typePLCTerm
                         colWiresSelected.Add shpWire
                     Else
                         MsgBox "Провод " & shpWire.Cells("Prop.Number").Result(0) & " должен быть подключен к клеммам шкафа или датчика/привода", vbExclamation + vbOKOnly, "САПР-АСУ: Создание кабеля"
@@ -329,7 +329,7 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
     vsoSelection.Move 0#, Abs(shpKabel.Cells("PinY").Result(0) - PinY)
 
     'Сохраняем к какому шкафу подключен кабель
-    If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeTerm) And ShapeSATypeIs(shpKabel.Shapes(1).Connects(2).ToSheet, typeTerm) Then 'соединены 2 шкафа
+    If ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaTerm) And ShapeSATypeIs(shpKabel.Shapes(1).Connects(2).ToSheet, typeCxemaTerm) Then 'соединены 2 шкафа
         'При соединении кабелем двух шкафов: Кто выше тот и шкаф :)
     '    shpKabel.Cells("User.LinkToBox.Prompt").Formula = """" & shpKabel.Cells("User.LinkToBox").ResultStr(0) & """"
     '    shpKabel.Cells("User.LinkToSensor.Prompt").Formula = """" & shpKabel.Cells("User.LinkToSensor").ResultStr(0) & """"
@@ -340,10 +340,10 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
             shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
             shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
         End If
-    ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeTerm) Then 'Соединен шкаф и датчик/привод 'клемма шкафа
+    ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaTerm) Then 'Соединен шкаф и датчик/привод 'клемма шкафа
         shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
         shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
-    ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeSensorTerm) Then 'клемма датчика
+    ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
         shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
         shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
     End If
@@ -360,11 +360,11 @@ Function FindKabelFromSensor(shpSensor As Visio.Shape) As Visio.Shape
     Dim shpSensorTerm As Visio.Shape
 
     For Each shpSensorIO In shpSensor.Shapes
-        If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+        If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
             For Each shpSensorTerm In shpSensorIO.Shapes
-                If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+                If ShapeSATypeIs(shpSensorTerm, typeCxemaSensorTerm) Then
                     If shpSensorTerm.FromConnects.Count = 1 Then
-                        If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                        If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeCxemaWire) Then
                             If shpSensorTerm.FromConnects.FromSheet.Parent.Type = visTypeGroup Then
                                 Set FindKabelFromSensor = shpSensorTerm.FromConnects.FromSheet.Parent
                                 Exit Function

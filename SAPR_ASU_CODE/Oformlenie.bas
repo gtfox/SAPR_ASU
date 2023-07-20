@@ -899,7 +899,7 @@ Function GetColNazvanieShkafa() As Collection
             err.Clear
             On Error GoTo 0
             For Each vsoShape In vsoPage.Shapes
-                If ShapeSATypeIs(vsoShape, typeShkafMesto) Then
+                If ShapeSATypeIs(vsoShape, typeCxemaShkafMesto) Then
                     On Error Resume Next
                     If vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0) <> "" Then
                         colNameCxema.Add vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0), vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
@@ -926,7 +926,7 @@ Sub NazvanieShkafaSetToAll(PropPageSheet As String)
             vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & """"
             vsoPage.PageSheet.Cells("Prop.SA_NazvanieShkafa").Formula = """" & NazvanieShkafaValue & """"
             For Each vsoShape In vsoPage.Shapes
-                If ShapeSATypeIs(vsoShape, typeShkafMesto) Then
+                If ShapeSATypeIs(vsoShape, typeCxemaShkafMesto) Then
                     NazvanieShkafaValue = vsoShape.Cells("Prop.SA_NazvanieShkafa").ResultStr(0)
                     vsoShape.Cells("Prop.SA_NazvanieShkafa.Format").Formula = """" & PropPageSheet & """"
                     vsoShape.Cells("Prop.SA_NazvanieShkafa").Formula = """" & NazvanieShkafaValue & """"

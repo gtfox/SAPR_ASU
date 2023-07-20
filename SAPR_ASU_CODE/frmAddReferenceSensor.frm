@@ -54,7 +54,7 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
             lblResult.Left = 200
             btnClose.Left = 200
             Me.Width = 286
-        Case typeSensor, typeActuator 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaSensor, typeCxemaActuator 'Если макрос активировался родителем - значит искали дочерних
             lstvParent.ColumnHeaders.Add , , "Элемент" ' добавить ColumnHeaders
             lstvParent.ColumnHeaders.Add , , "Связь" ' добавить ColumnHeaders
             lstvParent.ColumnHeaders.Add , , "Тип" ' добавить ColumnHeaders
@@ -113,11 +113,11 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
             Case typeFSASensor 'Если макрос активировался дочерним - значит искали родителей
                 Select Case ShapeSAType(vsoShape)
-                    Case typeSensor, typeActuator
+                    Case typeCxemaSensor, typeCxemaActuator
 
                         SelectText vsoShape, vsoPage
                 End Select
-            Case typeSensor, typeActuator, typeFSAPodval 'Если макрос активировался родителем - значит искали дочерних
+            Case typeCxemaSensor, typeCxemaActuator, typeFSAPodval 'Если макрос активировался родителем - значит искали дочерних
                 Select Case ShapeSAType(vsoShape)
                     Case typeFSASensor
 
@@ -327,7 +327,7 @@ Sub Fill_lstvParent() ' заполнение списка родительски
                     itmx.SubItems(3) = .ContainingPage.name
                 End With
             Next i
-        Case typeSensor, typeActuator 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaSensor, typeCxemaActuator 'Если макрос активировался родителем - значит искали дочерних
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
                     Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Cells("User.Name").ResultStr(0))  '.Cells("TheText").ResultStr("")         .Characters.Text & "/" & .Cells("User.Kontur").ResultStr(0)
@@ -364,7 +364,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
     
     For Each vsoPage In ActiveDocument.Pages
         Select Case FindType
-            Case typeSensor, typeActuator
+            Case typeCxemaSensor, typeCxemaActuator
                 If (InStr(1, vsoPage.name, cListNameFSA) > 0) Or (InStr(1, vsoPage.name, cListNamePlan) > 0) Then
                 '(InStr(1, vsoPage.Name, cListNameVID) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0)
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
@@ -400,7 +400,7 @@ Private Sub lstvParent_DblClick()
         Case typeFSASensor 'Если макрос активировался дочерним - значит искали родителей
             'Создаем связь как и было задумано
             AddReferenceSensor shpChild, shpParent
-        Case typeSensor, typeActuator 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaSensor, typeCxemaActuator 'Если макрос активировался родителем - значит искали дочерних
             'Меняем местами родителя/дочернего, т.к. в переменной shpChild содержится родитель, а в shpParent дочерний
             AddReferenceSensor shpParent, shpChild
         Case typeFSAPodval
@@ -448,7 +448,7 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     Select Case FindType
         Case typeFSASensor 'Если макрос активировался дочерним - значит искали родителей
             Fill_lstvChild vsoShape 'Заполняем лист контактов
-        Case typeSensor, typeActuator 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaSensor, typeCxemaActuator 'Если макрос активировался родителем - значит искали дочерних
             'ниче не делаем
     End Select
     

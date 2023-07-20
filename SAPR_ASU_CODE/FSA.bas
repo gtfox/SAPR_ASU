@@ -71,7 +71,7 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     For Each vsoPageCxema In ActiveDocument.Pages
         If vsoPageCxema.name Like PageName & "*" Then
             For Each shpSensorOnCxema In vsoPageCxema.Shapes
-                If ShapeSATypeIs(shpSensorOnCxema, typeSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeActuator) Then
+                If ShapeSATypeIs(shpSensorOnCxema, typeCxemaSensor) Or ShapeSATypeIs(shpSensorOnCxema, typeCxemaActuator) Then
                     If GetNazvanie(FindKabelFromSensor(shpSensorOnCxema).Cells("User.LinkToBox").ResultStr(0), 2) = NazvanieShkafa Then
                         nCount = colSensorOnFSA.Count
                         On Error Resume Next
@@ -93,12 +93,12 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     'Вставляем недостающие датчики на ФСА
     For Each shpSensorOnCxema In colSensorToFSA
         Select Case ShapeSAType(shpSensorOnCxema)
-            Case typeSensor
+            Case typeCxemaSensor
                 Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("SensorFSA"), DropX, DropY)
                 DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
                 'Связываем датчик на ФСА и датчик наэл. схеме
                 AddReferenceSensor shpSensorOnFSA, shpSensorOnCxema
-            Case typeActuator
+            Case typeCxemaActuator
 '                Set shpSensorOnFSA = vsoPageFSA.Drop(FSAvss.Masters.Item("ActuatorFSA"), DropX, DropY)
 '                DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
             Case Else

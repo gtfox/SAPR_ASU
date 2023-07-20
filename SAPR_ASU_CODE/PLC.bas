@@ -180,7 +180,7 @@ Public Sub DuplicateInBox(vsoShape As Visio.Shape)
 
         Case typePLCIOChild, typePLCModParent
             If vsoDouble.Parent.Type = visTypeGroup Then
-                If ShapeSATypeIs(vsoDouble.Parent, typeSensor) Or ShapeSATypeIs(vsoDouble.Parent, typeActuator) Then
+                If ShapeSATypeIs(vsoDouble.Parent, typeCxemaSensor) Or ShapeSATypeIs(vsoDouble.Parent, typeCxemaActuator) Then
                     vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*1)"
                 Else
                     vsoDouble.Cells("PinY").FormulaForceU = "GUARD(" & vsoDouble.Parent.NameID & "!Height*0)"

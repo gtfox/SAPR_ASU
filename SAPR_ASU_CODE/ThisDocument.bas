@@ -21,7 +21,7 @@ Private Sub vsoPagesEvent_SelectionAdded(ByVal Selection As IVSelection)
         'Чистим миниатюры контактов после вставки
         Set colShape = New Collection
         For Each vsoShape In Selection
-            If ShapeSATypeIs(vsoShape, typeThumb) Then
+            If ShapeSATypeIs(vsoShape, typeCxemaThumb) Then
                 colShape.Add vsoShape
             Else 'Чистим связи, т.к. для эл-тов в Selection дальше первого не происходят события EventDrop/EventMultiDrop
                 If vsoShape.CellExists("User.Dropped", 0) Then
@@ -51,7 +51,7 @@ End Sub
 '        Set colShape = New Collection
 '        Set colThumb = New Collection
 '        For Each vsoShape In Selection
-'            If ShapeSATypeIs(vsoShape, typeThumb) Then
+'            If ShapeSATypeIs(vsoShape, typeCxemaThumb) Then
 '                colThumb.Add vsoShape
 '            Else
 '                colShape.Add vsoShape
@@ -81,28 +81,28 @@ End Sub
 Private Sub vsoPagesEvent_BeforeShapeDelete(ByVal vsoShape As IVShape)
     If vsoShape.CellExists("User.SAType", 0) Then   'Если в шейпе есть тип, то он элемент SAPR ASU
         Select Case ShapeSAType(vsoShape) 'В зависимости от типа выбираем способ удаления
-            Case typeNO, typeNC 'Контакт реле NO,NC (дочерний)
+            Case typeCxemaNO, typeCxemaNC 'Контакт реле NO,NC (дочерний)
                 DeleteRelayChild vsoShape
-            Case typeCoil, typeParent, typeElement, typeTerm 'Катушка реле KL (родительский)
+            Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typeCxemaTerm 'Катушка реле KL (родительский)
             'Добавить все остальные, которые соединяются проводами
                 DeleteRelayParent vsoShape
-            Case typeWireLinkR  'Разрыв провода (дочерний)
+            Case typeCxemaWireLinkR  'Разрыв провода (дочерний)
                 DeleteWireLinkChild vsoShape
-            Case typeWireLinkS 'Разрыв провода (родительский)
+            Case typeCxemaWireLinkS 'Разрыв провода (родительский)
                 DeleteWireLinkParent vsoShape
-            Case typeWire   'Провод
+            Case typeCxemaWire   'Провод
                 DeleteWire vsoShape
-            Case typeCableSH   'Кабель на эл. схеме
+            Case typeCxemaCable   'Кабель на эл. схеме
                 DeleteCableSH vsoShape
             Case typePlanSensor, typePlanActuator  'Датчик на ПЛАНЕ
                 DeleteSensorChildPlan vsoShape
-            Case typeShkafMesto 'Шкаф/место на эл. схеме
+            Case typeCxemaShkafMesto 'Шкаф/место на эл. схеме
                 DeleteShkafMesto vsoShape
             Case typeFSASensor, typeFSAActuator  'Датчик ФСА
                 DeleteSensorChild vsoShape
             Case typeFSAPodval 'Подвал на ФСА
                 DeleteFSAPodvalChild vsoShape
-            Case typeSensor, typeActuator   'Датчик/Привод на эл. схеме
+            Case typeCxemaSensor, typeCxemaActuator   'Датчик/Привод на эл. схеме
                 If Not (vsoShape.ContainingPage.NameU Like cListNameSVP & "*") Then
                     DeleteSensorParent vsoShape
                 End If
@@ -154,30 +154,30 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
 
     Select Case ShapeSAType(vsoShapeEvent)
     
-        Case typeNO, typeNC 'Контакты
+        Case typeCxemaNO, typeCxemaNC 'Контакты
         
             ClearRelayChild vsoShapeEvent 'Чистим ссылки в дочернем при его копировании.
             
-        Case typeWireLinkS, typeWireLinkR 'Разрывы проводов
+        Case typeCxemaWireLinkS, typeCxemaWireLinkR 'Разрывы проводов
             
             If vsoShapeEvent.Cells("User.Dropped").Result(0) = 1 Then 'Если не вбросили из набора элементов
                 ClearReferenceWireLink vsoShapeEvent 'Чистим ссылки в при копировании разрыва провода.
             End If
             
-        Case typeWire 'Провода
+        Case typeCxemaWire 'Провода
 
             If vsoShapeEvent.Cells("User.Dropped").Result(0) = 1 Then 'Если не вбросили из набора элементов
                 'Не нумеруем, т.к. нумеруется в процессе соединения
                 ClearWire vsoShapeEvent
             End If
         
-        Case typeCableSH 'Кабели на схеме электрической
+        Case typeCxemaCable 'Кабели на схеме электрической
         
             'Чистим ссылку на план
             ClearCableSH vsoShapeEvent 'Чистим ссылку
             AutoNum vsoShapeEvent 'Автонумерация
             
-        Case typeCableVP, typeCablePL, typeDuctPlan, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typeBox
+        Case typeSVPCable, typePlanCable, typePlanDuct, typeVidShkafaDIN, typeVidShkafaDver, typeVidShkafaShkaf, typePlanBox
         
             'Не нумеруем при вбросе
         
@@ -193,7 +193,7 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
             ClearFSAPodvalChild vsoShapeEvent 'Чистим ссылки
             AutoNumFSA vsoShapeEvent 'Автонумерация
         
-        Case typeSensor, typeActuator 'датчики, двигатели, приводы вне шкафа
+        Case typeCxemaSensor, typeCxemaActuator 'датчики, двигатели, приводы вне шкафа
             
             'Отвязываем и нумеруем
             ClearSensorParent vsoShapeEvent 'Чистим ссылки
@@ -224,11 +224,11 @@ Private Sub vsoPagesEvent_ConnectionsAdded(ByVal Connects As IVConnects)
        If Not Connects.ToSheet Is Nothing Then
            If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То к чему цепляем - объект SAPR_ASU
                 Select Case ShapeSAType(Connects.FromSheet) 'То что цепляем - это...
-                    Case typeWire   'Цепляем провод
+                    Case typeCxemaWire   'Цепляем провод
                         ConnectWire Connects
-                    Case typeVynoskaPL, typeVynoska2PL 'Цепляем выноску
+                    Case typePlanVynoska, typePlanVynoska2 'Цепляем выноску
                         VynoskaPlan Connects
-    '                Case typePodemPL 'Цепляем подъём на отметку
+    '                Case typePlanPodem 'Цепляем подъём на отметку
     '                    PodemPlan Connects
                 End Select
             End If
@@ -242,11 +242,11 @@ Private Sub vsoPagesEvent_ConnectionsDeleted(ByVal Connects As IVConnects)
         If Not Connects.ToSheet Is Nothing Then
            If Connects.ToSheet.CellExistsU("User.SAType", 0) Then 'То от чего отцепляем - объект SAPR_ASU
                 Select Case ShapeSAType(Connects.FromSheet) 'То что отцепляем - это...
-                    Case typeWire   'Отцепляем провод
+                    Case typeCxemaWire   'Отцепляем провод
                         DisconnectWire Connects
-                    Case typeVynoskaPL, typeVynoska2PL 'Отцепляем выноску
+                    Case typePlanVynoska, typePlanVynoska2 'Отцепляем выноску
                         VynoskaPlan Connects
-    '                Case typePodemPL 'Отцепляем подъём на отметку
+    '                Case typePlanPodem 'Отцепляем подъём на отметку
     '                    PodemPlan Connects
                 End Select
             End If

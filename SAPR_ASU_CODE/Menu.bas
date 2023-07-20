@@ -354,7 +354,7 @@ Private Sub AddButtonsCXEMA()
         .style = msoButtonAutomatic
         .OnAction = "MenuAddToStencilFrm"
         .TooltipText = "Создать шаблон схемы"
-        .FaceId = 2135 '2134 '1807 '1672 '1048 516 582
+        .FaceId = 516 '2135 '2134 '1807 '1672 '1048 516 582
         .BeginGroup = True
     End With
 

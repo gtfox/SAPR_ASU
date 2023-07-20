@@ -330,7 +330,7 @@ Private Sub Fill_lstvPages()   ' заполнение списка страни�
                 If (InStr(1, vsoPage.name, cListNameCxema) > 0) Then
                     Set itmx = lstvPages.ListItems.Add(, vsoPage.id & "/", vsoPage.name)
                 End If
-'            Case typeSensor, typeActuator
+'            Case typeCxemaSensor, typeCxemaActuator
 '                If (InStr(1, vsoPage.Name, cListNameFSA) > 0) Or (InStr(1, vsoPage.Name, cListNameVID) > 0) Or _
 '                   (InStr(1, vsoPage.Name, cListNamePlan) > 0) Or (InStr(1, vsoPage.Name, cListNameSVP) > 0) Then
 '                    Set itmx = lstvPages.ListItems.Add(, vsoPage.ID & "/", vsoPage.Name)

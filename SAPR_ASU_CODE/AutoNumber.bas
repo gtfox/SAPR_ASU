@@ -68,18 +68,18 @@ Public Sub AutoNum(vsoShape As Visio.Shape)
                             If vsoShapeOnPage.Cells("Prop.AutoNum").Result(0) = 1 Then    'Отсеиваем шейпы нумеруемые вручную
                                 If vsoShapeOnPage.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then    'Берём шейпы из нашего шкафа
                                     Select Case UserType
-                                        Case typeWire 'Провода
+                                        Case typeCxemaWire 'Провода
                                             FindMAX vsoShapeOnPage
-                                        Case typeCableSH 'Кабели на схеме электрической
+                                        Case typeCxemaCable 'Кабели на схеме электрической
                                             FindMAX vsoShapeOnPage
                                     End Select
                                     If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают                     'And (vsoShapeOnPage.NameID <> vsoShape.NameID) и это не тот же шейп который вставили
                                         Select Case UserType
-                                            Case typeTerm 'Клеммы
+                                            Case typeCxemaTerm 'Клеммы
                                                 If vsoShapeOnPage.Cells("Prop.NumberKlemmnik").Result(0) = vsoShape.Cells("Prop.NumberKlemmnik").Result(0) Then 'Выбираем клеммы из одного клеммника
                                                     FindMAX vsoShapeOnPage
                                                 End If
-                                            Case typeCoil, typeParent, typeElement, typePLCParent, typeSensor, typeActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
+                                            Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaSensor, typeCxemaActuator, typeElectroOneWire, typeElectroPlan, typeOPSPlan 'Остальные элементы
                                                 FindMAX vsoShapeOnPage
                                         End Select
                                     End If
@@ -139,7 +139,7 @@ Public Function ReNumber(colShp As Collection, StartNumber As Integer) As Intege
     For j = 1 To UbMas
         Set shpTemp = masShape(j)
         i = j
-        If SAType = typeWire Then
+        If SAType = typeCxemaWire Then
             While WireX(masShape(i - 1)) > WireX(shpTemp) '>:возрастание, <:убывание
                 Set masShape(i) = masShape(i - 1)
                 i = i - 1
@@ -161,7 +161,7 @@ ExitWhileX:  Set masShape(i) = shpTemp
     Group = False
     Set colShp = New Collection
     For ii = 1 To UbMas
-        If SAType = typeWire Then
+        If SAType = typeCxemaWire Then
             XPred = WireX(masShape(ii - 1))
             XTekush = WireX(masShape(ii))
         Else
@@ -183,7 +183,7 @@ ExitWhileX:  Set masShape(i) = shpTemp
             For j = StartIndex + 1 To EndIndex
                 Set shpTemp = masShape(j)
                 i = j
-                If SAType = typeWire Then
+                If SAType = typeCxemaWire Then
                     While WireY(masShape(i - 1)) < WireY(shpTemp) '>:возрастание, <:убывание
                         Set masShape(i) = masShape(i - 1)
                         i = i - 1

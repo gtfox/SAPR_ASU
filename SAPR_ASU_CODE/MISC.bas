@@ -107,13 +107,13 @@ Sub SetLocalShkafMesto(vsoShape As Visio.Shape)
         SAType = ShapeSAType(vsoShp)
         If SAType > 1 Then
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeWire
+                Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typePLCModParent, typeCxemaTerm, typeCxemaWire
                     vsoShp.Cells("User.Shkaf").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieShkafa"
                     vsoShp.Cells("User.Mesto").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieMesta"
-                Case typeActuator, typeSensor
+                Case typeCxemaActuator, typeCxemaSensor
                     vsoShp.Cells("User.Shkaf").FormulaU = """"""
                     vsoShp.Cells("User.Mesto").FormulaU = "Pages[" & vsoShape.ContainingPage.NameU & "]!" & vsoShape.NameID & "!Prop.SA_NazvanieMesta"
-                Case typeCableSH
+                Case typeCxemaCable
                     vsoShp.Cells("User.Shkaf").FormulaU = """"""
                     vsoShp.Cells("User.Mesto").FormulaU = """"""
             End Select
@@ -143,13 +143,13 @@ Sub ClearShkafMesto(vsoShp As Visio.Shape)
     SAType = ShapeSAType(vsoShp)
     If SAType > 1 Then
         Select Case SAType
-            Case typeCoil, typeParent, typeElement, typePLCParent, typePLCModParent, typeTerm, typeWire
+            Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typePLCModParent, typeCxemaTerm, typeCxemaWire
                 vsoShp.Cells("User.Shkaf").FormulaU = "ThePage!Prop.SA_NazvanieShkafa"
                 vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
-            Case typeActuator, typeSensor
+            Case typeCxemaActuator, typeCxemaSensor
                 vsoShp.Cells("User.Shkaf").FormulaU = """"""
                 vsoShp.Cells("User.Mesto").FormulaU = "ThePage!Prop.SA_NazvanieMesta"
-            Case typeCableSH
+            Case typeCxemaCable
                 vsoShp.Cells("User.Shkaf").FormulaU = """"""
                 vsoShp.Cells("User.Mesto").FormulaU = """"""
         End Select
@@ -177,9 +177,9 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
                 For Each vsoShp In vsoPage.Shapes
                     SAType = ShapeSAType(vsoShp)
                     Select Case SAType
-                        Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+                        Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaTerm, typeCxemaActuator, typeCxemaSensor
                             colElementyShemy.Add vsoShp
-                        Case typeShkafMesto
+                        Case typeCxemaShkafMesto
                             colShkafyMesta.Add vsoShp
                     End Select
                 Next
@@ -190,9 +190,9 @@ Sub ResetLocalShkafMesto(vsoObject As Object)
         For Each vsoShp In ActivePage.Shapes
             SAType = ShapeSAType(vsoShp)
             Select Case SAType
-                Case typeCoil, typeParent, typeElement, typePLCParent, typeTerm, typeActuator, typeSensor
+                Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent, typeCxemaTerm, typeCxemaActuator, typeCxemaSensor
                     colElementyShemy.Add vsoShp
-                Case typeShkafMesto
+                Case typeCxemaShkafMesto
                     colShkafyMesta.Add vsoShp
             End Select
         Next

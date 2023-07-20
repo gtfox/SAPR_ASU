@@ -60,7 +60,7 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
                 If vsoShapeOnPage.CellExists("User.LinkToBox", 0) Then
                     If GetNazvanie(vsoShapeOnPage.Cells("User.LinkToBox").ResultStr(0), 2) = NazvanieShkafa Then 'Берем все шкафы с именем того, на который вставляем элемент
                         Select Case ShapeSAType(vsoShapeOnPage) 'Если в шейпе есть тип, то -
-                            Case typeCableSH
+                            Case typeCxemaCable
                                 'Собираем в коллекцию нужные для сортировки шейпы
                                 colShpPage.Add vsoShapeOnPage
                             Case Else
@@ -192,11 +192,11 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     
     'собираем провода и клеммы
     For Each shpWire In shpCable.Shapes
-        If ShapeSATypeIs(shpWire, typeWire) Then
+        If ShapeSATypeIs(shpWire, typeCxemaWire) Then
             If shpWire.Connects.Count = 2 Then
                 colWires.Add shpWire, shpWire.NameID
                 For i = 1 To shpWire.Connects.Count
-                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeCxemaTerm) Then
                         colTerms.Add shpWire.Connects(i).ToSheet
                     End If
                 Next
@@ -279,7 +279,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
          Select Case ShapeSAType(vsoShape)
-            Case typeCableSH
+            Case typeCxemaCable
                 colCables.Add vsoShape
          End Select
     Next
@@ -301,7 +301,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
 
     'Ставим на место датчик
     For Each vsoShape In ActiveWindow.Selection
-        If ShapeSATypeIs(vsoShape, typeTerm) Then
+        If ShapeSATypeIs(vsoShape, typeCxemaTerm) Then
             If vsoShape.Cells("PinY").Result(0) < Klemma - vsoShape.Cells("LocPinY").Result(0) Then
                 vsoShape.Cells("PinY").Formula = Datchik - vsoShape.Cells("LocPinY").Result(0)
             End If
@@ -421,7 +421,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     If MultiCable Then
         'Перебираем все входы в датчике
         For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
                 'Находим подключенные провода и суем их в коллекцию
                 Set colWires = FillColWires(shpSensorIO)
                 'Находим подключенные к проводам клеммы шкафа и суем их в коллекцию
@@ -443,7 +443,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     Else
         'Перебираем все входы в датчике
         For Each shpSensorIO In shpSensor.Shapes
-            If ShapeSATypeIs(shpSensorIO, typeSensorIO) Then
+            If ShapeSATypeIs(shpSensorIO, typeCxemaSensorIO) Then
                 'Находим подключенные провода на конкретном IO и суем их в коллекцию
                 Set colWiresIO = FillColWires(shpSensorIO)
                 'Добавляем провода с конкретного входа в общую колекцию проводов датчика
@@ -487,7 +487,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         With vsoShape
             .Cells("Prop.AutoNum").Formula = 1
             .Cells("EventMultiDrop").Formula = "CALLTHIS(""AutoNumber.AutoNum"")"
-            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
+            If ShapeSATypeIs(vsoShape, typeCxemaSensor) Or ShapeSATypeIs(vsoShape, typeCxemaActuator) Then
                 .Cells("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")+SETF(GetRef(PinY),""80 mm/ThePage!PageScale*ThePage!DrawingScale"")+SETF(GetRef(Prop.ShowDesc),""true"")"
                 .Cells("EventDblClick").Formula = "CALLTHIS(""CrossReferenceSensor.AddReferenceSensorFrm"")"
             Else
@@ -516,7 +516,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 '            .Cells("EventDrop").Formula = ""
 '            .Cells("EventDblClick").Formula = ""
             .Cells("Actions.AddDB.Invisible").Formula = 1
-            If ShapeSATypeIs(vsoShape, typeSensor) Or ShapeSATypeIs(vsoShape, typeActuator) Then
+            If ShapeSATypeIs(vsoShape, typeCxemaSensor) Or ShapeSATypeIs(vsoShape, typeCxemaActuator) Then
                 .Cells("Actions.Celyj.Invisible").Formula = 1
                 .Cells("Actions.Nachalo.Invisible").Formula = 1
                 .Cells("Actions.Seredina.Invisible").Formula = 1
@@ -539,9 +539,9 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     'Анализируем что вставили
     For Each vsoShape In vsoGroup.Shapes
          Select Case ShapeSAType(vsoShape)
-            Case typeSensor, typeActuator
+            Case typeCxemaSensor, typeCxemaActuator
                 Set shpSensorSVP = vsoShape
-            Case typeCableSH
+            Case typeCxemaCable
                 colCables.Add vsoShape
          End Select
     Next
@@ -591,10 +591,10 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
         'Ищем вход в датчике соединенный с текущим кабелем
         For Each shpWire In shpCable.Shapes
             For i = 1 To shpWire.Connects.Count
-                If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
+                If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeCxemaTerm) Then
                     Set cellKlemmaShkafa = shpWire.Connects(i).ToCell
                     NumberKlemmaShkafa = shpWire.Connects(i).ToSheet.Cells("Prop.Number").Result(0)
-                ElseIf ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensorTerm) Then
+                ElseIf ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeCxemaSensorTerm) Then
                     Set cellKlemmaDatchika = shpWire.Connects(i).ToCell
                     NumberKlemmaDatchika = shpWire.Connects(i).ToSheet.Cells("User.Number").Result(0)
                 End If
@@ -637,9 +637,9 @@ Function FillColWires(shpSensorIO As Visio.Shape) As Collection
     
     Set colWires = New Collection
     For Each shpSensorTerm In shpSensorIO.Shapes
-        If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+        If ShapeSATypeIs(shpSensorTerm, typeCxemaSensorTerm) Then
             If shpSensorTerm.FromConnects.Count = 1 Then
-                If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeCxemaWire) Then
                     colWires.Add shpSensorTerm.FromConnects.FromSheet, shpSensorTerm.FromConnects.FromSheet.name
                 End If
             End If
@@ -657,9 +657,9 @@ Function FillColWiresOnPage(shpSensorIO As Visio.Shape) As Collection
     
     Set colWires = New Collection
     For Each shpSensorTerm In shpSensorIO.Shapes
-        If ShapeSATypeIs(shpSensorTerm, typeSensorTerm) Then
+        If ShapeSATypeIs(shpSensorTerm, typeCxemaSensorTerm) Then
             If shpSensorTerm.FromConnects.Count = 1 Then
-                If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeWire) Then
+                If ShapeSATypeIs(shpSensorTerm.FromConnects.FromSheet, typeCxemaWire) Then
                     If Not shpSensorTerm.FromConnects.FromSheet.Parent.Type = visTypeGroup Then
                         colWires.Add shpSensorTerm.FromConnects.FromSheet, shpSensorTerm.FromConnects.FromSheet.name
                     End If
@@ -680,10 +680,10 @@ Function FillColTerms(colWires As Collection) As Collection
     Set colTerms = New Collection
     
     For Each shpWire In colWires
-        If ShapeSATypeIs(shpWire, typeWire) Then
+        If ShapeSATypeIs(shpWire, typeCxemaWire) Then
             If shpWire.Connects.Count = 2 Then
                 For i = 1 To shpWire.Connects.Count
-                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeTerm) Then
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeCxemaTerm) Then
                         colTerms.Add shpWire.Connects(i).ToSheet
                     End If
                 Next
@@ -700,10 +700,10 @@ Function FindSensorFromKabel(shpKabel As Visio.Shape) As Visio.Shape
     Dim shpWire As Visio.Shape
 
     For Each shpWire In shpKabel.Shapes
-        If ShapeSATypeIs(shpWire, typeWire) Then
+        If ShapeSATypeIs(shpWire, typeCxemaWire) Then
             If shpWire.Connects.Count = 2 Then
                 For i = 1 To shpWire.Connects.Count
-                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeSensorTerm) Then
+                    If ShapeSATypeIs(shpWire.Connects(i).ToSheet, typeCxemaSensorTerm) Then
                         Set FindSensorFromKabel = shpWire.Connects(i).ToSheet.Parent.Parent
                         Exit Function
                     End If

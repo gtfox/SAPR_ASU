@@ -44,10 +44,10 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля Cros
     Fill_ShapeCollection ActivePage
     
     Select Case FindType
-        Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
+        Case typeCxemaNO, typeCxemaNC 'Если макрос активировался дочерним - значит искали родителей
             lstvParent.ColumnHeaders.Add , , "Элементы" ' добавить ColumnHeaders
             lstvParent.ColumnHeaders.Item(1).Width = lstvParent.Width - 18
-        Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaCoil, typeCxemaParent 'Если макрос активировался родителем - значит искали дочерних
             lstvParent.ColumnHeaders.Add , , "Контакт" ' добавить ColumnHeaders
             lstvParent.ColumnHeaders.Add , , "Связь" ' добавить ColumnHeaders
             lstvParent.ColumnHeaders.Add , , "Адрес" ' добавить ColumnHeaders
@@ -88,14 +88,14 @@ Private Sub SelectType(vsoShape As Visio.Shape, vsoPage As Visio.Page) ' Выб�
 
     If vsoShape.CellExistsU("User.SAType", 0) Then 'отсеиваем посторонние шейпы не имеющие поле ТИП
         Select Case FindType 'Определяемся в соответствии с типом вызвавшего макрос шейпа
-            Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
+            Case typeCxemaNO, typeCxemaNC 'Если макрос активировался дочерним - значит искали родителей
                 Select Case ShapeSAType(vsoShape)
-                    Case typeCoil, typeParent
+                    Case typeCxemaCoil, typeCxemaParent
                         SelectText vsoShape, vsoPage
                 End Select
-            Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
+            Case typeCxemaCoil, typeCxemaParent 'Если макрос активировался родителем - значит искали дочерних
                 Select Case ShapeSAType(vsoShape)
-                    Case typeNO, typeNC
+                    Case typeCxemaNO, typeCxemaNC
                         SelectText vsoShape, vsoPage
                 End Select
         End Select
@@ -278,7 +278,7 @@ Sub Fill_lstvChild(vsoShape As Visio.Shape) ' заполнение списка 
                 mstrAdrChild = Split(vsoShape.CellsU("Scratch.A" & i).ResultStr(0), "/")
                 Set shpInfoChild = ActiveDocument.Pages.ItemU(mstrAdrChild(0)).Shapes(mstrAdrChild(1))
                 Set itmx = lstvChild.ListItems.Add(, shpInfoChild.ContainingPage.id & "/" & shpInfoChild.id, _
-                shpInfoChild.Characters.text + " " + IIf(ShapeSATypeIs(shpInfoChild, typeNO), "NO", "NC") _
+                shpInfoChild.Characters.text + " " + IIf(ShapeSATypeIs(shpInfoChild, typeCxemaNO), "NO", "NC") _
                 + " " + shpInfoChild.CellsU("User.Location").ResultStr(0)) '
             End If
         Next
@@ -293,13 +293,13 @@ Sub Fill_lstvParent() ' заполнение списка родительски
     lstvParent.ListItems.Clear
     
     Select Case FindType
-        Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
+        Case typeCxemaNO, typeCxemaNC 'Если макрос активировался дочерним - значит искали родителей
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
                 Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.text) '.Cells("TheText").ResultStr("")
               End With
             Next i
-        Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaCoil, typeCxemaParent 'Если макрос активировался родителем - значит искали дочерних
             For i = 1 To colShapes.Count  ' добавить N ListItem в коллекцию ListItems
                 With ActiveDocument.Pages.ItemFromID(colPages.Item(i)).Shapes.ItemFromID(colShapes.Item(i))
                     Set itmx = lstvParent.ListItems.Add(, colPages.Item(i) & "/" & colShapes.Item(i), .Characters.text) '.Cells("TheText").ResultStr("")
@@ -341,10 +341,10 @@ End Sub
 Private Sub lstvParent_DblClick()
 
     Select Case FindType
-        Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
+        Case typeCxemaNO, typeCxemaNC 'Если макрос активировался дочерним - значит искали родителей
             'Создаем связь как и было задумано
             AddReferenceRelay shpChild, shpParent
-        Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaCoil, typeCxemaParent 'Если макрос активировался родителем - значит искали дочерних
             'Меняем местами родителя/дочернего, т.к. в переменной shpChild содержится родитель, а в shpParent дочерний
             AddReferenceRelay shpParent, shpChild
     End Select
@@ -387,9 +387,9 @@ Private Sub lstvParent_ItemClick(ByVal Item As MSComctlLib.ListItem)
     End If
     
     Select Case FindType
-        Case typeNO, typeNC 'Если макрос активировался дочерним - значит искали родителей
+        Case typeCxemaNO, typeCxemaNC 'Если макрос активировался дочерним - значит искали родителей
             Fill_lstvChild vsoShape 'Заполняем лист контактов
-        Case typeCoil, typeParent 'Если макрос активировался родителем - значит искали дочерних
+        Case typeCxemaCoil, typeCxemaParent 'Если макрос активировался родителем - значит искали дочерних
             'ниче не делаем
     End Select
     

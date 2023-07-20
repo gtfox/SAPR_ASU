@@ -338,7 +338,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                     If shpElementOnCxema.Cells("User.Shkaf").ResultStr(0) = NazvanieShkafa Then
                         SAType = ShapeSAType(shpElementOnCxema)
                         Select Case SAType
-                            Case typeCoil, typeParent, typeElement, typePLCParent
+                            Case typeCxemaCoil, typeCxemaParent, typeCxemaElement, typePLCParent
                                 nCount = colElementOnVID.Count
                                 On Error Resume Next
                                 colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.Name").ResultStr(0) '& ";" & shpElementOnCxema.Cells("User.NameParent").ResultStr(0)
@@ -347,7 +347,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
                                 If colElementOnVID.Count > nCount Then 'Если кол-во увеличелось, значит че-то всунулось - берем его себе
                                     colElementToVID.Add shpElementOnCxema
                                 End If
-                            Case typeTerm
+                            Case typeCxemaTerm
                                 nCount = colElementOnVID.Count
                                 On Error Resume Next
                                 colElementOnVID.Add shpElementOnCxema, shpElementOnCxema.Cells("User.FullName").ResultStr(0) & ";" & shpElementOnCxema.Cells("User.Shkaf").ResultStr(0)
@@ -366,7 +366,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
 '-------------------------------------------------------------------------------Клеммы---------------------------------------------------------------------------------------------
     'Клеммы шкафа собираем в отдельную коллекцию
     For Each shpElementOnCxema In colElementToVID
-        If ShapeSATypeIs(shpElementOnCxema, typeTerm) Then
+        If ShapeSATypeIs(shpElementOnCxema, typeCxemaTerm) Then
             colTermToVID.Add shpElementOnCxema
         End If
     Next
@@ -441,7 +441,7 @@ Public Sub AddElementyCxemyOnVID(NazvanieShkafa As String)
         SymName = shpElementOnCxema.Cells("Prop.SymName").ResultStr(0)
         
         Select Case SAType
-            Case typeCoil, typeParent, typeElement ', typePLCParent
+            Case typeCxemaCoil, typeCxemaParent, typeCxemaElement ', typePLCParent
                 
                 On Error Resume Next
                 Set shpElementOnVID = vsoPageVID.Drop(VIDvss.Masters.Item(SymName & IIf(shpElementOnCxema.NameU Like SymName & "3P*", "3P", "")), DropX, DropY)
