@@ -62,7 +62,7 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
 
     'Находим что уже есть на ФСА (связанные датчики)
     For Each shpSensorOnFSA In vsoPageFSA.Shapes
-        If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Then
+        If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Or ShapeSATypeIs(shpSensorOnFSA, typeFSAActuator) Then
             colSensorOnFSA.Add shpSensorOnFSA, shpSensorOnFSA.Cells("User.NameParent").ResultStr(0)
         End If
     Next

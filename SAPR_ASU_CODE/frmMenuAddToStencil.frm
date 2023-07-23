@@ -10,7 +10,7 @@ Private Sub btnAddMaster_Click()
 End Sub
 
 Private Sub UserForm_Initialize()
-    cmbxNameStencil.style = fmStyleDropDownList
+'    cmbxNameStencil.style = fmStyleDropDownList
     Fill_cmbxNameStencil
 End Sub
 
@@ -31,10 +31,10 @@ Sub Fill_cmbxNameStencil()
     Next
     
     If colNameStencil.Count = 0 Then
-        Set vsoDocument = Application.Documents.AddEx("vss", visMSMetric, visAddDocked + visAddStencil, 1033)
-        vsoDocument.SaveAs ActiveDocument.path & vsoDocument & ".vss"
-        cmbxNameStencil.AddItem vsoDocument
-        cmbxNameStencil.ListIndex = 0
+'        Set vsoDocument = Application.Documents.AddEx("vss", visMSMetric, visAddDocked + visAddStencil, 1033)
+'        vsoDocument.SaveAs ActiveDocument.path & vsoDocument & ".vss"
+'        cmbxNameStencil.AddItem vsoDocument
+'        cmbxNameStencil.ListIndex = 0
     Else
         cmbxNameStencil.Clear
         For i = 1 To colNameStencil.Count

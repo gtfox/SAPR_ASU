@@ -73,7 +73,7 @@ Sub SetElement() 'SetValueToSelSections
     Dim SectionNumber As Long
     Dim RowNumber As Long
 
-'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("PLCParent").Shapes.Item("PLCParent").Shapes.Item("PLCModParent")
 
 'Set vsoObject = ActivePage.Shapes.ItemFromID(219)
 
@@ -113,7 +113,7 @@ Sub SetElement() 'SetValueToSelSections
 
 
 'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).PageSheet
-'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item("TRM").PageSheet
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("TRM").PageSheet
 'SectionNumber = visSectionProp 'Prop 243
 '            arrRowName = Array("SA_NazvanieShkafa", "SA_NazvanieMesta")
 '            arrRowValue = Array("""Название Шкафа""|""Нумерация элементов идет в пределах одного шкафа""|1|""""|INDEX(0,Prop.SA_NazvanieShkafa.Format)|""""|FALSE|FALSE|1049|0", _
@@ -153,7 +153,7 @@ Sub SetElement() 'SetValueToSelSections
 'arrMast = Array("PLCParent", "TRM")
 '
 'For i = 0 To UBound(arrMast)
-'Set vsoObject = Application.Documents.Item("SAPR_ASU_PLC.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
+'Set vsoObject = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item(arrMast(i)).Shapes.Item(arrMast(i))
 '
 'vsoObject.Cells("User.Name").FormulaU = "IF(TheDoc!User.SA_ISO,IF(STRSAME(User.Mesto,""""),"""",TheDoc!User.SA_PrefMesto&User.Mesto&IF(Prop.PerenosOboz,CHAR(10),""""))&IF(STRSAME(User.Shkaf,""""),"""",TheDoc!User.SA_PrefShkaf&User.Shkaf&IF(Prop.PerenosOboz,CHAR(10),""""))&TheDoc!User.SA_PrefElement,"""")&Prop.SymName&Prop.Number"
 '
@@ -314,7 +314,7 @@ End Sub
 Sub SetIconPLC()
     Dim vsoMaster As Visio.Master
     Dim vsoShape As Visio.Shape
-    For Each vsoMaster In Application.Documents.Item("SAPR_ASU_PLC.vss").Masters
+    For Each vsoMaster In Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters
         For i = 1 To 100
             On Error Resume Next
             With vsoMaster.Shapes(1).Shapes.ItemFromID(i)

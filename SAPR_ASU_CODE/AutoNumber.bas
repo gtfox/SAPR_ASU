@@ -287,7 +287,7 @@ Sub AutoNumFSA(vsoShape As Visio.Shape)
                                     End Select
                             If (vsoShapeOnPage.Cells("Prop.SymName").ResultStr(0) = SymName) Then 'Буквы совпадают
                                 Select Case UserType
-                                    Case typeFSASensor 'датчики ФСА
+                                    Case typeFSASensor, typeFSAActuator 'датчики ФСА
                                         If vsoShapeOnPage.Cells("Prop.NameKontur").ResultStr(0) = vsoShape.Cells("Prop.NameKontur").ResultStr(0) Then 'Выбираем датчики из одного контура
                                             FindMAXFSA vsoShapeOnPage
                                         End If

@@ -290,38 +290,55 @@ Sub AddCxemaToStencil(NameStencil As String, NameMaster As String)
     Dim vsoLayer1 As Visio.Layer
     Dim vsoShape As Visio.Shape
     Dim vsoMaster As Visio.Master
+    Dim iPos As Integer
     
     If ActiveWindow.Selection.Count > 1 Then
-        If NameStencil <> "" Then
-            Set vsoDocument = Application.Documents.Item(NameStencil)
-            On Error Resume Next
-            vsoDocument.Save
-            err.Clear
-            On Error GoTo 0
-            vsoDocument.Close
-            Set vsoDocument = Application.Documents.OpenEx(ActiveDocument.path & NameStencil, visOpenRW + visOpenDocked)
-            ActiveWindow.Selection.Copy visCopyPasteNoTranslate
-            Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("temp")
-            vsoLayer1.CellsC(visLayerActive).FormulaU = "1"
-            DoEvents
-            Application.EventsEnabled = 0
-            ActivePage.Paste visCopyPasteNoTranslate
-            Set vsoShape = ActiveWindow.Selection.Group
-            vsoShape.Cells("EventDrop").FormulaU = "SETF(GetRef(PinY)," & Replace(CStr(vsoShape.Cells("PinY").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + SETF(GetRef(PinX)," & Replace(CStr(vsoShape.Cells("PinX").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + RunMacro(""UngroupNumSelect"")"
-            Set vsoMaster = vsoDocument.Drop(vsoShape, 0, 0)
-            If NameMaster <> "" Then
-                vsoMaster.name = NameMaster
-            End If
-            vsoDocument.Save
-            vsoShape.Delete
-            vsoLayer1.Delete 1
-            Application.EventsEnabled = -1
-        Else
-            MsgBox "Не выбран набор элементов", vbOKOnly + vbInformation, "САПР-АСУ: Info"
+    
+        On Error GoTo AddNewStencil
+        Set vsoDocument = Application.Documents.Item(NameStencil)
+        err.Clear
+        On Error GoTo 0
+        vsoDocument.Save
+        vsoDocument.Close
+        Set vsoDocument = Application.Documents.OpenEx(ActiveDocument.path & NameStencil, visOpenRW + visOpenDocked)
+        ActiveWindow.Selection.Copy visCopyPasteNoTranslate
+        Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("temp")
+        vsoLayer1.CellsC(visLayerActive).FormulaU = "1"
+        DoEvents
+        Application.EventsEnabled = 0
+        ActivePage.Paste visCopyPasteNoTranslate
+        Set vsoShape = ActiveWindow.Selection.Group
+        vsoShape.Cells("EventDrop").FormulaU = "SETF(GetRef(PinY)," & Replace(CStr(vsoShape.Cells("PinY").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + SETF(GetRef(PinX)," & Replace(CStr(vsoShape.Cells("PinX").Result(0)), ",", ".") & "/ThePage!PageScale*ThePage!DrawingScale) + RunMacro(""UngroupNumSelect"")"
+        Set vsoMaster = vsoDocument.Drop(vsoShape, 0, 0)
+        If NameMaster <> "" Then
+            vsoMaster.name = NameMaster
         End If
+        vsoDocument.Save
+        vsoShape.Delete
+        vsoLayer1.Delete 1
+        Application.EventsEnabled = -1
+'            MsgBox "Не выбран набор элементов", vbOKOnly + vbInformation, "САПР-АСУ: Info"
     Else
         MsgBox "Выделите больше одного элемента схемы", vbOKOnly + vbInformation, "САПР-АСУ: Info"
     End If
+    
+    Exit Sub
+    
+AddNewStencil:
+    Set vsoDocument = Application.Documents.AddEx("vss", visMSMetric, visAddDocked + visAddStencil, 1033)
+    If NameStencil <> "" Then
+        iPos = InStrRev(NameStencil, ".")
+        If iPos > 0 Then
+            NameStencil = Left(NameStencil, iPos - 1)
+        End If
+        NameStencil = NameStencil & ".vss"
+        vsoDocument.SaveAs ActiveDocument.path & NameStencil
+    Else
+        NameStencil = vsoDocument & ".vss"
+        vsoDocument.SaveAs ActiveDocument.path & NameStencil
+    End If
+Resume
+
 End Sub
 
 '------------------------------------------------------------------------------------------------------------

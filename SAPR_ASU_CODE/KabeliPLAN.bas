@@ -1446,7 +1446,7 @@ Public Sub AddSensorsFSAOnPlan(NazvanieFSA As String)
     'Суем туда же все из ФСА. Одинаковое не влезает => ошибка. Что не влезло: нам оно то и нужно
     For Each vsoPageFSA In colPagesFSA
         For Each shpSensorOnFSA In vsoPageFSA.Shapes
-            If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Then
+            If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Or ShapeSATypeIs(shpSensorOnFSA, typeFSAActuator) Then
                 nCount = colSensorOnPLAN.Count
                 On Error Resume Next
                 colSensorOnPLAN.Add shpSensorOnFSA, shpSensorOnFSA.Cells("User.Name").ResultStr(0) '& ";" & shpSensorOnFSA.Cells("User.NameParent").ResultStr(0)

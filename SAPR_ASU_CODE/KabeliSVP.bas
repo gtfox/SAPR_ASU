@@ -186,7 +186,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     ActiveWindow.Page = ActiveDocument.Pages(shpCable.ContainingPage.name)
     
     Set vsoSelection = ActiveWindow.Selection
-    Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
+    Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("KabelSVP")
     
     BukvOboz = shpCable.Cells("Prop.BukvOboz").Result(0)
     
@@ -411,7 +411,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     ActiveWindow.Page = ActiveDocument.Pages(shpSensor.ContainingPage.name)
 
     Set vsoSelection = ActiveWindow.Selection
-    Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("KabelSVP")
+    Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("KabelSVP")
 
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
 

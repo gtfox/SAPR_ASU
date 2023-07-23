@@ -229,8 +229,12 @@ Sub AddReferenceFSAPodval(shpChild As Visio.Shape, shpParent As Visio.Shape)
     shpChild.CellsU("Hyperlink.FSA.Frame").FormulaU = AdrParent + "!User.Location" 'Pages[Схема.3]!Sheet.4!User.Location
     shpChild.CellsU("Hyperlink.FSA.ExtraInfo").FormulaU = GUIDParent
     shpChild.CellsU("User.NameParent").FormulaU = AdrParent + "!User.Name"  'Pages[Схема.3]!Sheet.4!User.Name
-    shpChild.Shapes("Pomestu").CellsU("Prop.Place").FormulaU = AdrParent + "!Prop.Place"
-    shpChild.Shapes("Pomestu").CellsU("Prop.Forma").FormulaU = AdrParent + "!Prop.Forma"
+    If ShapeSATypeIs(shpParent, typeFSASensor) Then
+        shpChild.Shapes("Pomestu").CellsU("Prop.Place").FormulaU = AdrParent + "!Prop.Place"
+        shpChild.Shapes("Pomestu").CellsU("Prop.Forma").FormulaU = AdrParent + "!Prop.Forma"
+    ElseIf ShapeSATypeIs(shpParent, typeFSAActuator) Then
+        shpChild.CellsU("Prop.Pribor").FormulaU = "INDEX(0,Prop.Pribor.Format)"
+    End If
     shpChild.Shapes("Pomestu").CellsU("Prop.SymName").FormulaU = AdrParent + "!Prop.SymName"
     shpChild.Shapes("Pomestu").CellsU("Prop.Number").FormulaU = AdrParent + "!Prop.Number"
     shpChild.Shapes("Pomestu").CellsU("Prop.NameKontur").FormulaU = AdrParent + "!Prop.NameKontur"
@@ -284,6 +288,7 @@ Sub ClearFSAPodvalChild(shpChild As Visio.Shape)
         shpChild.CellsU("Hyperlink.FSA.SubAddress").FormulaForceU = """""" 'Пишем в ShapeSheet пустые кавычки. Если записать пустую строку, то будет NoFormula и нумерация контактов сломается
         shpChild.CellsU("Hyperlink.FSA.Frame").FormulaForceU = """"""
         shpChild.CellsU("Hyperlink.FSA.ExtraInfo").FormulaForceU = ""
+        shpChild.CellsU("Prop.Pribor").FormulaForceU = "INDEX(3,Prop.Pribor.Format)"
         shpChild.Shapes("Pomestu").CellsU("Prop.Place").FormulaForceU = "INDEX(0,Prop.Place.Format)"
         shpChild.Shapes("Pomestu").CellsU("Prop.Forma").FormulaForceU = "INDEX(0,Prop.Forma.Format)"
         shpChild.Shapes("Pomestu").CellsU("Prop.SymName").FormulaForceU = ""

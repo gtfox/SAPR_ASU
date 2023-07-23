@@ -181,7 +181,7 @@ Sub ClearAndAutoNum(vsoShapeEvent As Visio.Shape)
         
             'Не нумеруем при вбросе
         
-        Case typeFSASensor 'Датчик на ФСА
+        Case typeFSASensor, typeFSAActuator 'Датчик на ФСА
         
             'Отвязываем и нумеруем
             ClearSensorChild vsoShapeEvent 'Чистим ссылки

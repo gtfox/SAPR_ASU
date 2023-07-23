@@ -38,7 +38,7 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
     
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
     Set colWires = New Collection
-    Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("Kabel")
+    Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Kabel")
 
     If MultiCable Then
         'Перебираем все входы в датчике
@@ -274,7 +274,7 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
     PinY = shpProvod.Cells("PinY").Result(0)
 
     Set colWiresSelected = New Collection
-    Set vsoMaster = Application.Documents.Item("SAPR_ASU_SVP.vss").Masters.Item("Kabel")
+    Set vsoMaster = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Kabel")
     
     'Находим подключенные провода в выделении
     For Each shpWire In ActiveWindow.Selection

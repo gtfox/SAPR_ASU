@@ -500,7 +500,7 @@ Public Sub ReNumberFSA()
                             Select Case UserType
                                 Case typeFSAPodval 'Подвал на ФСА
                                     bPodvalSelect = True
-                                Case typeFSASensor 'Датчик на ФСА
+                                Case typeFSASensor, typeFSAActuator 'Датчик на ФСА
                                     bElementSelect = True
                                     On Error Resume Next
                                     colElementSelectNames.Add vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShape.Cells("Prop.NameKontur").ResultStr(0), vsoShape.Cells("User.SAType").Result(0) & ";" & vsoShape.Cells("Prop.SymName").ResultStr(0) & ";" & vsoShape.Cells("Prop.NameKontur").ResultStr(0)
@@ -542,7 +542,7 @@ Public Sub ReNumberFSA()
                                     If cbPodFSA Or (obVydNaListeFSA And bPodvalSelect) Then
                                         List.colPodvals.Add vsoShapeOnPage
                                     End If
-                                Case typeFSASensor 'Датчик на ФСА
+                                Case typeFSASensor, typeFSAActuator 'Датчик на ФСА
                                     If cbDatFSA Or (obVydNaListeFSA And bElementSelect) Then
                                         List.colElements.Add vsoShapeOnPage
                                         If Not (obVydNaListeFSA And bElementSelect) Then
