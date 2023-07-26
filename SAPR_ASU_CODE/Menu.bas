@@ -301,20 +301,9 @@ Private Sub AddButtonsCXEMA()
         .FaceId = 572
 '        .BeginGroup = True
     End With
-
-        '---Кнопка "Скрыть дочерние номера проводов"
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
-    With Button
-        .Caption = "Скрытьдочерниеномерапроводов"
-        .Tag = "HideWireNumChildInDoc"
-        .OnAction = "HideWireNumChildInDoc"
-        .TooltipText = "Скрыть дочерние номера проводов"
-        .FaceId = 290 '2810 2805
-        .BeginGroup = True
-    End With
-
+    
         '---Кнопка "Показать дочерние номера проводов"
-    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=5)
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=4)
     With Button
         .Caption = "Показатьдочерниеномерапроводов"
         .Tag = "ShowWireNumChildInDoc"
@@ -322,6 +311,17 @@ Private Sub AddButtonsCXEMA()
         .TooltipText = "Показать дочерние номера проводов"
         .FaceId = 291 '2810 2805
 '        .BeginGroup = True
+    End With
+    
+        '---Кнопка "Скрыть дочерние номера проводов"
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=5)
+    With Button
+        .Caption = "Скрытьдочерниеномерапроводов"
+        .Tag = "HideWireNumChildInDoc"
+        .OnAction = "HideWireNumChildInDoc"
+        .TooltipText = "Скрыть дочерние номера проводов"
+        .FaceId = 290 '2810 2805
+        .BeginGroup = True
     End With
 
         '---Кнопка "Вставить миниатюры контактов"

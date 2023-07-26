@@ -342,10 +342,10 @@ Public Sub AddCableFromWires(shpProvod As Visio.Shape)
         End If
     ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaTerm) Then 'Соединен шкаф и датчик/привод 'клемма шкафа
         shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
-        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
+        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.Name"
     ElseIf ShapeSATypeIs(shpKabel.Shapes(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
         shpKabel.Cells("User.LinkToBox").Formula = shpKabel.Shapes(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
-        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+        shpKabel.Cells("User.LinkToSensor").Formula = shpKabel.Shapes(1).Connects(1).ToSheet.NameID & "!User.Name"
     End If
 
     Application.EventsEnabled = -1

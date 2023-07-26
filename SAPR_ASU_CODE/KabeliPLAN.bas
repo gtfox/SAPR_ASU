@@ -337,12 +337,12 @@ Sub RouteCableSensor(shpSensorFSA As Visio.Shape)
     shpLineRight.Delete
     vsoLayer1.Delete True
     
-    'Создаем свойства для линии (тип как у лотка typePlanDuct = 170)
+    'Создаем свойства для линии (тип как у лотка typePlanDuct = 132)
     With shpShortLine
         .AddSection visSectionUser
         .AddRow visSectionUser, visRowLast, visTagDefault
         .CellsSRC(visSectionUser, visRowLast, visUserValue).RowNameU = "SAType"
-        .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = "170"
+        .CellsSRC(visSectionUser, visRowLast, visUserValue).FormulaForceU = typePlanDuct
         .AddSection visSectionProp
         .AddRow visSectionProp, visRowLast, visTagDefault
         .CellsSRC(visSectionProp, visRowLast, visCustPropsValue).RowNameU = "SymName"
@@ -1762,7 +1762,7 @@ SectionNumber = visSectionUser 'User 242
 sSectionName = "User."
             arrRowName = Array("Dropped", "SAType", "Name", "AdrSource", "FullName", "KodProizvoditelyaDB", "KodPoziciiDB")
             arrRowValue = Array("0|""""", _
-                            "90|", _
+                            "134|", _
                             "IF(Prop.HideNumber,"""",Prop.Number)&IF(Prop.HideName,"""","": ""&Prop.SymName)|", _
                             "0|""""", _
                             "Prop.FullName&"" ""&Prop.Ac3|""""", _

@@ -166,14 +166,24 @@ Public Sub LockSelected()
         If MsgBox("Заблокировать выделененые объекты: " & Application.ActiveWindow.Selection.Count & "шт.?", vbExclamation + vbOKCancel, "САПР-АСУ: Блокировки выделенного объекта") = vbOK Then
             'Создаем и блокруем слой
             Set vsoLayer1 = Application.ActiveWindow.Page.Layers.Add("SA_LockedLayer")
+            Set vsoLayer2 = Application.ActiveWindow.Page.Layers.Add("SA_LockedWire")
 '            SetLayer Application.ActiveWindow.Selection(1), vsoLayer1
             For Each vsoShape In Application.ActiveWindow.Selection
-                vsoLayer1.Add vsoShape, 0
+                If ShapeSATypeIs(vsoShape, typeCxemaWire) Then
+                    vsoLayer2.Add vsoShape, 0
+                Else
+                    vsoLayer1.Add vsoShape, 0
+                End If
             Next
             vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
             vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
             vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
             vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
+            
+            vsoLayer2.CellsC(visLayerLock).FormulaU = "1"
+            vsoLayer2.CellsC(visLayerColor).FormulaU = "19"
+            vsoLayer2.CellsC(visLayerSnap).FormulaU = "0"
+            vsoLayer2.CellsC(visLayerGlue).FormulaU = "1"
             ActiveWindow.DeselectAll
         Else
             Exit Sub

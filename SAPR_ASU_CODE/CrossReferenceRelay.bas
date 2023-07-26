@@ -201,9 +201,11 @@ Sub DeleteRelayParent(shpParent As Visio.Shape)
             If GUIDChild <> "" Then
                 Set shpChild = ShapeByGUID(GUIDChild)
                 'Проверяем что контакт привязан именно к нашей катушке
-                If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
-                    'Чистим дочерний шейп
-                    ClearRelayChild shpChild
+                If Not (shpChild Is Nothing) Then
+                    If GUIDParent = shpChild.CellsSRC(visSectionHyperlink, 0, visHLinkExtraInfo).ResultStr(0) Then
+                        'Чистим дочерний шейп
+                        ClearRelayChild shpChild
+                    End If
                 End If
             End If
         Next
