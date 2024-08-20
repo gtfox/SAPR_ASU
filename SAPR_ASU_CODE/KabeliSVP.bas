@@ -1,19 +1,23 @@
 '------------------------------------------------------------------------------------------------------------
 ' Module        : KabeliSVP - Кабели на схеме внешних проводок (СВП)
 ' Author        : gtfox
-' Date          : 2020.09.21/2023.03.29
+' Date          : 2020.09.21/2023.03.29/2024.08.03
 ' Description   : Автосоздание схемы внешних проводок (СВП)
 ' Link          : https://visio.getbb.ru/viewtopic.php?f=44&t=1491, https://github.com/gtfox/SAPR_ASU, https://yadi.sk/d/24V8ngEM_8KXyg
 '------------------------------------------------------------------------------------------------------------
 
 Public PastePoint As Variant 'Точка вставки следующего датчика
+Public colSensorsAdded As Collection
 
 Const NachaloVstavki As Double = 20 / 25.4 'Расстояние + Interval(5mm) от левого края листа куда вставляется первый датчик
 Const SVPWireL As Double = 10 / 25.4 'Длина проводов торчащих из шины на СВП
-Const Interval As Double = 5 / 25.4 'Расстояние между датчиками на СВП
+Const Interval As Double = 15 / 25.4 'Расстояние между датчиками на СВП 5
 Const Klemma As Double = 240 / 25.4 'Высота расположения клеммника шкафа на СВП
-Const Datchik As Double = 97.5 / 25.4 'Высота расположения датчика на СВП
+Const Datchik15 As Double = 97.5 / 25.4 'Высота расположения датчика на СВП для малого штампа 15
 Const KonecLista As Double = 10 / 25.4 'Расстояние от правого края листа, за которое не дожны заходить фигуры
+Const Datchik55 As Double = 137.5 / 25.4 'Высота расположения датчика на СВП для большого штампа 55
+Const KrugKabelya As Double = 0.6 'Круг по середине кабеля 0,5
+
 
 Public Sub PageSVPAddKabeliFrm()
     Load frmPageSVPAddKabeli
@@ -42,13 +46,15 @@ Public Sub AddPagesSVP(NazvanieShkafa As String)
     Dim ss As String
     Dim i As Integer, ii As Integer, j As Integer, n As Integer
     
-    ShinaNumber = 1
+    ShinaNumber = 0
     
     PastePoint = NachaloVstavki
     
     Set ThePage = ActivePage.PageSheet
     
     Set colShpDoc = New Collection
+    
+    Set colSensorsAdded = New Collection
     
     PageName = cListNameCxema
 
@@ -174,10 +180,14 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     Set colTerms = New Collection
     Set colCablesOnElSh = New Collection
     
+    
     'Если кабелем подключён датчик/привод то используем AddSensorOnSVP
     Set shpSensor = FindSensorFromKabel(shpCable)
     If Not shpSensor Is Nothing Then
+        On Error GoTo err1
+        colSensorsAdded.Add shpSensor, CStr(shpSensor.Cells("Prop.SymName").ResultStr(0) & shpSensor.Cells("Prop.Number").Result(0))
         AddSensorOnSVP shpSensor, vsoPageSVP, ShinaNumber
+err1:
         Exit Sub
     End If
     
@@ -230,7 +240,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     'Чистим события перед копированием
     For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
         With vsoShape
-            .Cells("Prop.AutoNum").Formula = 0
+'            .Cells("Prop.AutoNum").Formula = 0
             .Cells("EventMultiDrop").Formula = """"""
             .Cells("EventDrop").Formula = """"""
             .Cells("EventDblClick").Formula = """"""
@@ -243,7 +253,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     'Восстанавливаем события после копирования
     For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
         With vsoShape
-            .Cells("Prop.AutoNum").Formula = 1
+'            .Cells("Prop.AutoNum").Formula = 1
             .Cells("EventMultiDrop").Formula = "CALLTHIS(""AutoNumber.AutoNum"")"
             .Cells("EventDrop").Formula = "CALLTHIS(""ThisDocument.EventDropAutoNum"")"
         End With
@@ -303,7 +313,12 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
     For Each vsoShape In ActiveWindow.Selection
         If ShapeSATypeIs(vsoShape, typeCxemaTerm) Then
             If vsoShape.Cells("PinY").Result(0) < Klemma - vsoShape.Cells("LocPinY").Result(0) Then
-                vsoShape.Cells("PinY").Formula = Datchik - vsoShape.Cells("LocPinY").Result(0)
+                If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+                     vsoShape.Cells("PinY").Formula = Datchik55 - vsoShape.Cells("LocPinY").Result(0)
+                Else
+                     vsoShape.Cells("PinY").Formula = Datchik15 - vsoShape.Cells("LocPinY").Result(0)
+                End If
+                'vsoShape.Cells("PinY").Formula = IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15) - vsoShape.Cells("LocPinY").Result(0)
             End If
         End If
     Next
@@ -314,7 +329,12 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
         'В кабеле находим длину провода
         WireHeight = shpCable.Shapes(1).Cells("Height").Result(0)
         'Вставляем шейп кабеля СВП
-        Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik + WireHeight - SVPWireL)
+        If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+             Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik55 + WireHeight - SVPWireL)
+        Else
+             Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik15 + WireHeight - SVPWireL)
+        End If
+        'Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15) + WireHeight - SVPWireL)
         shpKabelSVP.Cells("Width").Formula = WireHeight - SVPWireL * 2
         shpKabelSVP.Cells("Prop.Number").Formula = """" & IIf(shpCable.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & shpCable.Cells("Prop.Number").Result(0), CStr(shpCable.Cells("Prop.Number").Result(0))) & """"
         
@@ -356,7 +376,7 @@ Sub AddCableOnSVP(shpCable As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumber
             
         Next
         'Круг по середине кабеля
-        shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * 0.5
+        shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * KrugKabelya
     Next
     
     'Удаляем кабели эл. схемы
@@ -416,7 +436,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     MultiCable = shpSensor.Cells("Prop.MultiCable").Result(0)
 
     shpSensor.Cells("User.Shkaf.Prompt").Formula = """" & shpSensor.Cells("User.Shkaf").ResultStr(0) & """"
-    shpSensor.Cells("User.Mesto.Prompt").Formula = """" & shpSensor.Cells("User.Mesto").ResultStr(0) & """"
+'    shpSensor.Cells("User.Mesto.Prompt").Formula = """" & shpSensor.Cells("User.Mesto").ResultStr(0) & """"
     
     If MultiCable Then
         'Перебираем все входы в датчике
@@ -472,7 +492,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     'Чистим события перед копированием
     For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
         With vsoShape
-            .Cells("Prop.AutoNum").Formula = 0
+'            .Cells("Prop.AutoNum").Formula = 0
             .Cells("EventMultiDrop").Formula = """"""
             .Cells("EventDrop").Formula = """"""
             .Cells("EventDblClick").Formula = """"""
@@ -485,7 +505,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     'Восстанавливаем события после копирования
     For Each vsoShape In ActiveWindow.Selection.PrimaryItem.Shapes
         With vsoShape
-            .Cells("Prop.AutoNum").Formula = 1
+'            .Cells("Prop.AutoNum").Formula = 1
             .Cells("EventMultiDrop").Formula = "CALLTHIS(""AutoNumber.AutoNum"")"
             If ShapeSATypeIs(vsoShape, typeCxemaSensor) Or ShapeSATypeIs(vsoShape, typeCxemaActuator) Then
                 .Cells("EventDrop").FormulaU = "CALLTHIS(""ThisDocument.EventDropAutoNum"")+SETF(GetRef(PinY),""80 mm/ThePage!PageScale*ThePage!DrawingScale"")+SETF(GetRef(Prop.ShowDesc),""true"")"
@@ -527,6 +547,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
                 .Cells("Actions.KlemmyProvoda.Invisible").Formula = 1
                 .Cells("Actions.KabeliIzProvodov.Invisible").Formula = 1
                 .Cells("Actions.KabeliSrazu.Invisible").Formula = 1
+                .Cells("Prop.PerenosOboz").Formula = 0 'Отключаем перенос обозначений
             End If
         End With
     Next
@@ -562,7 +583,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     shpSensorSVP.Cells("Controls.TextPos").Formula = "Width*0.5"
     shpSensorSVP.Cells("Controls.TextPos.Y").Formula = "Height*-0.2"
     shpSensorSVP.Cells("Controls.FSAPos").Formula = "Width*0.5"
-    shpSensorSVP.Cells("Controls.FSAPos.Y").Formula = "Height*-0.5"
+    shpSensorSVP.Cells("Controls.FSAPos.Y").Formula = "Height*-0.75"
     shpSensorSVP.Cells("Controls.NamePos").Formula = "Width*0.5"
     shpSensorSVP.Cells("Controls.NamePos.Y").Formula = "Height*-0.4"
     shpSensorSVP.CellsSRC(visSectionObject, visRowTextXForm, visXFormLocPinX).FormulaU = "TxtWidth * 0.5"
@@ -570,14 +591,24 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
     shpSensorSVP.Shapes("Name").CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0.5"
 
     'Ставим на место датчик
-    shpSensorSVP.Cells("PinY").Formula = Datchik
+    If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+         shpSensorSVP.Cells("PinY").Formula = Datchik55
+    Else
+         shpSensorSVP.Cells("PinY").Formula = Datchik15
+    End If
+    'shpSensorSVP.Cells("PinY").Formula = IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15)
     DoEvents 'На*уя тут этот DoEvents?
 
     For Each shpCable In colCables
         'В кабеле находим длину провода
         WireHeight = shpCable.Shapes(1).Cells("Height").Result(0)
         'Вставляем шейп кабеля СВП
-        Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik + WireHeight - SVPWireL)
+        If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+             Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik55 + WireHeight - SVPWireL)
+        Else
+             Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, Datchik15 + WireHeight - SVPWireL)
+        End If
+        'Set shpKabelSVP = shpCable.ContainingPage.Drop(vsoMaster, shpCable.Cells("PinX").Result(0) + shpCable.Cells("Width").Result(0) * 0.5, IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15) + WireHeight - SVPWireL)
         shpKabelSVP.Cells("Width").Formula = WireHeight - SVPWireL * 2
         shpKabelSVP.Cells("Prop.Number").Formula = """" & IIf(shpCable.Cells("Prop.BukvOboz").Result(0), shpCable.Cells("Prop.SymName").ResultStr(0) & shpCable.Cells("Prop.Number").Result(0), CStr(shpCable.Cells("Prop.Number").Result(0))) & """"
 
@@ -615,7 +646,7 @@ Sub AddSensorOnSVP(shpSensor As Visio.Shape, vsoPageSVP As Visio.Page, ShinaNumb
 
         Next
         'Круг по середине кабеля
-        shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * 0.5
+        shpKabelSVP.Cells("Controls.BendPnt").Formula = shpKabelSVP.Cells("Width").Result(0) * KrugKabelya
     Next
 
     'Удаляем кабели эл. схемы
@@ -718,7 +749,17 @@ Function GetShkafUp(vsoPage As Visio.Page) As Visio.Shape
     Dim shpShkaf As Visio.Shape
     'Подвал
     vsoPage.Drop Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.ItemU("PodvalCxemy"), 0, 0
+    
     Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).FormulaU = "(25 mm-TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+    If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+        Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).FormulaU = "(55 mm+1.15mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+    Else
+        Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).FormulaU = "(15 mm+1.15mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale"
+    End If
+
+    
+    'Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).FormulaForceU = IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, "(55 mm+1.15mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale", "(15 mm+1.15mm+TheDoc!User.SA_FR_OffsetFrame)/ThePage!PageScale*ThePage!DrawingScale")
+
     'Шкаф
     vsoPage.Drop Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.ItemU("ShkafMesto"), 0, 0
     Set shpShkaf = Application.ActiveWindow.Selection(1)
@@ -726,7 +767,7 @@ Function GetShkafUp(vsoPage As Visio.Page) As Visio.Shape
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).Formula = NachaloVstavki + Interval
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Klemma - 5 / 25.4
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "37.5 mm"
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = "382.5 mm"
+        .CellsSRC(visSectionObject, visRowXFormOut, visXFormWidth).FormulaU = "(ThePage!PageWidth-TheDoc!User.SA_FR_OffsetFrame-PinX-5mm)/ThePage!PageScale*ThePage!DrawingScale"
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinY).FormulaU = "Height * 0"
         .CellsSRC(visSectionObject, visRowLine, visLineWeight).FormulaU = "0.5 mm"
@@ -759,7 +800,12 @@ Function GetShkafDown(vsoGroup As Visio.Shape) As Visio.Shape
     Set shpShkaf = Application.ActiveWindow.Selection(1)
     With shpShkaf
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).Formula = vsoGroup.Cells("PinX").Result(0) - vsoGroup.Cells("LocPinX").Result(0)
-        .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik
+        If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+             .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik55
+        Else
+             .CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik15
+        End If
+        '.CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15)
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinX).FormulaU = "Width * 0"
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormLocPinY).FormulaU = "Height * 1"
         .CellsSRC(visSectionObject, visRowXFormOut, visXFormHeight).FormulaU = "25 mm"
@@ -784,7 +830,12 @@ Function GetShkafDown(vsoGroup As Visio.Shape) As Visio.Shape
 '    'Клеммник
     vsoGroup.ContainingPage.Drop Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.ItemU("klemmnik"), 0, 0
     Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinX).Formula = vsoGroup.Cells("PinX").Result(0) - vsoGroup.Cells("LocPinX").Result(0)
-    Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik - 5 / 25.4
+    If ActivePage.Shapes("Рамка").Cells("User.Height").Result("mm") > 15 Then
+         Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik55 - 5 / 25.4
+    Else
+         Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = Datchik15 - 5 / 25.4
+    End If
+    'Application.ActiveWindow.Selection(1).CellsSRC(visSectionObject, visRowXFormOut, visXFormPinY).Formula = IIf(ActivePage.Shapes("Рамка").Cells("Prop.CHAPTER").Result(0) = 0, Datchik55, Datchik15) - 5 / 25.4
     Application.ActiveWindow.Selection(1).Cells("Controls.Line").GlueTo shpShkaf.Cells("Connections.X1")
     Set GetShkafDown = shpShkaf
 End Function

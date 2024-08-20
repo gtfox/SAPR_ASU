@@ -184,6 +184,7 @@ Public Sub FindElementShemyToExcel()
     Dim UserType As Integer     'Тип элемента схемы: клемма, провод, реле
     Dim PageName As String      'Имена листов где возможна нумерация
     Dim i As Integer
+    Dim j As Integer
     Dim bExcelInit As Boolean
     Dim mNum() As String
     Dim Cxema As classCxema
@@ -214,8 +215,8 @@ Public Sub FindElementShemyToExcel()
     Set colStrokaSpecif = New Collection
 
     If obVseCx Then
-        For i = 0 To cmbxNazvanieShkafa.ListCount - 1
-            NazvanieShkafa = cmbxNazvanieShkafa.List(i)
+        For j = 0 To cmbxNazvanieShkafa.ListCount - 1
+            NazvanieShkafa = cmbxNazvanieShkafa.List(j)
             For Each vsoPage In ActiveDocument.Pages
                 If vsoPage.name Like PageName & "*" Then
                     GoSub subShpOnPage
@@ -381,14 +382,20 @@ OutExcelNext:
     wb.Activate
     apx.ActiveSheet.Range("J1") = Format(Now(), "yyyy.mm.dd hh:mm:ss")
     apx.ActiveSheet.Range("D3:D65536").NumberFormat = "@"
-    For xx = 1 To str
-        If colStrokaSpecif(xx).ArtikulDB Like "Набор_*" Then
-            mStr = Split(colStrokaSpecif(xx).KodPoziciiDB, "/")
-            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(xx).KolVo, mStr(0), xx)
-            str = str + NElemNabora - 1
-            colStrokaSpecif.Remove xx
-        End If
-    Next
+    
+    ReplaceNaborToSostav colStrokaSpecif 'Заменяем строки спецификации с наборами на составы наборов из БД
+    
+    'Access
+'    For xx = 1 To str
+'        If colStrokaSpecif(xx).ArtikulDB Like "Набор_*" Then
+'            mStr = Split(colStrokaSpecif(xx).KodPoziciiDB, "/")
+'            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(xx).KolVo, mStr(0), xx)
+'            str = str + NElemNabora - 1
+'            colStrokaSpecif.Remove xx
+'        End If
+'    Next
+
+    str = colStrokaSpecif.Count
     
     If str < 5 Then nstr = 5 Else nstr = str
     apx.ActiveSheet.Rows("5:" & nstr + 1).Insert Shift:=xlDown, CopyOrigin:=xlFormatFromLeftOrAbove
@@ -436,16 +443,20 @@ OutList:
     GoSub SortReplace
     ActivePage.Drop Application.Documents.Item("SAPR_ASU_OFORM.vss").Masters.Item("ПЭ"), 0, ActivePage.PageSheet.Cells("PageHeight").Result(mm) - 10 / 25.4
     Set shpPerechenElementov = Application.ActiveWindow.Selection(1)
-    str = colStrokaSpecif.Count
-    For NRow = 1 To str
-        If colStrokaSpecif(NRow).ArtikulDB Like "Набор_*" Then
-            mStr = Split(colStrokaSpecif(NRow).KodPoziciiDB, "/")
-            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(NRow).KolVo, mStr(0), NRow)
-            If NRow < 5 Then nstr = 5 Else nstr = NRow
-            str = str + NElemNabora - 1
-            colStrokaSpecif.Remove NRow
-        End If
-    Next
+
+    ReplaceNaborToSostav colStrokaSpecif 'Заменяем строки спецификации с наборами на составы наборов из БД
+
+    'Access
+'    For NRow = 1 To str
+'        If colStrokaSpecif(NRow).ArtikulDB Like "Набор_*" Then
+'            mStr = Split(colStrokaSpecif(NRow).KodPoziciiDB, "/")
+'            NElemNabora = AddSostavNaboraIzBD(colStrokaSpecif, colStrokaSpecif(NRow).KolVo, mStr(0), NRow)
+'            If NRow < 5 Then nstr = 5 Else nstr = NRow
+'            str = str + NElemNabora - 1
+'            colStrokaSpecif.Remove NRow
+'        End If
+'    Next
+    
     str = colStrokaSpecif.Count
     If str > 30 Then str = 30: MsgBox "Элементов на листе больше, чем строк в таблице(30): " & colStrokaSpecif.Count & vbNewLine & vbNewLine & "Используйте вывод в Excel для разбивки на несколько таблиц", vbExclamation, "САПР-АСУ: Перечень элементов"
     For NRow = 1 To str
@@ -560,7 +571,7 @@ FillcolStrokaKJ:
                 Set shpKabelPL = ShapeByGUID(shpKabel.Cells("Hyperlink.Kabel.ExtraInfo").ResultStr(0))
                 clsStrokaKJ.Oboznach = IIf(shpKabel.Cells("Prop.BukvOboz").Result(0), shpKabel.Cells("Prop.SymName").ResultStr(0) & shpKabel.Cells("Prop.Number").Result(0), shpKabel.Cells("Prop.Number").Result(0))
                 clsStrokaKJ.Nachalo = shpKabel.Cells("User.LinkToBox").ResultStr(0)
-                clsStrokaKJ.Konec = shpKabel.Cells("User.LinkToSensor").ResultStr(0)
+                clsStrokaKJ.Konec = Replace(shpKabel.Cells("User.LinkToSensor").ResultStr(0), vbLf, "")
                 clsStrokaKJ.Trassa = GetTrassa(shpKabelPL)
                 clsStrokaKJ.Marka = shpKabel.Cells("Prop.TipKab").ResultStr(0)
                 clsStrokaKJ.Sechenie = shpKabel.Cells("Prop.WireCount").Result(0) & "x" & shpKabel.Cells("Prop.mm2").ResultStr(0)

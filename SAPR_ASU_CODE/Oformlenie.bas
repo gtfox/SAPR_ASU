@@ -1077,11 +1077,73 @@ Sub SavePDF()
 '        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 1
         DoEvents
         str = Replace(ActiveDocument.name, ".vsd", "") & Format(Now(), "_yyyy.mm.dd_hh.mm.ss") & ".pdf"
-        Application.ActiveDocument.ExportAsFixedFormat visFixedFormatPDF, ActiveDocument.path & str, visDocExIntentPrint, visPrintAll, 1, ActiveDocument.Pages.Count, True, True, True, True, False
+        Application.ActiveDocument.ExportAsFixedFormat visFixedFormatPDF, ActiveDocument.path & str, visDocExIntentPrint, visPrintAll, 1, ActiveDocument.Pages.Count, True, True, True, True, False 'Первый true - все цвета чёрные
 '        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 0
         MsgBox "Файл сохранен в папке проекта!" + vbNewLine + vbNewLine + str, vbInformation + vbOKOnly, "САПР-АСУ: Info"
     End If
     ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 0
+End Sub
+
+Sub SavePDFColor()
+'------------------------------------------------------------------------------------------------------------
+' Macros        : SavePDFColor - Сохраняет листы проекта в PDF. Цвета - цветные
+'------------------------------------------------------------------------------------------------------------
+    Dim str As String
+    ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 1
+    DoEvents
+    DoLockLayers 0
+    DoEvents
+    If MsgBox("Сохранить в PDF в цвете?" + vbNewLine + vbNewLine + Replace(ActiveDocument.name, ".vsd", ""), vbQuestion + vbOKCancel, "САПР-АСУ: Save PDF") = vbOK Then
+'        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 1
+        DoEvents
+        str = Replace(ActiveDocument.name, ".vsd", "") & Format(Now(), "_yyyy.mm.dd_hh.mm.ss") & ".pdf"
+        Application.ActiveDocument.ExportAsFixedFormat visFixedFormatPDF, ActiveDocument.path & str, visDocExIntentPrint, visPrintAll, 1, ActiveDocument.Pages.Count, False, True, True, True, False 'Первый true - все цвета чёрные
+'        ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 0
+        MsgBox "Файл сохранен в папке проекта!" + vbNewLine + vbNewLine + str, vbInformation + vbOKOnly, "САПР-АСУ: Info"
+    End If
+    ActiveDocument.DocumentSheet.Cells("User.SA_NoColor").Formula = 0
+    DoEvents
+    DoLockLayers 1
+    DoEvents
+End Sub
+
+Public Sub DoLockLayers(bLock As Boolean)
+'------------------------------------------------------------------------------------------------------------
+' Macros        : DoLockLayers - Блокировка=1/Разблокировка=0 слоёв
+'------------------------------------------------------------------------------------------------------------
+    Dim vsoPage As Visio.Page
+    Dim vsoLayer1 As Visio.Layer
+
+    For Each vsoPage In ActiveDocument.Pages
+        For Each vsoLayer1 In vsoPage.Layers
+            If vsoLayer1.name = "SA_Рамка" Then
+                GoSub LockSub
+            End If
+            If vsoLayer1.name = "SA_LockedWire" Then
+                GoSub LockSub
+            End If
+            If vsoLayer1.name = "SA_LockedLayer" Then
+                GoSub LockSub
+            End If
+        Next
+    Next
+    Exit Sub
+    
+LockSub:
+        If bLock Then
+            'Блокруем слой
+            vsoLayer1.CellsC(visLayerLock).FormulaU = "1"
+            vsoLayer1.CellsC(visLayerColor).FormulaU = "19"
+            vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
+            vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
+        Else
+            'Разблокруем слой
+            vsoLayer1.CellsC(visLayerLock).FormulaU = "0"
+            vsoLayer1.CellsC(visLayerColor).FormulaU = "255"
+            vsoLayer1.CellsC(visLayerSnap).FormulaU = "0"
+            vsoLayer1.CellsC(visLayerGlue).FormulaU = "0"
+        End If
+Return
 End Sub
 
 '-----------------------------Переделка таблицы спецификации под универсальную---------------------------------

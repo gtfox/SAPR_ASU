@@ -19,6 +19,7 @@
 Sub FillBP4(shpBP4 As Visio.Shape)
     Dim colRamki As Collection
     Dim vsoPage As Visio.Page
+    Dim NazvanieRazdela As String
     Set colRamki = New Collection
     
     If shpBP4.Cells("User.v").Result(0) > 0 Then
@@ -52,13 +53,23 @@ err:
         End If
         
         shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".1").text = NachaloRazdela & IIf(KonecRazdela = 0 Or KonecRazdela = NachaloRazdela, "", "-" & KonecRazdela)
-        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").text = NazvanieRazdela
+        shpBP4.Shapes.Item("row" & i).Shapes.Item(i & ".2").text = DelSpace(NazvanieRazdela)
     Next
     Application.EventsEnabled = -1
     ThisDocument.InitEvent
     
     MsgBox "ВРЧ обновлена", vbInformation, "САПР-АСУ"
 End Sub
+
+Public Function DelSpace(sStroka As String) As String
+'Рекурсивное удаление лишних пробелов
+    If InStr(sStroka, "  ") > 0 Then
+        DelSpace = DelSpace(Replace(sStroka, "  ", " "))
+    Else
+        DelSpace = sStroka
+    End If
+End Function
+
 
 Sub fff()
 'Преобразует строки шейпа спецификации в шейп ВРЧ

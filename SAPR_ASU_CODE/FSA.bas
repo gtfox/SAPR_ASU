@@ -59,7 +59,15 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     shpSensorOnFSA.Delete
     ActiveDocument.Masters.ItemU("SensorFSA").Shapes(1).Cells("EventDrop").Formula = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
     ActiveDocument.Masters.ItemU("SensorFSA").Shapes(1).Cells("EventMultiDrop").Formula = """"""
-
+    Set shpSensorOnFSA = vsoPageFSA.Drop(FSAvss.Masters.Item("MotorFSA"), 0, 0)
+    shpSensorOnFSA.Delete
+    ActiveDocument.Masters.ItemU("MotorFSA").Shapes(1).Cells("EventDrop").Formula = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
+    ActiveDocument.Masters.ItemU("MotorFSA").Shapes(1).Cells("EventMultiDrop").Formula = """"""
+    Set shpSensorOnFSA = vsoPageFSA.Drop(FSAvss.Masters.Item("ValveFSA"), 0, 0)
+    shpSensorOnFSA.Delete
+    ActiveDocument.Masters.ItemU("ValveFSA").Shapes(1).Cells("EventDrop").Formula = "CALLTHIS(""AutoNumber.AutoNumFSA"")"
+    ActiveDocument.Masters.ItemU("ValveFSA").Shapes(1).Cells("EventMultiDrop").Formula = """"""
+    
     'Находим что уже есть на ФСА (связанные датчики)
     For Each shpSensorOnFSA In vsoPageFSA.Shapes
         If ShapeSATypeIs(shpSensorOnFSA, typeFSASensor) Or ShapeSATypeIs(shpSensorOnFSA, typeFSAActuator) Then
@@ -93,14 +101,60 @@ Public Sub AddSensorsOnFSA(NazvanieShkafa As String)
     'Вставляем недостающие датчики на ФСА
     For Each shpSensorOnCxema In colSensorToFSA
         Select Case ShapeSAType(shpSensorOnCxema)
-            Case typeCxemaSensor
+            Case typeCxemaSensor 'Датчик
                 Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("SensorFSA"), DropX, DropY)
                 DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+
+                If shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "RK" Or shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "TC" Then 'Датчик температуры/Термопара TE
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """TE"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "BP" Then 'Датчик давления PT
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """PT"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "SP" Then 'Реле давления PS
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """PS"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "SL" Then 'Реле уровня LS
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """LS"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "BL" Then 'Датчик пламени BE
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """BE"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "SQ" Then 'Концевик GS
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """GS"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "SK" Then 'Термостат TS
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """TS"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "UZ" Then 'Частотник NY,UZ
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """NY"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "BN" Then 'Сигнализатор загазованности QN
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """QN"""
+                Else
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """XX"""
+                End If
+
                 'Связываем датчик на ФСА и датчик наэл. схеме
                 AddReferenceSensor shpSensorOnFSA, shpSensorOnCxema
-            Case typeCxemaActuator
-'                Set shpSensorOnFSA = vsoPageFSA.Drop(FSAvss.Masters.Item("ActuatorFSA"), DropX, DropY)
-'                DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+            Case typeCxemaActuator 'Привод
+                If shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "M" Then 'Насос, Вентилятор FG
+                    Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("MotorFSA"), DropX, DropY)
+                    DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """FG"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "B" Then 'Горелка FB
+                    Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("MotorFSA"), DropX, DropY)
+                    DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """FB"""
+                    shpSensorOnFSA.Cells("Prop.Tip").FormulaU = "INDEX(2,Prop.Tip.Format)"
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "YA" Then 'Клапан электромагнитный FY, 3-х ходовой кран FV
+                    Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("ValveFSA"), DropX, DropY)
+                    DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """FV"""
+                ElseIf shpSensorOnCxema.Cells("Prop.SymName").ResultStr(0) = "TV" Then 'Трансформатор запальника EZ
+                    Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("MotorFSA"), DropX, DropY)
+                    DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """EZ"""
+                    shpSensorOnFSA.Cells("Prop.Tip").FormulaU = "INDEX(2,Prop.Tip.Format)" 'TODO нарисовать запальник и вписать цифру индекса
+                Else
+                    Set shpSensorOnFSA = vsoPageFSA.Drop(ActiveDocument.Masters.ItemU("ValveFSA"), DropX, DropY)
+                    DropX = DropX + shpSensorOnFSA.Cells("Width").Result(0) * 2
+                    shpSensorOnFSA.Cells("Prop.SymName").FormulaU = """XX"""
+                End If
+                'Связываем привод на ФСА и привод наэл. схеме
+                AddReferenceSensor shpSensorOnFSA, shpSensorOnCxema
             Case Else
                 
         End Select

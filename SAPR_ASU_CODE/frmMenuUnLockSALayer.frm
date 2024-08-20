@@ -62,7 +62,11 @@ Private Sub cbLockUnlockLayer_Click()
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerLock).FormulaU = "1"
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerColor).FormulaU = "19"
             ActivePage.Layers(cmbxLayers.text).CellsC(visLayerSnap).FormulaU = "0"
-            ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "0"
+            If cmbxLayers.text = "SA_LockedWire" Then
+                ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "1"
+            Else
+                ActivePage.Layers(cmbxLayers.text).CellsC(visLayerGlue).FormulaU = "0"
+            End If
             cbLockUnlockLayer.Caption = "Разблокировать слой"
         End If
     End If

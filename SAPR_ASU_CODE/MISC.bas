@@ -341,6 +341,21 @@ Resume
 
 End Sub
 
+Sub SetUserSAType(SAType As Integer)
+    Dim vsoShape As Visio.Shape
+    For Each vsoShape In ActiveWindow.Selection 'ActiveSelection
+        vsoShape.Cells("User.SAType").Formula = SAType
+    Next
+End Sub
+
+Sub SetUserSAType_0()
+    SetUserSAType 0
+End Sub
+
+Sub SetUserSAType_132()
+    SetUserSAType 132
+End Sub
+
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : ExtractOboz - Функция определения неизменяемой части обозначения
 ' Author        : Shishok

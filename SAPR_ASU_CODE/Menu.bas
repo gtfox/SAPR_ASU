@@ -200,8 +200,20 @@ Private Sub AddButtons()
         .BeginGroup = True
     End With
     
-        '---Кнопка Настройки
+        '---Кнопка Сохранить в PDF Цветное
     Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=12)
+    With Button
+        .Caption = "СохранитьвPDFЦветное"
+        .Tag = "SavePDFColor"
+        .style = msoButtonAutomatic
+        .OnAction = "SavePDFColor"
+        .TooltipText = "Сохранить в PDF в цвете"
+        .FaceId = 508
+        .BeginGroup = True
+    End With
+    
+        '---Кнопка Настройки
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=13)
     With Button
         .Caption = "НастройкиПроекта"
         .Tag = "SettingsProject"
@@ -211,7 +223,33 @@ Private Sub AddButtons()
         .FaceId = 642
         .BeginGroup = True
     End With
-    
+
+        '---Кнопка 0
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=14)
+    With Button
+        .Caption = "0"
+        .Tag = "SettingsProject"
+        .style = msoButtonAutomatic
+        .OnAction = "SetUserSAType_0"
+        .TooltipText = "0"
+        .FaceId = 70
+        .BeginGroup = True
+    End With
+
+        '---Кнопка 132
+    Set Button = Bar.Controls.Add(Type:=msoControlButton, id:=1, Before:=15)
+    With Button
+        .Caption = "132"
+        .Tag = "SettingsProject"
+        .style = msoButtonAutomatic
+        .OnAction = "SetUserSAType_132"
+        .TooltipText = "132"
+        .FaceId = 59
+        .BeginGroup = True
+    End With
+
+
+
     Set Button = Nothing
            
 End Sub

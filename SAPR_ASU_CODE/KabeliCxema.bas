@@ -55,18 +55,19 @@ Public Sub AddCableOnSensor(shpSensor As Visio.Shape, Optional iOptions As Integ
                     AddToGroupCable shpKabel, shpKabel.ContainingPage, colWires
                     'Число проводов в кабеле
                     shpKabel.Cells("Prop.WireCount").FormulaU = colWires.Count
+                    'Сохраняем к какому шкафу подключен кабель
+                    If ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaTerm) Then 'клемма шкафа
+                        shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
+                    ElseIf ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
+                        shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
+                    End If
+                    shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
                 End If
             End If
         Next
         
-        'Сохраняем к какому шкафу подключен кабель
-        If ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaTerm) Then 'клемма шкафа
-            shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(1).ToSheet.NameID & "!User.FullName.Prompt"
-        ElseIf ShapeSATypeIs(colWires.Item(1).Connects(1).ToSheet, typeCxemaSensorTerm) Then 'клемма датчика
-            shpKabel.Cells("User.LinkToBox").Formula = colWires.Item(1).Connects(2).ToSheet.NameID & "!User.FullName.Prompt"
-        End If
-        shpKabel.Cells("User.LinkToSensor").Formula = shpSensor.NameID & "!User.Name"
-        
+
+
     Else
     
         'Собираем провода со всех входов в датчике
@@ -194,6 +195,7 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
     Dim cellProvodUp As Visio.Cell
     Dim AbsPinX As Double
     Dim AbsPinY As Double
+    Dim NPin As Integer
     
     Set vsoPage = ActivePage
     Set vsoMasterKlemma = Application.Documents.Item("SAPR_ASU_CXEMA.vss").Masters.Item("Term")
@@ -214,6 +216,8 @@ Sub AddKlemmyIProvoda(shpSensorIO As Visio.Shape)
             Set cellProvodUp = shpProvod.CellsU("EndX")
             cellProvodDown.GlueTo cellKlemmaDatchika
             cellProvodUp.GlueTo cellKlemmaShkafa
+            NPin = NPin + 1
+            If NPin = shpSensorIO.Cells("Prop.NPin").Result(0) Then Exit For
         End If
     Next
     ActiveWindow.DeselectAll

@@ -263,7 +263,7 @@ End Sub
 'Масштабирование на листе ВИД
 Private Sub vsoPagesEvent_ShapeAdded(ByVal Shape As IVShape)
     If bVpisatVList Then
-        VpisatVListExec Shape
+        frmMenuVpisatVList.run Shape
         bVpisatVList = False
     End If
 End Sub

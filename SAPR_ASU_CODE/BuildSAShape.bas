@@ -727,8 +727,8 @@ End Sub
 Function AddIntoTXTfile(ByVal FileName As String, ByVal txt As String) As Boolean
     On Error Resume Next: err.Clear
     Set fso = CreateObject("scripting.filesystemobject")
-    Set ts = fso.OpenTextFile(FileName, 8, True): ts.Write txt: ts.Close
-    Set ts = Nothing: Set fso = Nothing
+    Set TS = fso.OpenTextFile(FileName, 8, True): TS.Write txt: TS.Close
+    Set TS = Nothing: Set fso = Nothing
     AddIntoTXTfile = err = 0
 End Function
 

@@ -62,39 +62,54 @@ Sub run(vsoShape As Visio.Shape) 'Приняли шейп из модуля DB
     Dim ArtikulDB As String
 
     InitIzbrannoeExcelDB
-    FillExcel_cmbxProizvoditel cmbxProizvoditel, True
+'    FillExcel_cmbxProizvoditel cmbxProizvoditel, True
     
     Set glShape = vsoShape 'И определили его как глолбальный в форме frmDBPriceExcel
     ArtikulDB = glShape.Cells("Prop.ArtikulDB").ResultStr(0)
-    If ArtikulDB <> "" Then
-        bBlock = True
-        For i = 0 To cmbxProizvoditel.ListCount - 1
-            If cmbxProizvoditel.List(i, 0) = glShape.Cells("Prop.ProizvoditelDB").ResultStr(0) Then cmbxProizvoditel.ListIndex = i
-        Next
-        If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
-            SetVarProizvoditelPrice
-            txtArtikul.Value = ArtikulDB
-            tbtnFiltr.Value = False
-            Find_ItemsByText_ADO
-            txtArtikul.Value = ""
-            bBlock = False
-            frmDBPriceExcel.Show
-        Else
+    
+    'Открываем избранное, без поиска введенного в элемент, артикула
+
             bBlock = True
             cmbxProizvoditel.ListIndex = -1
             Load frmDBIzbrannoeExcel
-            frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
-'            frmDBIzbrannoeExcel.tbtnFiltr.Value = False
-            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
+'            frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
+''            frmDBIzbrannoeExcel.tbtnFiltr.Value = False
+
             frmDBIzbrannoeExcel.txtArtikul.Value = ""
+            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
             bBlock = False
             frmDBIzbrannoeExcel.Show
-        End If
-    Else
-        ExcelAppQuit oExcelAppIzbrannoe
-        KillSAExcelProcess
-        frmDBPriceExcel.Show
-    End If
+
+
+'    If ArtikulDB <> "" Then
+'        bBlock = True
+'        For i = 0 To cmbxProizvoditel.ListCount - 1
+'            If cmbxProizvoditel.List(i, 0) = glShape.Cells("Prop.ProizvoditelDB").ResultStr(0) Then cmbxProizvoditel.ListIndex = i
+'        Next
+'        If cmbxProizvoditel.ListIndex <> -1 And Not (ArtikulDB Like "Набор_*") Then
+'            SetVarProizvoditelPrice
+'            txtArtikul.Value = ArtikulDB
+'            tbtnFiltr.Value = False
+'            Find_ItemsByText_ADO
+'            txtArtikul.Value = ""
+'            bBlock = False
+'            frmDBPriceExcel.Show
+'        Else
+'            bBlock = True
+'            cmbxProizvoditel.ListIndex = -1
+'            Load frmDBIzbrannoeExcel
+'            frmDBIzbrannoeExcel.txtArtikul.Value = ArtikulDB
+''            frmDBIzbrannoeExcel.tbtnFiltr.Value = False
+'            frmDBIzbrannoeExcel.Find_ItemsByText_ADO
+'            frmDBIzbrannoeExcel.txtArtikul.Value = ""
+'            bBlock = False
+'            frmDBIzbrannoeExcel.Show
+'        End If
+'    Else
+'        ExcelAppQuit oExcelAppIzbrannoe
+'        KillSAExcelProcess
+'        frmDBPriceExcel.Show
+'    End If
 End Sub
 
 Private Sub cmbxProizvoditel_Change()

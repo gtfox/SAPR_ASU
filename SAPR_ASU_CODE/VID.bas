@@ -229,7 +229,7 @@ Public Sub VpisatVList()
     ThisDocument.bVpisatVList = True
 End Sub
 
-Sub VpisatVListExec(vsoShape As Visio.Shape)
+Sub VpisatVListExec(vsoShape As Visio.Shape, iFormat As Long)
 '------------------------------------------------------------------------------------------------------------
 ' Macros        : VpisatVListExec - "Вписывает чертеж в лист" - Увеличивает масштаб докумета под размер чертежа
 
@@ -240,11 +240,32 @@ Sub VpisatVListExec(vsoShape As Visio.Shape)
     Dim kW As Double
     Dim kH As Double
     Dim k As Double
+    Dim W As String
+    Dim H As String
     
     Set vsoPage = Application.ActivePage
     
-    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = "420 mm"
-    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = "297 mm"
+    Select Case iFormat
+        Case 0
+            W = "1189 mm"
+            H = "841 mm"
+        Case 1
+            W = "841 mm"
+            H = "594 mm"
+        Case 2
+            W = "594 mm"
+            H = "420 mm"
+        Case 3
+            W = "420 mm"
+            H = "297 mm"
+        Case 4
+            W = "297 mm"
+            H = "210 mm"
+    End Select
+    
+    
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageWidth).FormulaU = W
+    vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageHeight).FormulaU = H
     vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawingScale).FormulaU = "1 mm"
     vsoPage.PageSheet.CellsSRC(visSectionObject, visRowPage, visPageDrawScaleType).FormulaU = "0"
     

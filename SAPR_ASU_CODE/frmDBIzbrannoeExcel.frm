@@ -25,6 +25,8 @@ Dim mstrVybPozVNabore(7) As String
 Dim bInit As Boolean
 
 Private Sub UserForm_Initialize() ' инициализация формы
+    Dim SQLQuery As String
+    
     If Not bInit Then
         lstvTableIzbrannoe.LabelEdit = lvwManual 'чтобы не редактировалось первое значение в строке
         lstvTableIzbrannoe.ColumnHeaders.Add , , "Артикул" ' добавить ColumnHeaders
@@ -63,7 +65,14 @@ Private Sub UserForm_Initialize() ' инициализация формы
     '    tbtnBD = False
         tbtnFav = True
         
-        FillExcel_cmbxProizvoditel cmbxProizvoditel
+        
+           
+        bBlock = True
+        SQLQuery = "SELECT DISTINCT Производитель FROM [" & ExcelIzbrannoe & "$];"
+        Fill_ComboBox_ADO IzbrannoeSettings.FileName, SQLQuery, cmbxProizvoditel
+        bBlock = False
+        
+'        FillExcel_cmbxProizvoditel cmbxProizvoditel
         
     '    ClearFilter wshIzbrannoe
     '    ClearFilter wshNabory

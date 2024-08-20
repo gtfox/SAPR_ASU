@@ -674,61 +674,151 @@ Public Function PozNameInString(strPozNumber As String, strPozName As String) As
 End Function
 
 
-Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Integer, IzbPozCod As String, iIndex As Integer) As Double
+Sub ReplaceNaborToSostav(colStrokaSpecifInner As Collection)
 '------------------------------------------------------------------------------------------------------------
-' Function      : AddSostavNaboraIzBD - Добавляет состав набора из БД к списку позиций спецификации
+' Sub      : ReplaceNaborToSostav - Заменяет строку спецификации с набором на состав набора из БД
+'------------------------------------------------------------------------------------------------------------
+    Dim i As Integer
+    Dim NElemNabora As Double
+    
+    For i = 1 To colStrokaSpecifInner.Count
+        If colStrokaSpecifInner(i).ArtikulDB Like "Набор_*" Then
+            NElemNabora = AddSostavNaboraIzExcelBD(colStrokaSpecifInner, colStrokaSpecifInner(i).KolVo, colStrokaSpecifInner(i).ArtikulDB, i)
+            ReplaceNaborToSostav colStrokaSpecifInner
+        End If
+    Next
+End Sub
+
+Public Function AddSostavNaboraIzExcelBD(colStrokaSpecif As Collection, KolVo As Integer, strNabor As String, iIndex As Integer) As Double
+'------------------------------------------------------------------------------------------------------------
+' Function      : AddSostavNaboraIzExcelBD - Добавляет состав набора из БД к списку позиций спецификации
                 'Возвращает число добавленных строк
 '------------------------------------------------------------------------------------------------------------
-    Dim i As Double
-    Dim iold As Double
-    Dim rst As DAO.Recordset
-    Dim RecordCount As Double
+    Dim oConn As New ADODB.Connection
+    Dim oRecordSet As New ADODB.Recordset
     Dim SQLQuery As String
     Dim clsStrokaSpecif As classStrokaSpecifikacii
     Dim strColKey As String
-   
+    Dim nCount As Long
+    Dim oldnCount As Double
+    Dim SymName As String
+    Dim PozOboznach As String
+    
+    SymName = colStrokaSpecif(iIndex).SymName
+    PozOboznach = colStrokaSpecif(iIndex).PozOboznach
+    colStrokaSpecif.Remove iIndex
+    
     nCount = colStrokaSpecif.Count
-    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
-                "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
-                "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
-    Set rst = GetRecordSet(DBNameIzbrannoeAccess, SQLQuery)
-    If rst.RecordCount > 0 Then
-        rst.MoveLast
-        RecordCount = rst.RecordCount
-        i = 0
-        iold = 1000
-        With rst
-            If .EOF Then Exit Function
-            .MoveFirst
+    oldnCount = nCount
+    
+    SQLQuery = "SELECT * FROM [" & ExcelNabory & "$] WHERE Набор='" & strNabor & "';"
+    
+    
+    oConn.Mode = adModeReadWrite
+    oConn.Open "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" & sSAPath & DBNameIzbrannoeExcel & ";Extended Properties=""Excel 12.0;HDR=YES"";"
+    oRecordSet.CursorType = adOpenStatic
+    oRecordSet.Open SQLQuery, oConn
+    
+    With oRecordSet
+        If .RecordCount > 0 Then
+            If .EOF Then .Close: Exit Function
             Do Until .EOF
+
                 Set clsStrokaSpecif = New classStrokaSpecifikacii
-                clsStrokaSpecif.SymName = colStrokaSpecif(iIndex).SymName
+                clsStrokaSpecif.SymName = SymName
                 clsStrokaSpecif.SAType = ""
-                clsStrokaSpecif.NazvanieDB = .Fields("Название").Value
-                clsStrokaSpecif.ArtikulDB = .Fields("Артикул").Value
-                clsStrokaSpecif.ProizvoditelDB = .Fields("Производитель").Value
-                clsStrokaSpecif.CenaDB = .Fields("Цена").Value
-                clsStrokaSpecif.EdDB = .Fields("Единица").Value
-                clsStrokaSpecif.KolVo = .Fields("Количество").Value * KolVo
-                clsStrokaSpecif.PozOboznach = colStrokaSpecif(iIndex).PozOboznach
+                clsStrokaSpecif.NazvanieDB = IIf(IsNull(.Fields(2 - 1).Value), "", .Fields(2 - 1).Value) 'Название
+                clsStrokaSpecif.ArtikulDB = IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value) 'Артикул
+                clsStrokaSpecif.ProizvoditelDB = IIf(IsNull(.Fields(5 - 1).Value), "", .Fields(5 - 1).Value) 'Производитель
+                clsStrokaSpecif.CenaDB = IIf(IsNull(.Fields(3 - 1).Value), "", .Fields(3 - 1).Value) 'Цена
+                clsStrokaSpecif.EdDB = IIf(IsNull(.Fields(4 - 1).Value), "", .Fields(4 - 1).Value) 'Единица
+                clsStrokaSpecif.KolVo = IIf(IsNull(.Fields(6 - 1).Value), "", .Fields(6 - 1).Value) * KolVo 'Количество
+                clsStrokaSpecif.PozOboznach = PozOboznach
                 clsStrokaSpecif.KodPoziciiDB = ""
-                strColKey = ";;" & .Fields("Артикул").Value
+                strColKey = SymName & PozOboznach & ";;" & IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value) 'Артикул
                         
                 On Error Resume Next
                 colStrokaSpecif.Add clsStrokaSpecif, strColKey
+                err.Clear
+                On Error GoTo 0
                 If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент
-                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & .Fields("Артикул").Value, vbExclamation, "САПР-АСУ: Добавление набора в состав спецификации"
+                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & SymName & PozOboznach & " : " & IIf(IsNull(.Fields(1 - 1).Value), "", .Fields(1 - 1).Value), vbExclamation, "САПР-АСУ: Добавление набора в состав спецификации"
                 Else
                     nCount = colStrokaSpecif.Count
                 End If
 
                 .MoveNext
             Loop
-        End With
-        AddSostavNaboraIzBD = RecordCount
-    End If
-    Set rst = Nothing
+        End If
+    End With
+
+    AddSostavNaboraIzExcelBD = nCount - oldnCount 'oRecordSet.RecordCount
+    
+    oRecordSet.Close
+    oConn.Close
+    Set oRecordSet = Nothing
+    Set oConn = Nothing
+
 End Function
+
+'Access
+
+'Public Function AddSostavNaboraIzBD(colStrokaSpecif As Collection, KolVo As Integer, IzbPozCod As String, iIndex As Integer) As Double
+''------------------------------------------------------------------------------------------------------------
+'' Function      : AddSostavNaboraIzBD - Добавляет состав набора из БД к списку позиций спецификации
+'                'Возвращает число добавленных строк
+''------------------------------------------------------------------------------------------------------------
+'    Dim i As Double
+'    Dim iold As Double
+'    Dim rst As DAO.Recordset
+'    Dim RecordCount As Double
+'    Dim SQLQuery As String
+'    Dim clsStrokaSpecif As classStrokaSpecifikacii
+'    Dim strColKey As String
+'    Dim nCount As Long
+'
+'    nCount = colStrokaSpecif.Count
+'    SQLQuery = "SELECT Наборы.КодПозиции, Наборы.ИзбрПозицииКод, Наборы.Артикул, Наборы.Название, Наборы.Цена, Наборы.Количество, Наборы.ПроизводительКод, Производители.Производитель, Наборы.ЕдиницыКод, Единицы.Единица " & _
+'                "FROM Единицы INNER JOIN (Производители INNER JOIN Наборы ON Производители.КодПроизводителя = Наборы.ПроизводительКод) ON Единицы.КодЕдиницы = Наборы.ЕдиницыКод " & _
+'                "WHERE Наборы.ИзбрПозицииКод=" & IzbPozCod & ";"
+'    Set rst = GetRecordSet(DBNameIzbrannoeAccess, SQLQuery)
+'    If rst.RecordCount > 0 Then
+'        rst.MoveLast
+'        RecordCount = rst.RecordCount
+'        i = 0
+'        iold = 1000
+'        With rst
+'            If .EOF Then Exit Function
+'            .MoveFirst
+'            Do Until .EOF
+'                Set clsStrokaSpecif = New classStrokaSpecifikacii
+'                clsStrokaSpecif.SymName = colStrokaSpecif(iIndex).SymName
+'                clsStrokaSpecif.SAType = ""
+'                clsStrokaSpecif.NazvanieDB = .Fields("Название").Value
+'                clsStrokaSpecif.ArtikulDB = .Fields("Артикул").Value
+'                clsStrokaSpecif.ProizvoditelDB = .Fields("Производитель").Value
+'                clsStrokaSpecif.CenaDB = .Fields("Цена").Value
+'                clsStrokaSpecif.EdDB = .Fields("Единица").Value
+'                clsStrokaSpecif.KolVo = .Fields("Количество").Value * KolVo
+'                clsStrokaSpecif.PozOboznach = colStrokaSpecif(iIndex).PozOboznach
+'                clsStrokaSpecif.KodPoziciiDB = ""
+'                strColKey = ";;" & .Fields("Артикул").Value
+'
+'                On Error Resume Next
+'                colStrokaSpecif.Add clsStrokaSpecif, strColKey
+'                If colStrokaSpecif.Count = nCount Then 'Если кол-во не увеличелось, значит уже есть такой элемент
+'                    MsgBox "В наборе присутствуют позиции с одинаковым артикулом: " & .Fields("Артикул").Value, vbExclamation, "САПР-АСУ: Добавление набора в состав спецификации"
+'                Else
+'                    nCount = colStrokaSpecif.Count
+'                End If
+'
+'                .MoveNext
+'            Loop
+'        End With
+'        AddSostavNaboraIzBD = RecordCount
+'    End If
+'    Set rst = Nothing
+'End Function
 
 '------------------------------------------------------------------------------------------------------------
 '----------------------------------------------Кабельный журнал----------------------------------------------
@@ -891,8 +981,10 @@ Public Sub KJ_EXP_2_XLS()
     Dim sht As Excel.Sheets
     Dim en As String
     Dim un As String
+    Dim lLastRow As Long
+    Dim nstr As Long
     
-    Dim sPath, sFile As String
+    Dim sPath, sFile, sFileName As String
     sPath = Visio.ActiveDocument.path
     sFileName = "SP_2_Visio.xls"
     sFile = sPath & sFileName
